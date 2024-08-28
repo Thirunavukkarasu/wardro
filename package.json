@@ -8,8 +8,8 @@
     "dev": "expo start -c --ios",
     "dev:web": "expo start -c --web",
     "dev:android": "expo start -c --android",
-    "android": "expo start -c --android",
-    "ios": "expo start --ios",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
     "web": "expo start -c --web",
     "clean": "rm -rf .expo node_modules",
     "postinstall": "npx tailwindcss -i ./global.css -o ./node_modules/.cache/nativewind/global.css"
@@ -28,6 +28,7 @@
     "clsx": "^2.1.0",
     "expo": "~51.0.28",
     "expo-constants": "~16.0.2",
+    "expo-dev-client": "~4.0.25",
     "expo-font": "~12.0.9",
     "expo-linking": "~6.3.1",
     "expo-navigation-bar": "~3.0.7",
@@ -37,7 +38,7 @@
     "expo-system-ui": "~3.0.7",
     "expo-web-browser": "~13.0.3",
     "lucide-react-native": "^0.378.0",
-    "nativewind": "^4.0.33",
+    "nativewind": "^4.0.36",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-native": "0.74.5",
@@ -50,8 +51,7 @@
     "tailwind-merge": "^2.2.1",
     "tailwindcss": "3.3.5",
     "tailwindcss-animate": "^1.0.7",
-    "zustand": "^4.4.7",
-    "expo-dev-client": "~4.0.25"
+    "zustand": "^4.4.7"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
