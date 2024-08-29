@@ -66,10 +66,23 @@ export default function RootLayout() {
       <StatusBar style={isDarkColorScheme ? "light" : "dark"} />
       <Stack>
         <Stack.Screen
-          name="index"
+          name="signin"
           options={{
             title: "My Closet",
             headerRight: () => <ThemeToggle />,
+          }}
+        />
+        <Stack.Screen
+          name="(tabs)"
+          options={{
+            title: "My Closet",
+            headerRight: () => <ThemeToggle />,
+          }}
+        />
+        <Stack.Screen
+          name="settings/index"
+          options={{
+            title: "Settings",
           }}
         />
       </Stack>
