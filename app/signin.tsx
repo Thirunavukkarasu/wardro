@@ -1,10 +1,11 @@
-import { View, Text } from "react-native";
 import React, { useState } from "react";
-import { Input } from "~/components/ui/input";
-import { Button } from "~/components/ui/button";
+import { View, Text } from "react-native";
 import { useRouter } from "expo-router";
 
-export default function Sigin() {
+import { Input } from "~/components/ui/input";
+import { Button } from "~/components/ui/button";
+
+export default function Signin() {
   const router = useRouter();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -20,7 +21,7 @@ export default function Sigin() {
   const onPressLogin = () => {
     console.log("Login", { username, password });
     //redirect to home
-    router.push("/(tabs)");
+    router.replace("/home");
   };
 
   return (

@@ -69,11 +69,12 @@ export default function RootLayout() {
           name="signin"
           options={{
             title: "My Closet",
+            headerShown: false,
             headerRight: () => <ThemeToggle />,
           }}
         />
         <Stack.Screen
-          name="(tabs)"
+          name="home"
           options={{
             title: "My Closet",
             headerRight: () => <ThemeToggle />,
