@@ -1,11 +1,14 @@
+import { useRouter } from "expo-router";
 import React from "react";
 import { View, Text } from "react-native";
 import { Button } from "~/components/ui/button";
-import { Plus } from "~/lib/icons/Plus";
 
 export default function Closet() {
+  const router = useRouter();
+
   const onPressAddItem = () => {
     console.log("Add Item");
+    router.replace("/add");
   };
 
   return (
@@ -14,7 +17,8 @@ export default function Closet() {
         <Text className="text-xl text-center mt-4">All Items</Text>
         <Button onPress={onPressAddItem} size={"sm"} variant={"outline"}>
           <View className="flex flex-row items-center">
-            <Plus className="text-gray-500" />
+            {/* <Plus className="text-gray-500" /> */}
+            <Text className="text-gray-500">Add Item</Text>
           </View>
         </Button>
       </View>

@@ -86,6 +86,12 @@ export default function RootLayout() {
             title: "Settings",
           }}
         />
+        <Stack.Screen
+          name="add"
+          options={{
+            title: "Add Item",
+          }}
+        />
       </Stack>
       <PortalHost />
     </ThemeProvider>
