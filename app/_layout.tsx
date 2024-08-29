@@ -2,7 +2,7 @@ import "~/global.css";
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Theme, ThemeProvider } from "@react-navigation/native";
-import { SplashScreen, Stack } from "expo-router";
+import { SplashScreen, Stack, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as React from "react";
 import { Platform } from "react-native";
@@ -29,6 +29,7 @@ export {
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
+  const router = useRouter();
   const { colorScheme, setColorScheme, isDarkColorScheme } = useColorScheme();
   const [isColorSchemeLoaded, setIsColorSchemeLoaded] = React.useState(false);
 
@@ -54,6 +55,7 @@ export default function RootLayout() {
       setIsColorSchemeLoaded(true);
     })().finally(() => {
       SplashScreen.hideAsync();
+      router.replace("/(auth)/login");
     });
   }, []);
 
@@ -66,11 +68,18 @@ export default function RootLayout() {
       <StatusBar style={isDarkColorScheme ? "light" : "dark"} />
       <Stack>
         <Stack.Screen
-          name="signin"
+          name="(auth)/login"
           options={{
             title: "My Closet",
             headerShown: false,
             headerRight: () => <ThemeToggle />,
+          }}
+        />
+        <Stack.Screen
+          name="(auth)/register"
+          options={{
+            title: "My Closet",
+            headerShown: false,
           }}
         />
         <Stack.Screen

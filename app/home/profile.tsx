@@ -18,7 +18,7 @@ export default function ProfileScreen() {
 
   const handleLogout = () => {
     // Perform logout logic here (e.g., clearing tokens)
-    router.replace("/signin");
+    router.replace("/login");
   };
 
   return (
@@ -62,7 +62,7 @@ export default function ProfileScreen() {
         {/* Account */}
         <TouchableOpacity
           className="bg-white p-4 flex-row items-center space-x-4"
-          onPress={() => router.push("/signin")}
+          onPress={() => router.push("/login")}
         >
           <Ionicons name="person-outline" size={24} color="black" />
           <Text className="text-base">Account</Text>
@@ -72,7 +72,7 @@ export default function ProfileScreen() {
         {/* Privacy */}
         <TouchableOpacity
           className="bg-white p-4 flex-row items-center space-x-4"
-          onPress={() => router.push("/signin")}
+          onPress={() => router.push("/login")}
         >
           <Ionicons name="lock-closed-outline" size={24} color="black" />
           <Text className="text-base">Privacy</Text>
@@ -82,7 +82,7 @@ export default function ProfileScreen() {
         {/* Notifications */}
         <TouchableOpacity
           className="bg-white p-4 flex-row items-center space-x-4"
-          onPress={() => router.push("/signin")}
+          onPress={() => router.push("/login")}
         >
           <Ionicons name="notifications-outline" size={24} color="black" />
           <Text className="text-base">Notifications</Text>
