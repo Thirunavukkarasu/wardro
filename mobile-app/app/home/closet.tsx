@@ -1,7 +1,8 @@
-import { useRouter } from "expo-router";
 import React from "react";
 import { View, Text } from "react-native";
-import { Button } from "~/mobile-app/components/ui/button";
+import { useRouter } from "expo-router";
+
+import { Button } from "~/components/ui/button";
 
 export default function Closet() {
   const router = useRouter();

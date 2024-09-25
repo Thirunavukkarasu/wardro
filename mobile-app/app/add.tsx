@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { View, Text, Image, ScrollView } from "react-native";
-import CameraComponent from "~/mobile-app/components/CameraComponent";
-import { Button } from "~/mobile-app/components/ui/button";
-import { Input } from "~/mobile-app/components/ui/input";
+import CameraComponent from "~/components/CameraComponent";
+import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
 
 export default function AddItem() {
   const [photoUri, setPhotoUri] = useState<string | null>(null);

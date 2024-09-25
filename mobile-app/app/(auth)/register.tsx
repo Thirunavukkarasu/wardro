@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import { View, Text } from "react-native";
 import { useRouter } from "expo-router";
 
-import { Input } from "~/mobile-app/components/ui/input";
-import { Button } from "~/mobile-app/components/ui/button";
+import { Input } from "~/components/ui/input";
+import { Button } from "~/components/ui/button";
 
 export default function Register() {
   const router = useRouter();

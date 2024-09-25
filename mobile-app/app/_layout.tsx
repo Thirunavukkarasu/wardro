@@ -6,10 +6,10 @@ import { SplashScreen, Stack, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as React from "react";
 import { Platform } from "react-native";
-import { NAV_THEME } from "~/mobile-app/lib/constants";
-import { useColorScheme } from "~/mobile-app/lib/useColorScheme";
+import { NAV_THEME } from "~/lib/constants";
+import { useColorScheme } from "~/lib/useColorScheme";
 import { PortalHost } from "@rn-primitives/portal";
-import { ThemeToggle } from "~/mobile-app/components/ThemeToggle";
+import { ThemeToggle } from "~/components/ThemeToggle";
 
 const LIGHT_THEME: Theme = {
   dark: false,

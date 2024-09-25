@@ -1,9 +1,9 @@
 import { Tabs } from "expo-router";
 import React from "react";
 
-import { TabBarIcon } from "~/mobile-app/components/navigation/TabBarIcon";
-import { Colors } from "~/mobile-app/constants/Colors";
-import { useColorScheme } from "~/mobile-app/hooks/useColorScheme";
+import { TabBarIcon } from "~/components/navigation/TabBarIcon";
+import { Colors } from "~/constants/Colors";
+import { useColorScheme } from "~/hooks/useColorScheme";
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -19,7 +19,7 @@ export default function TabLayout() {
         name="index"
         options={{
           title: "Home",
-          tabBarIcon: ({ color, focused }) => (
+          tabBarIcon: ({ color, focused }: any) => (
             <TabBarIcon
               name={focused ? "home" : "home-outline"}
               color={color}
@@ -31,7 +31,7 @@ export default function TabLayout() {
         name="closet"
         options={{
           title: "Closet",
-          tabBarIcon: ({ color, focused }) => (
+          tabBarIcon: ({ color, focused }: any) => (
             <TabBarIcon
               name={focused ? "person" : "person-outline"}
               color={color}
@@ -43,7 +43,7 @@ export default function TabLayout() {
         name="profile"
         options={{
           title: "Profile",
-          tabBarIcon: ({ color, focused }) => (
+          tabBarIcon: ({ color, focused }: any) => (
             <TabBarIcon
               name={focused ? "code-slash" : "code-slash-outline"}
               color={color}

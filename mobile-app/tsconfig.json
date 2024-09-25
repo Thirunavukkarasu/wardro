@@ -10,7 +10,7 @@
   "include": [
     "**/*.ts",
     "**/*.tsx",
-    "mobile-app/.expo/types/**/*.ts",
+    ".expo/types/**/*.ts",
     "expo-env.d.ts",
     "**/*.jsx",
     "**/*.js"

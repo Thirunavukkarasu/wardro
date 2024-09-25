@@ -1,6 +1,6 @@
 import { Image, ScrollView, Text, View } from "react-native";
 import { useRouter } from "expo-router";
-import { Card, CardTitle } from "~/mobile-app/components/ui/card";
+import { Card, CardTitle } from "~/components/ui/card";
 
 const kidsCloset = [
   { id: "1", name: "Red T-shirt", imageUrl: "https://via.placeholder.com/150" },
