@@ -15,7 +15,7 @@ export default function CTA() {
           Garment Khazana is an open-source project. Contribute to the project
         </p>
         <Button asChild variant={"outline"}>
-          <a href="https://github.com/thirunavukkarasu/garment-khazana">
+          <a href="https://github.com/thirunavukkarasu/my-closet">
             Start on Github
           </a>
         </Button>

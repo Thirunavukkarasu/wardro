@@ -4,7 +4,9 @@
     "strict": true,
     "baseUrl": ".",
     "paths": {
-      "~/*": ["*"]
+      "~/*": [
+        "*"
+      ]
     }
   },
   "include": [
@@ -13,6 +15,8 @@
     "mobile-app/.expo/types/**/*.ts",
     "expo-env.d.ts",
     "**/*.jsx",
-    "**/*.js"
+    "**/*.js",
+    "nativewind-env.d.ts",
+    ".expo/types/**/*.ts"
   ]
 }
