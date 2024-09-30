@@ -3,7 +3,7 @@ import "~/global.css";
 import * as React from "react";
 import { LogBox } from "react-native";
 import { SplashScreen, Stack } from "expo-router";
-import { ClerkProvider } from "@clerk/clerk-expo";
+import { ClerkLoaded, ClerkProvider } from "@clerk/clerk-expo";
 import { tokenCache } from "~/lib/auth";
 
 export {
@@ -31,42 +31,14 @@ export default function RootLayout() {
 
   return (
     <ClerkProvider tokenCache={tokenCache} publishableKey={publishableKey}>
-      <Stack>
-        <Stack.Screen
-          name="(auth)/login"
-          options={{
-            title: "My Closet",
-            headerShown: false,
-            // headerRight: () => <ThemeToggle />,
-          }}
-        />
-        <Stack.Screen
-          name="(auth)/register"
-          options={{
-            title: "My Closet",
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen
-          name="home"
-          options={{
-            title: "My Closet",
-            // headerRight: () => <ThemeToggle />,
-          }}
-        />
-        <Stack.Screen
-          name="settings/index"
-          options={{
-            title: "Settings",
-          }}
-        />
-        <Stack.Screen
-          name="add"
-          options={{
-            title: "Add Item",
-          }}
-        />
-      </Stack>
+      <ClerkLoaded>
+        <Stack>
+          <Stack.Screen name="index" options={{ headerShown: false }} />
+          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+          <Stack.Screen name="(root)" options={{ headerShown: false }} />
+          <Stack.Screen name="+not-found" />
+        </Stack>
+      </ClerkLoaded>
     </ClerkProvider>
   );
 }

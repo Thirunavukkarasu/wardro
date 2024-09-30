@@ -1,9 +1,11 @@
 import { View, Text, Image, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { useAuth } from "@clerk/clerk-expo";
 
 export default function ProfileScreen() {
   const router = useRouter();
+  const { signOut } = useAuth();
 
   // Mock user data
   const user = {
@@ -18,7 +20,8 @@ export default function ProfileScreen() {
 
   const handleLogout = () => {
     // Perform logout logic here (e.g., clearing tokens)
-    router.replace("/login");
+    signOut();
+    router.replace("/(auth)/sign-in");
   };
 
   return (
