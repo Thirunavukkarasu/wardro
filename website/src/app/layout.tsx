@@ -10,9 +10,9 @@ const fontSans = FontSans({
 });
 
 export const metadata: Metadata = {
-  title: "Garment Khazana",
+  title: "Wardro",
   description:
-    "Garment Khazana is a simple and easy to use app to manage your and your family's closet.",
+    "Wardro is a simple and easy to use app to manage your and your family's closet.",
 };
 
 export default function RootLayout({

@@ -13,8 +13,8 @@ export default function HeroSection() {
           </span>
         </h1>
         <p className="text-lg mb-8">
-          Garment Khazana is a simple and easy to use app to manage your and
-          your family&#39;s closet.
+          Wardro is a simple and easy to use app to manage your and your
+          family&#39;s closet.
         </p>
         <div className="space-x-4">
           <Button>Download Now</Button>

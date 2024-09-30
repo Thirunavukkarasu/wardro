@@ -12,7 +12,7 @@ export default function CTA() {
           </span>
         </h2>
         <p className="text-lg mb-8">
-          Garment Khazana is an open-source project. Contribute to the project
+          Wardro is an open-source project. Contribute to the project
         </p>
         <Button asChild variant={"outline"}>
           <a href="https://github.com/thirunavukkarasu/my-closet">

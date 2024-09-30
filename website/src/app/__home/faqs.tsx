@@ -8,22 +8,22 @@ import {
 
 const faqs = [
   {
-    title: "What is Garment Khazana?",
+    title: "What is Wardro?",
     content:
-      "Garment Khazana is a simple and easy to use app to manage your and your family's closet.",
+      "Wardro is a simple and easy to use app to manage your and your family's closet.",
   },
   {
     title: "Can I try it for free?",
-    content: "Yes, you can try Garment Khazana for free forever.",
+    content: "Yes, you can try Wardro for free forever.",
   },
   {
     title: "What platforms does it integrate with?",
-    content: "Garment Khazana integrates with iOS and Android platforms.",
+    content: "Wardro integrates with iOS and Android platforms.",
   },
   {
     title: "What are the features?",
     content:
-      "Garment Khazana has features like managing your closet, your family's closet, shared closet from friends, and more.",
+      "Wardro has features like managing your closet, your family's closet, shared closet from friends, and more.",
   },
 ];
 
