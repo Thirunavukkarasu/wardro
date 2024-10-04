@@ -5,7 +5,7 @@ export const usersTable = pgTable("users", {
     name: varchar("name", { length: 255 }).notNull(),
     email: varchar("email", { length: 255 }).notNull(),
     clerkId: varchar("clerk_id", { length: 255 }).notNull(),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
+    // createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 export type InsertUser = typeof usersTable.$inferInsert;

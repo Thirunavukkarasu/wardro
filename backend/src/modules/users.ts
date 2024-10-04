@@ -10,6 +10,7 @@ const routes = new Hono()
 routes.post('/', async (c) => {
     try {
         const requestData = await c.req.json();
+        console.log("Request data:", requestData);
         const user: User = UserSchema.parse(requestData);
 
         const response = await db.insert(usersTable).values(user);
@@ -22,7 +23,7 @@ routes.post('/', async (c) => {
     }
 })
 
-routes.get('/', async (c) => {
+routes.get('/:clerkId', async (c) => {
     try {
         const clerkId: string = c.req.param('clerkId') || '';
         const response = await db.select().from(usersTable).where(eq(usersTable.clerkId, clerkId));

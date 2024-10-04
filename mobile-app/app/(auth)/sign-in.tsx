@@ -22,7 +22,7 @@ const SignIn = () => {
     if (!isLoaded) return;
 
     try {
-      const signInAttempt = await signIn.create({
+      const signInAttempt: any = await signIn.create({
         identifier: form.email,
         password: form.password,
       });

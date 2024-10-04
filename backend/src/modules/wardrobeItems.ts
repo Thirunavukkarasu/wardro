@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
 import { z } from 'zod';
+import { eq } from 'drizzle-orm';
 
 import { WardrobeItemSchema, type WardrobeItem } from '@/types';
 import { db } from '@/db';
@@ -31,6 +32,15 @@ routes.post('/', async (c) => {
         }
         return Response.json({ error: "Internal Server Error" }, { status: 500 });
     }
+})
+
+routes.get('/', async (c) => {
+    const wardrobeId = parseInt(c.req.param('wardrobeId') || '0');
+    if (!wardrobeId) {
+        return new Response(JSON.stringify({ error: "Invalid wardrobeId" }), { status: 400 });
+    }
+    const wardrobeItems = await db.select().from(wardrobeItemsTable).where(eq(wardrobeItemsTable.wardrobeId, wardrobeId)).execute();
+    return new Response(JSON.stringify({ data: wardrobeItems }));
 })
 
 export default routes
