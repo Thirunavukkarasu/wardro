@@ -3,9 +3,11 @@ import { neon } from "@neondatabase/serverless";
 export async function POST(request: Request) {
     try {
         const sql = neon(`${process.env.DATABASE_URL}`);
-        const { name, email, clerkId } = await request.json();
-
-        if (!name || !email || !clerkId) {
+        const createdAt = new Date().toISOString();
+        console.log("Creating wardrobe with name:");
+        const { userId, name, description } = await request.json(); // Assuming name and description are the fields for the wardrobe
+        console.log("Creating wardrobe with name:", name);
+        if (!userId || !name) {
             return Response.json(
                 { error: "Missing required fields" },
                 { status: 400 }
@@ -13,39 +15,41 @@ export async function POST(request: Request) {
         }
 
         const response = await sql`
-            INSERT INTO users (
+            INSERT INTO wardrobes (
+                user_id, 
                 name, 
-                email, 
-                clerk_id
+                description,
+                created_at
             ) 
             VALUES (
+                ${userId}, 
                 ${name}, 
-                ${email},
-                ${clerkId}
-            );`;
+                ${description},
+                ${createdAt}
+            )
+            RETURNING id;`; // Return the ID of the newly created wardrobe
 
         return new Response(JSON.stringify({ data: response }), {
             status: 201,
         });
     } catch (error) {
-        console.error("Error creating user:", error);
+        console.error("Error creating wardrobe:", error);
         return Response.json({ error: "Internal Server Error" }, { status: 500 });
     }
 }
 
 export async function GET(request: Request) {
-    //get user profile
     try {
         const sql = neon(`${process.env.DATABASE_URL}`);
-        const { clerkId } = request.params;
+        const { userId } = request.params;
         const response = await sql`
-            SELECT * FROM users WHERE clerk_id = ${clerkId};`;
+            SELECT * FROM wardrobes WHERE user_id = ${userId};`;
 
         return new Response(JSON.stringify({ data: response }), {
             status: 200,
         });
     } catch (error) {
-        console.error("Error fetching user:", error);
+        console.error("Error fetching wardrobes:", error);
         return Response.json({ error: "Internal Server Error" }, { status: 500 });
     }
 }

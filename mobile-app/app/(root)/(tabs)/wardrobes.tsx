@@ -3,12 +3,12 @@ import React from "react";
 import { View, Text } from "react-native";
 import { Button } from "~/components/ui/button";
 
-export default function Closet() {
+export default function Wardrobes() {
   const router = useRouter();
 
   const onPressAddItem = () => {
     console.log("Add Item");
-    router.replace("/add");
+    router.push("/(root)/add-wardrobe-items");
   };
 
   return (

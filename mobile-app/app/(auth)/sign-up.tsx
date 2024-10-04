@@ -44,6 +44,7 @@ const SignUp = () => {
       Alert.alert("Error", err.errors[0].longMessage);
     }
   };
+
   const onPressVerify = async () => {
     if (!isLoaded) return;
     try {

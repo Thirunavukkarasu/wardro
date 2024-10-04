@@ -11,7 +11,8 @@ const Home = () => {
   const swiperRef = useRef<Swiper>(null);
   const [activeIndex, setActiveIndex] = useState(0);
 
-  const isLastSlide = activeIndex === onboarding.length - 1;
+  // const isLastSlide = activeIndex === onboarding.length - 1;
+  const isLastSlide = true;
   const item = onboarding[activeIndex];
 
   return (
