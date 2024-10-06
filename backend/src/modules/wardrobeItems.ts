@@ -21,7 +21,7 @@ routes.post('/', async (c) => {
             purchaseDate: wardrobeItem.purchaseDate ? new Date(wardrobeItem.purchaseDate) : undefined,
             expiryDate: wardrobeItem.expiryDate ? new Date(wardrobeItem.expiryDate) : undefined,
             createdAt
-        });
+        }).returning();
         return new Response(JSON.stringify({ data: response }), {
             status: 201,
         });
@@ -34,7 +34,7 @@ routes.post('/', async (c) => {
     }
 })
 
-routes.get('/', async (c) => {
+routes.get('/:wardrobeId', async (c) => {
     const wardrobeId = parseInt(c.req.param('wardrobeId') || '0');
     if (!wardrobeId) {
         return new Response(JSON.stringify({ error: "Invalid wardrobeId" }), { status: 400 });

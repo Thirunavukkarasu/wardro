@@ -1,0 +1,19 @@
+meta {
+  name: Create Wardrobe
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{BASE_API_URL}}/wardrobes
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "userId": 1,
+    "name": "Son Wardrobe",
+    "description": "My Son wardrobe"
+  }
+}

@@ -20,6 +20,6 @@ apiRoutes.get('/healthcheck', (c) => {
 
 apiRoutes.route('/users', userRoutes)
 apiRoutes.route('/wardrobes', wardrobeRoutes)
-apiRoutes.route('/wardrobesItems', wardrobeItemRoutes)
+apiRoutes.route('/wardrobeItems', wardrobeItemRoutes)
 
 export default apiRoutes

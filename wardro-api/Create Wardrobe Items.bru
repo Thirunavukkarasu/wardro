@@ -1,0 +1,27 @@
+meta {
+  name: Create Wardrobe Items
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{BASE_API_URL}}/wardrobeItems
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+      "photoUri": "http://url.com",
+      "itemName": "Cargo Pants",
+      "purchaseDate": "",
+      "expiryDate": "",
+      "price": 10,
+      "brand": "other",
+      "category": "casual",
+      "color": "red",
+      "size": "medium",
+      "wardrobeId": 1,
+      "userId": 1
+  }
+}

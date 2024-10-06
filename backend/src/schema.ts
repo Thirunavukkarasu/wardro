@@ -36,7 +36,7 @@ export const wardrobeItemsTable = pgTable("wardrobe_items", {
     wardrobeId: integer("wardrobe_id").references(() => wardrobesTable.id, { onDelete: 'cascade' }).notNull(),
     userId: integer("user_id").references(() => wardrobesTable.id, { onDelete: 'cascade' }).notNull(),
     state: varchar("state", { length: 50 }).default('newly_purchased'),
-    usageState: varchar("usage_state", { length: 50 }).default('new'),
+    // usageState: varchar("usage_state", { length: 50 }).default('new'),
     createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

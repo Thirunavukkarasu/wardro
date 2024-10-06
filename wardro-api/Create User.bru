@@ -1,0 +1,19 @@
+meta {
+  name: Create User
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{BASE_API_URL}}/users
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "name": "John Doe",
+    "email": "john.doe2@gmail.com",
+    "clerkId": "user_2mmu2aI1SXxHpvJ3K6e9LWj0CH8"
+  }
+}
