@@ -10,7 +10,6 @@
     "@clerk/backend": "^1.13.8",
     "@hono/clerk-auth": "^2.0.0",
     "@neondatabase/serverless": "^0.9.5",
-    "dotenv": "^16.4.5",
     "drizzle-orm": "^0.33.0",
     "hono": "^4.5.9",
     "zod": "^3.23.8"
