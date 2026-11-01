@@ -30,7 +30,7 @@ const SignIn = () => {
       console.log(JSON.stringify(signInAttempt, null, 2));
       if (signInAttempt.status === "complete") {
         const clerkId = signInAttempt.createdUserId;
-        const userProfile = await fetchAPI(`/(api)/user/${clerkId}`, {
+        const userProfile = await fetchAPI(`/user/${clerkId}`, {
           method: "GET",
         });
 

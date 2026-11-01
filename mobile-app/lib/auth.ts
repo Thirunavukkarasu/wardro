@@ -39,7 +39,7 @@ export const googleOAuth = async (startOAuthFlow: any) => {
                 await setActive({ session: createdSessionId });
 
                 if (signUp.createdUserId) {
-                    await fetchAPI("/(api)/user", {
+                    const userResponse = await fetchAPI("/users", {
                         method: "POST",
                         body: JSON.stringify({
                             name: `${signUp.firstName} ${signUp.lastName}`,
@@ -47,6 +47,8 @@ export const googleOAuth = async (startOAuthFlow: any) => {
                             clerkId: signUp.createdUserId,
                         }),
                     });
+                    const userProfile = userResponse?.data[0];
+                    await SecureStore.setItemAsync("user", JSON.stringify(userProfile));
                 }
 
                 return {
@@ -62,7 +64,7 @@ export const googleOAuth = async (startOAuthFlow: any) => {
             message: "An error occurred while signing in with Google",
         };
     } catch (err: any) {
-        console.error(err);
+        console.log(err);
         return {
             success: false,
             code: err.code,

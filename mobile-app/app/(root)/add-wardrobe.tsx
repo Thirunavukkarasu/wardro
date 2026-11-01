@@ -1,11 +1,13 @@
 import { useUser } from "@clerk/clerk-expo";
 import { useCallback, useState } from "react";
 import { Image, ScrollView, Text, View } from "react-native";
+import * as SecureStore from "expo-secure-store";
 
 import CustomButton from "~/components/CustomButton";
 import InputField from "~/components/InputField";
 import { icons, images } from "~/constants";
 import { fetchAPI } from "~/lib/fetch";
+import { router } from "expo-router";
 
 const AddWardrobe = () => {
   const { user }: any = useUser();
@@ -17,14 +19,19 @@ const AddWardrobe = () => {
   const onPressAddWardrobe = useCallback(async () => {
     console.log("Add Wardrobe", form);
     console.log("User", JSON.stringify(user, null, 2));
-    await fetchAPI("/(api)/wardrobe", {
+    const storedUser: any = await SecureStore.getItemAsync("user");
+    const parsedUser = JSON.parse(storedUser);
+    console.log("User stored: ", JSON.parse(storedUser));
+    console.log("User Id: ", parsedUser.id);
+    await fetchAPI("/wardrobes", {
       method: "POST",
       body: JSON.stringify({
-        userId: user.id,
+        userId: parsedUser.id || 2,
         name: form.name,
         description: form.description,
       }),
     });
+    router.replace("/(root)/(tabs)/home");
   }, [form]);
 
   return (

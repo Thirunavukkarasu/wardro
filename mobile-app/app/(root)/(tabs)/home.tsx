@@ -1,28 +1,30 @@
 import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { useRouter } from "expo-router";
+import { useEffect, useCallback, useState } from "react";
 
 import { Card, CardTitle } from "~/components/ui/card";
 import { SafeAreaView } from "react-native-safe-area-context";
 import CustomButton from "~/components/CustomButton";
-
-const kids = [
-  { id: "1", name: "Red T-shirt", imageUrl: "https://via.placeholder.com/150" },
-  { id: "2", name: "Blue Jeans", imageUrl: "https://via.placeholder.com/150" },
-  {
-    id: "3",
-    name: "Yellow Hoodie",
-    imageUrl: "https://via.placeholder.com/150",
-  },
-];
-
-const husband = [
-  { id: "1", name: "Black Suit", imageUrl: "https://via.placeholder.com/150" },
-  { id: "2", name: "White Shirt", imageUrl: "https://via.placeholder.com/150" },
-  { id: "3", name: "Brown Shoes", imageUrl: "https://via.placeholder.com/150" },
-];
+import { fetchAPI } from "~/lib/fetch";
+import { useSession } from "@clerk/clerk-expo";
 
 export default function HomeScreen() {
   const router = useRouter();
+  const session = useSession();
+  const [wardrobes, setWardrobes] = useState([]);
+
+  const fetchData = useCallback(async () => {
+    console.log("Fetching data", session);
+    const wardrobeResponse = await fetchAPI("/wardrobes/4", {
+      method: "GET",
+    });
+    const wardrobeData = wardrobeResponse?.data;
+    setWardrobes(wardrobeData);
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const onPressAddWardrobe = () => {
     router.push("/(root)/add-wardrobe");
@@ -36,24 +38,18 @@ export default function HomeScreen() {
           <Text>+ Wardrobe</Text>
         </TouchableOpacity>
       </View>
-      <Text className="text-lg font-bold mb-2">Kids' Wardrobe</Text>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        className="mb-4"
-      >
-        {kids.map((item) => (
-          <Card key={item.id}>
-            <CardTitle className="text-sm">{item.name}</CardTitle>
-            <Image
-              source={{ uri: item.imageUrl }}
-              style={{ width: 150, height: 150 }}
-            />
-          </Card>
-        ))}
-      </ScrollView>
+      {wardrobes.map((item: any, idx) => (
+        <View key={idx}>
+          <Text className="text-lg font-bold mb-2">{item.name}</Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            className="mb-4"
+          ></ScrollView>
+        </View>
+      ))}
 
-      <Text className="text-lg font-bold mb-2">Husband's Wardrobes</Text>
+      {/* <Text className="text-lg font-bold mb-2">Husband's Wardrobes</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
         {husband.map((item) => (
           <Card key={item.id}>
@@ -64,7 +60,7 @@ export default function HomeScreen() {
             />
           </Card>
         ))}
-      </ScrollView>
+      </ScrollView> */}
     </ScrollView>
   );
 }

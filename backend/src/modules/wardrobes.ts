@@ -9,6 +9,7 @@ const routes = new Hono()
 routes.post('/', async (c) => {
     try {
         const requestData = await c.req.json();
+        console.log("Request data:", requestData);
         const wardrobe: Wardrobe = WardrobeSchema.parse(requestData);
         const createdAt = new Date();
 
