@@ -4,7 +4,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wardro_mobile/app.dart';
 import 'package:wardro_mobile/core/network/api_client.dart';
 import 'package:wardro_mobile/features/auth/auth_controller.dart';
-import 'package:wardro_mobile/features/auth/auth_service.dart';
 import 'package:wardro_mobile/features/auth/stub_auth_service.dart';
 import 'package:wardro_mobile/shared/widgets/app_button.dart';
 
@@ -79,22 +78,19 @@ void main() {
       expect(await service.restoreSession(), isNull);
     });
 
-    test('sign up requires a six-digit verification code', () async {
-      await service.beginSignUp(
+    test('sign up signs the user in immediately', () async {
+      await service.signUp(
         name: 'Ada Lovelace',
         email: 'ada@example.com',
         password: 'password123',
       );
 
-      await expectLater(
-        service.verifyEmailCode('12'),
-        throwsA(isA<AuthException>()),
-      );
-
-      await service.verifyEmailCode('123456');
       final user = await service.restoreSession();
       expect(user?.firstName, 'Ada');
       expect(user?.lastName, 'Lovelace');
+      expect(user?.emailVerified, isTrue);
+
+      await service.resendVerificationEmail();
     });
   });
 
@@ -152,14 +148,9 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(signUpButton);
       await tester.pumpAndSettle();
-      expect(find.text('Verification'), findsOneWidget);
+      expect(find.text('Verify your email'), findsOneWidget);
 
-      await tester.enterText(find.byType(TextFormField).last, '123456');
-      await tester.tap(find.widgetWithText(AppButton, 'Verify Email'));
-      await tester.pumpAndSettle();
-      expect(find.text('Verified'), findsOneWidget);
-
-      await tester.tap(find.widgetWithText(AppButton, 'Browse Home'));
+      await tester.tap(find.widgetWithText(AppButton, 'Continue'));
       await tester.pumpAndSettle();
 
       expect(find.text('Your Wardrobes'), findsOneWidget);

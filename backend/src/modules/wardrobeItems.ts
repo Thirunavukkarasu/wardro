@@ -5,6 +5,7 @@ import { desc, eq } from 'drizzle-orm';
 import { WardrobeItemSchema, type WardrobeItem } from '@/types';
 import { db } from '@/db';
 import { wardrobeItemsTable } from '@/schema';
+import { removeUploadedFile } from '@/modules/uploads';
 
 const routes = new Hono()
 
@@ -48,6 +49,30 @@ routes.get('/user/:userId', async (c) => {
         .orderBy(desc(wardrobeItemsTable.createdAt))
         .execute();
     return new Response(JSON.stringify({ data: items }), { status: 200 });
+})
+
+routes.delete('/:id', async (c) => {
+    try {
+        const id = parseInt(c.req.param('id') || '0');
+        if (!id) {
+            return Response.json({ error: "Invalid item id" }, { status: 400 });
+        }
+
+        const deleted = await db
+            .delete(wardrobeItemsTable)
+            .where(eq(wardrobeItemsTable.id, id))
+            .returning();
+
+        if (deleted.length === 0) {
+            return Response.json({ error: "Item not found" }, { status: 404 });
+        }
+
+        await removeUploadedFile(deleted[0].photoUri);
+        return new Response(null, { status: 204 });
+    } catch (error: any) {
+        console.error("Error deleting wardrobe item:", error);
+        return Response.json({ error: "Internal Server Error" }, { status: 500 });
+    }
 })
 
 routes.get('/:wardrobeId', async (c) => {

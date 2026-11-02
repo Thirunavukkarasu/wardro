@@ -21,11 +21,13 @@ class AppConfig {
     defaultValue: 4,
   );
 
-  /// Authentication backend to use. `stub` ships today; `clerk` will be wired
-  /// up through `clerk_flutter` without touching the screens.
+  /// Authentication backend: `firebase` (default) or `stub`.
+  ///
+  /// If Firebase is selected but the platform config is incomplete, the app
+  /// logs a warning and falls back to the stub so it still starts.
   static const String authMode = String.fromEnvironment(
     'AUTH_MODE',
-    defaultValue: 'stub',
+    defaultValue: 'firebase',
   );
 
   static const Duration requestTimeout = Duration(seconds: 20);

@@ -40,7 +40,7 @@ class OAuthSection extends StatelessWidget {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text(
-                  'Google sign-in will be enabled once Clerk is connected.',
+                  'Google sign-in is not enabled yet. Use email and password.',
                 ),
               ),
             );

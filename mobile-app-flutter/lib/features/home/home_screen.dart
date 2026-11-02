@@ -166,14 +166,32 @@ class _HomeScreenState extends State<HomeScreen> {
                 onAction: _openAddWardrobe,
               )
             else
-              for (final wardrobe in _wardrobes)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 14),
-                  child: _WardrobeCard(
-                    wardrobe: wardrobe,
-                    onTap: () => _openWardrobe(wardrobe),
-                  ),
-                ),
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final columns = constraints.maxWidth >= 1000
+                      ? 3
+                      : constraints.maxWidth >= 680
+                      ? 2
+                      : 1;
+                  const gap = 14.0;
+                  final width =
+                      (constraints.maxWidth - gap * (columns - 1)) / columns;
+                  return Wrap(
+                    spacing: gap,
+                    runSpacing: gap,
+                    children: [
+                      for (final wardrobe in _wardrobes)
+                        SizedBox(
+                          width: width,
+                          child: _WardrobeCard(
+                            wardrobe: wardrobe,
+                            onTap: () => _openWardrobe(wardrobe),
+                          ),
+                        ),
+                    ],
+                  );
+                },
+              ),
           ],
         ),
       ),
@@ -261,6 +279,28 @@ class _WardrobeCard extends StatelessWidget {
   final Wardrobe wardrobe;
   final VoidCallback onTap;
 
+  Widget _cover() {
+    final fallback = Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF4CA6FF), AppColors.primary],
+        ),
+      ),
+      child: const Icon(Icons.checkroom, color: Colors.white, size: 26),
+    );
+
+    final url = wardrobe.coverPhotoUrl;
+    if (url == null) return fallback;
+
+    return Image.network(
+      url,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) => fallback,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isEmpty = wardrobe.itemCount == 0;
@@ -286,21 +326,12 @@ class _WardrobeCard extends StatelessWidget {
           ),
           child: Row(
             children: [
-              Container(
-                width: 54,
-                height: 54,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [Color(0xFF4CA6FF), AppColors.primary],
-                  ),
-                  borderRadius: BorderRadius.circular(18),
-                ),
-                child: const Icon(
-                  Icons.checkroom,
-                  color: Colors.white,
-                  size: 26,
+              ClipRRect(
+                borderRadius: BorderRadius.circular(18),
+                child: SizedBox(
+                  width: 54,
+                  height: 54,
+                  child: _cover(),
                 ),
               ),
               const SizedBox(width: 14),

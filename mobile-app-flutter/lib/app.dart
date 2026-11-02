@@ -6,6 +6,7 @@ import 'core/theme/app_theme.dart';
 import 'features/auth/auth_controller.dart';
 import 'features/auth/auth_gate.dart';
 import 'features/auth/auth_scope.dart';
+import 'shared/widgets/mobile_frame.dart';
 
 class WardroApp extends StatelessWidget {
   const WardroApp({
@@ -27,6 +28,8 @@ class WardroApp extends StatelessWidget {
           title: 'Wardro',
           debugShowCheckedModeBanner: false,
           theme: AppTheme.light,
+          builder: (context, child) =>
+              MobileFrame(child: child ?? const SizedBox.shrink()),
           home: const AuthGate(),
         ),
       ),

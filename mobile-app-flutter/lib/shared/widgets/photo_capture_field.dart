@@ -32,7 +32,13 @@ class PhotoCaptureField extends StatelessWidget {
       );
       if (picked == null) return;
       final bytes = await picked.readAsBytes();
-      onChanged(PickedPhoto(bytes: bytes, path: picked.path));
+      onChanged(
+        PickedPhoto(
+          bytes: bytes,
+          path: picked.path,
+          mimeType: picked.mimeType,
+        ),
+      );
     } on PlatformException catch (error) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

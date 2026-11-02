@@ -34,18 +34,18 @@ class AuthController extends ChangeNotifier {
     return _run(() => _service.signIn(email: email, password: password));
   }
 
-  Future<bool> beginSignUp({
+  Future<bool> signUp({
     required String name,
     required String email,
     required String password,
   }) {
     return _run(
-      () => _service.beginSignUp(name: name, email: email, password: password),
+      () => _service.signUp(name: name, email: email, password: password),
     );
   }
 
-  Future<bool> verifyEmailCode(String code) {
-    return _run(() => _service.verifyEmailCode(code));
+  Future<bool> resendVerificationEmail() {
+    return _run(_service.resendVerificationEmail);
   }
 
   Future<void> signOut() async {

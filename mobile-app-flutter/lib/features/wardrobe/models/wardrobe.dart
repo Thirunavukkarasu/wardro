@@ -6,6 +6,7 @@ class Wardrobe {
     required this.name,
     required this.description,
     this.itemCount = 0,
+    this.coverPhotoUri = '',
   });
 
   final int id;
@@ -13,6 +14,14 @@ class Wardrobe {
   final String name;
   final String description;
   final int itemCount;
+  final String coverPhotoUri;
+
+  /// The cover photo is only renderable when the backend stored a real URL.
+  String? get coverPhotoUrl {
+    final uri = coverPhotoUri.trim();
+    if (uri.startsWith('http://') || uri.startsWith('https://')) return uri;
+    return null;
+  }
 
   factory Wardrobe.fromJson(Map<String, dynamic> json) => Wardrobe(
     id: (json['id'] as num?)?.toInt() ?? 0,
@@ -20,5 +29,6 @@ class Wardrobe {
     name: json['name'] as String? ?? '',
     description: json['description'] as String? ?? '',
     itemCount: (json['itemCount'] as num?)?.toInt() ?? 0,
+    coverPhotoUri: json['coverPhotoUri'] as String? ?? '',
   );
 }

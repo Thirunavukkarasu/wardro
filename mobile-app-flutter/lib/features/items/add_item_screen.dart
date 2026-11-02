@@ -97,14 +97,11 @@ class _AddItemScreenState extends State<AddItemScreen> {
     }
   }
 
-  Map<String, dynamic> _buildPayload() {
+  Map<String, dynamic> _buildPayload(String? photoUri) {
     final payload = <String, dynamic>{
       'itemName': _itemName.text.trim(),
       'wardrobeId': _wardrobeId,
       'userId': AuthScope.of(context).user?.id ?? AppConfig.demoUserId,
-      // NOTE: the backend stores this as an opaque string. There is no upload
-      // endpoint yet, so the picked file's path is saved as-is.
-      'photoUri': _photo?.path,
     };
 
     void addIfNotEmpty(String key, String value) {
@@ -112,6 +109,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
       if (trimmed.isNotEmpty) payload[key] = trimmed;
     }
 
+    addIfNotEmpty('photoUri', photoUri ?? '');
     addIfNotEmpty('brand', _brand.text);
     addIfNotEmpty('category', _category.text);
     addIfNotEmpty('color', _color.text);
@@ -144,7 +142,14 @@ class _AddItemScreenState extends State<AddItemScreen> {
     setState(() => _saving = true);
 
     try {
-      await _api.post('/wardrobeItems', body: _buildPayload());
+      // Photos are stored as files by the backend; the item only keeps the
+      // resulting absolute URL so it renders on every device later.
+      String? photoUri;
+      if (_photo != null) {
+        photoUri = await _api.uploadPhoto(_photo!);
+      }
+
+      await _api.post('/wardrobeItems', body: _buildPayload(photoUri));
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Item saved.')),

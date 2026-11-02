@@ -3,6 +3,7 @@ import { Hono } from 'hono'
 import { WardrobeSchema, type Wardrobe } from "@/types";
 import { db } from "@/db";
 import { wardrobesTable, wardrobeItemsTable } from "@/schema";
+import { removeUploadedFile } from "@/modules/uploads";
 
 const routes = new Hono()
 
@@ -45,6 +46,7 @@ routes.get('/:userId/summary', async (c) => {
                 description: wardrobesTable.description,
                 createdAt: wardrobesTable.createdAt,
                 itemCount: sql<number>`count(${wardrobeItemsTable.id})`.mapWith(Number),
+                coverPhotoUri: sql<string | null>`max(nullif(${wardrobeItemsTable.photoUri}, ''))`,
             })
             .from(wardrobesTable)
             .leftJoin(
@@ -77,6 +79,38 @@ routes.get('/:userId', async (c) => {
         });
     } catch (error) {
         console.error("Error fetching wardrobes:", error);
+        const errorMessage = (error as any).message;
+        return Response.json({ error: errorMessage }, { status: 500 });
+    }
+})
+
+routes.delete('/:id', async (c) => {
+    try {
+        const id = parseInt(c.req.param('id') || '0');
+        if (!id) {
+            return Response.json({ error: "Invalid wardrobe id" }, { status: 400 });
+        }
+
+        // Read the children first so their uploaded files can be cleaned up
+        // after the cascade removes the rows.
+        const items = await db
+            .select()
+            .from(wardrobeItemsTable)
+            .where(eq(wardrobeItemsTable.wardrobeId, id));
+
+        const deleted = await db
+            .delete(wardrobesTable)
+            .where(eq(wardrobesTable.id, id))
+            .returning();
+
+        if (deleted.length === 0) {
+            return Response.json({ error: "Wardrobe not found" }, { status: 404 });
+        }
+
+        await Promise.all(items.map((item) => removeUploadedFile(item.photoUri)));
+        return new Response(null, { status: 204 });
+    } catch (error) {
+        console.error("Error deleting wardrobe:", error);
         const errorMessage = (error as any).message;
         return Response.json({ error: errorMessage }, { status: 500 });
     }

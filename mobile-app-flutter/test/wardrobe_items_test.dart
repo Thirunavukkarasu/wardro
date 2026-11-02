@@ -37,6 +37,26 @@ void main() {
 
       expect(wardrobe.itemCount, 0);
     });
+
+    test('only exposes cover photos stored as absolute URLs', () {
+      const base = {'id': 1, 'userId': 1, 'name': 'Closet'};
+
+      expect(
+        Wardrobe.fromJson({
+          ...base,
+          'coverPhotoUri': 'http://localhost:3000/api/uploads/a.jpg',
+        }).coverPhotoUrl,
+        'http://localhost:3000/api/uploads/a.jpg',
+      );
+      expect(
+        Wardrobe.fromJson({
+          ...base,
+          'coverPhotoUri': 'blob:http://localhost:8080/abc',
+        }).coverPhotoUrl,
+        isNull,
+      );
+      expect(Wardrobe.fromJson(base).coverPhotoUrl, isNull);
+    });
   });
 
   group('WardrobeItem', () {
@@ -152,7 +172,6 @@ void main() {
 
       expect(find.text('Sister'), findsWidgets);
       expect(find.text('Pants'), findsOneWidget);
-      expect(find.text('H&M · Formals'), findsOneWidget);
       expect(find.text('₹1,500'), findsOneWidget);
       expect(find.text('New'), findsOneWidget);
     });

@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "251900114942",
+    "project_id": "wardo-ce8d5",
+    "storage_bucket": "wardo-ce8d5.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:251900114942:android:4b6fb438155e6a373372af",
+        "android_client_info": {
+          "package_name": "com.om.wardo"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "251900114942-ntfihbiuu1b7og3t79r79oln1tv4rbgb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDBUUxiJTDjJNTHwtp3v92xTbeZRRHomb8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "251900114942-ntfihbiuu1b7og3t79r79oln1tv4rbgb.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

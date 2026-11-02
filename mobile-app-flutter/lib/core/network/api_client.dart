@@ -2,7 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 
+import '../../shared/models/picked_photo.dart';
 import '../config/app_config.dart';
 import 'api_exception.dart';
 
@@ -39,7 +41,58 @@ class ApiClient {
     );
   }
 
+  Future<dynamic> delete(String path) {
+    return _send(() => _client.delete(_uri(path), headers: _defaultHeaders));
+  }
+
   void dispose() => _client.close();
+
+  /// Uploads a picked photo and returns the absolute URL to store as
+  /// `photoUri`.
+  Future<String> uploadPhoto(PickedPhoto photo) async {
+    final request = http.MultipartRequest('POST', _uri('/uploads'))
+      ..headers['ngrok-skip-browser-warning'] = 'true'
+      ..files.add(
+        http.MultipartFile.fromBytes(
+          'file',
+          photo.bytes,
+          filename: photo.filename,
+          contentType: MediaType.parse(photo.resolvedMimeType),
+        ),
+      );
+
+    final http.Response response;
+    try {
+      final streamed = await _client
+          .send(request)
+          .timeout(AppConfig.requestTimeout);
+      response = await http.Response.fromStream(streamed);
+    } on TimeoutException catch (error) {
+      throw ApiException('The upload timed out.', cause: error);
+    } on ApiException {
+      rethrow;
+    } on Exception catch (error) {
+      throw ApiException(
+        'Could not upload the photo. Check your connection.',
+        cause: error,
+      );
+    }
+
+    final dynamic decoded = _decode(response.body);
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw ApiException(
+        _errorMessage(decoded) ??
+            'Upload failed with status ${response.statusCode}.',
+        statusCode: response.statusCode,
+      );
+    }
+
+    if (decoded is Map<String, dynamic> && decoded['data'] is Map) {
+      final url = (decoded['data'] as Map)['url'];
+      if (url is String && url.isNotEmpty) return url;
+    }
+    throw const ApiException('The upload response did not include a URL.');
+  }
 
   Uri _uri(String path) {
     final normalized = path.startsWith('/') ? path : '/$path';

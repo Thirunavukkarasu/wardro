@@ -4,15 +4,18 @@ import '../../core/network/api_client.dart';
 import '../../core/network/api_exception.dart';
 import '../../core/network/api_scope.dart';
 import '../../core/theme/app_colors.dart';
-import '../../shared/widgets/app_button.dart';
+import '../../shared/utils/layout.dart';
 import '../../shared/widgets/app_pill.dart';
+import '../../shared/widgets/circle_action.dart';
+import '../../shared/widgets/confirm_dialog.dart';
 import '../../shared/widgets/status_views.dart';
 import '../items/add_item_screen.dart';
+import '../items/item_detail_screen.dart';
 import '../items/models/wardrobe_item.dart';
-import '../items/widgets/item_card.dart';
+import '../items/widgets/item_photo_tile.dart';
 import 'models/wardrobe.dart';
 
-/// Everything inside one wardrobe, reached by tapping a card on the home tab.
+/// Everything inside one wardrobe, shown as a photo grid.
 class WardrobeItemsScreen extends StatefulWidget {
   const WardrobeItemsScreen({super.key, required this.wardrobe});
 
@@ -72,58 +75,120 @@ class _WardrobeItemsScreenState extends State<WardrobeItemsScreen> {
     if (mounted) _load();
   }
 
+  Future<void> _openItem(WardrobeItem item) async {
+    final deleted = await Navigator.of(context).push<bool>(
+      MaterialPageRoute<bool>(builder: (_) => ItemDetailScreen(item: item)),
+    );
+    if (deleted == true && mounted) _load();
+  }
+
+  Future<void> _deleteWardrobe() async {
+    final count = _items.length;
+    final confirmed = await showDeleteConfirmation(
+      context,
+      title: 'Delete wardrobe?',
+      message: count == 0
+          ? '"${widget.wardrobe.name}" will be removed permanently.'
+          : '"${widget.wardrobe.name}" and its $count ${count == 1 ? 'item' : 'items'} will be removed permanently.',
+    );
+    if (!confirmed || !mounted) return;
+
+    try {
+      await _api.delete('/wardrobes/${widget.wardrobe.id}');
+      if (!mounted) return;
+      Navigator.of(context).pop(true);
+    } on ApiException catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error.message)));
+    }
+  }
+
+  Widget _sliverBox(Widget child) {
+    return SliverPadding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      sliver: SliverToBoxAdapter(child: child),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.wardrobe.name)),
+      appBar: AppBar(
+        actions: [
+          IconButton(
+            tooltip: 'Delete wardrobe',
+            icon: const Icon(Icons.delete_outline),
+            onPressed: _deleteWardrobe,
+          ),
+          const SizedBox(width: 4),
+        ],
+      ),
       body: RefreshIndicator(
         onRefresh: _load,
         color: AppColors.primary,
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
-          children: [
-            _WardrobeHeader(
-              wardrobe: widget.wardrobe,
-              itemCount: _loading ? widget.wardrobe.itemCount : _items.length,
-              onAdd: _addItem,
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            _sliverBox(
+              _WardrobeHeader(
+                wardrobe: widget.wardrobe,
+                itemCount: _loading ? widget.wardrobe.itemCount : _items.length,
+                onAdd: _addItem,
+              ),
             ),
-            const SizedBox(height: 24),
-            Row(
-              children: [
-                const Text(
-                  'Items',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
-                ),
-                const Spacer(),
-                if (!_loading && _error == null)
-                  AppPill(
-                    label:
-                        '${_items.length} ${_items.length == 1 ? 'item' : 'items'}',
-                    icon: Icons.dry_cleaning,
-                    color: AppColors.primary,
-                  ),
-              ],
-            ),
-            const SizedBox(height: 12),
+            const SliverToBoxAdapter(child: SizedBox(height: 16)),
             if (_loading)
-              const LoadingView(message: 'Loading items…')
+              _sliverBox(const LoadingView(message: 'Loading items…'))
             else if (_error != null)
-              ErrorView(
-                title: "Couldn't load this wardrobe",
-                message: _error!,
-                onRetry: _load,
+              _sliverBox(
+                ErrorView(
+                  title: "Couldn't load this wardrobe",
+                  message: _error!,
+                  onRetry: _load,
+                ),
               )
             else if (_items.isEmpty)
-              EmptyView(
-                icon: Icons.dry_cleaning_outlined,
-                title: 'Nothing here yet',
-                message:
-                    'Add your first item to this wardrobe and it will show up here.',
-                actionLabel: 'Add Item',
-                onAction: _addItem,
+              _sliverBox(
+                EmptyView(
+                  icon: Icons.photo_camera_back_outlined,
+                  title: 'Nothing here yet',
+                  message:
+                      'Add your first item to this wardrobe and it will show up here.',
+                  actionLabel: 'Add Item',
+                  onAction: _addItem,
+                ),
               )
             else
-              for (final item in _items) ItemCard(item: item),
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 40),
+                sliver: SliverLayoutBuilder(
+                  builder: (context, constraints) {
+                    final columns = photoColumnsFor(
+                      constraints.crossAxisExtent,
+                    );
+                    return SliverGrid(
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: columns,
+                        mainAxisSpacing: 12,
+                        crossAxisSpacing: 12,
+                        childAspectRatio: 0.72,
+                      ),
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          final item = _items[index];
+                          return ItemPhotoTile(
+                            item: item,
+                            onTap: () => _openItem(item),
+                          );
+                        },
+                        childCount: _items.length,
+                      ),
+                    );
+                  },
+                ),
+              ),
           ],
         ),
       ),
@@ -144,87 +209,51 @@ class _WardrobeHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFFEAF4FF), Color(0xFFF7FBFF)],
-        ),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFFD6E9FF)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 54,
-                height: 54,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(18),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.primary.withValues(alpha: 0.12),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.checkroom,
-                  color: AppColors.primary,
-                  size: 26,
+              Text(
+                wardrobe.name,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 26,
+                  height: 1.15,
+                  fontWeight: FontWeight.w800,
                 ),
               ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      wardrobe.name,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    if (wardrobe.description.isNotEmpty) ...[
-                      const SizedBox(height: 3),
-                      Text(
-                        wardrobe.description,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ],
+              if (wardrobe.description.isNotEmpty) ...[
+                const SizedBox(height: 4),
+                Text(
+                  wardrobe.description,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 13.5,
+                    color: AppColors.textSecondary,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 10),
+              ],
+              const SizedBox(height: 10),
               AppPill(
-                label:
-                    '$itemCount ${itemCount == 1 ? 'item' : 'items'}',
-                filled: true,
+                label: '$itemCount ${itemCount == 1 ? 'item' : 'items'}',
+                icon: Icons.dry_cleaning,
+                color: AppColors.primary,
               ),
             ],
           ),
-          const SizedBox(height: 18),
-          AppButton(
-            title: 'Add item',
-            iconLeft: const Icon(Icons.add, color: Colors.white, size: 20),
-            onPressed: onAdd,
-          ),
-        ],
-      ),
+        ),
+        const SizedBox(width: 12),
+        CircleAction(
+          icon: Icons.add_a_photo_outlined,
+          tooltip: 'Add item',
+          onTap: onAdd,
+        ),
+      ],
     );
   }
 }

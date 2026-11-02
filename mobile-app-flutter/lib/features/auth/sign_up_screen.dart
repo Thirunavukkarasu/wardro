@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
-import '../../core/constants/content.dart';
 import '../../core/theme/app_colors.dart';
 import '../../shared/widgets/app_button.dart';
 import '../../shared/widgets/app_text_field.dart';
@@ -35,32 +33,28 @@ class _SignUpScreenState extends State<SignUpScreen> {
     FocusScope.of(context).unfocus();
     if (!_formKey.currentState!.validate()) return;
 
+    final email = _emailController.text.trim();
     final auth = AuthScope.of(context);
-    final started = await auth.beginSignUp(
+    final created = await auth.signUp(
       name: _nameController.text.trim(),
-      email: _emailController.text.trim(),
+      email: email,
       password: _passwordController.text,
     );
     if (!mounted) return;
 
-    if (!started) {
+    if (!created) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(auth.errorMessage ?? 'Unable to sign up.')),
       );
       return;
     }
 
-    final verified = await showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => _VerificationDialog(email: _emailController.text.trim()),
-    );
-    if (!mounted || verified != true) return;
-
+    // Firebase signs the user in immediately; email verification happens via
+    // a link in the background and never blocks usage.
     await showDialog<void>(
       context: context,
       barrierDismissible: false,
-      builder: (_) => const _SignUpSuccessDialog(),
+      builder: (_) => _VerificationSentDialog(email: email),
     );
     if (!mounted) return;
 
@@ -115,8 +109,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 validator: (value) {
                   final password = value ?? '';
                   if (password.isEmpty) return 'Password is required';
-                  if (password.length < 8) {
-                    return 'Use at least 8 characters';
+                  if (password.length < 6) {
+                    return 'Use at least 6 characters';
                   }
                   return null;
                 },
@@ -143,44 +137,38 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 }
 
-class _VerificationDialog extends StatefulWidget {
-  const _VerificationDialog({required this.email});
+/// Post-sign-up step: Firebase emails a verification link instead of a code.
+class _VerificationSentDialog extends StatefulWidget {
+  const _VerificationSentDialog({required this.email});
 
   final String email;
 
   @override
-  State<_VerificationDialog> createState() => _VerificationDialogState();
+  State<_VerificationSentDialog> createState() =>
+      _VerificationSentDialogState();
 }
 
-class _VerificationDialogState extends State<_VerificationDialog> {
-  final _codeController = TextEditingController();
-  String? _error;
-  bool _submitting = false;
+class _VerificationSentDialogState extends State<_VerificationSentDialog> {
+  bool _resending = false;
+  String? _message;
+  bool _isError = false;
 
-  @override
-  void dispose() {
-    _codeController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _verify() async {
+  Future<void> _resend() async {
     setState(() {
-      _submitting = true;
-      _error = null;
+      _resending = true;
+      _message = null;
     });
 
     final auth = AuthScope.of(context);
-    final verified = await auth.verifyEmailCode(_codeController.text.trim());
+    final sent = await auth.resendVerificationEmail();
     if (!mounted) return;
 
-    if (verified) {
-      Navigator.of(context).pop(true);
-      return;
-    }
-
     setState(() {
-      _submitting = false;
-      _error = auth.errorMessage ?? 'Verification failed. Please try again.';
+      _resending = false;
+      _isError = !sent;
+      _message = sent
+          ? 'Verification email sent again.'
+          : (auth.errorMessage ?? 'Could not resend the email.');
     });
   }
 
@@ -188,83 +176,57 @@ class _VerificationDialogState extends State<_VerificationDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      title: const Text(
-        'Verification',
-        style: TextStyle(fontWeight: FontWeight.w800),
-      ),
       content: Column(
         mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            "We've sent a verification code to ${widget.email}.",
-            style: const TextStyle(color: AppColors.textSecondary),
+          Container(
+            width: 72,
+            height: 72,
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.mark_email_unread_outlined,
+              size: 34,
+              color: AppColors.primary,
+            ),
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            'Verify your email',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: 8),
-          AppTextField(
-            label: 'Code',
-            controller: _codeController,
-            placeholder: '123456',
-            icon: Icons.lock_outline,
-            keyboardType: TextInputType.number,
-            inputFormatters: [
-              FilteringTextInputFormatter.digitsOnly,
-              LengthLimitingTextInputFormatter(6),
-            ],
+          Text(
+            "We've sent a verification link to ${widget.email}. "
+            'You can start using Wardro now — verifying just secures your account.',
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              height: 1.4,
+              color: AppColors.textSecondary,
+            ),
           ),
-          if (_error != null) ...[
-            const SizedBox(height: 4),
+          if (_message != null) ...[
+            const SizedBox(height: 10),
             Text(
-              _error!,
-              style: const TextStyle(color: AppColors.danger, fontSize: 13),
+              _message!,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 13,
+                color: _isError ? AppColors.danger : AppColors.success,
+              ),
             ),
           ],
-          const SizedBox(height: 8),
-          Text(
-            'Stub build: any 6-digit code is accepted.',
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-        ],
-      ),
-      actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
-      actions: [
-        AppButton(
-          title: 'Verify Email',
-          variant: AppButtonVariant.success,
-          isLoading: _submitting,
-          onPressed: _verify,
-        ),
-      ],
-    );
-  }
-}
-
-class _SignUpSuccessDialog extends StatelessWidget {
-  const _SignUpSuccessDialog();
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Image.asset(AppAssets.check, height: 110),
-          const SizedBox(height: 12),
-          const Text(
-            'Verified',
-            style: TextStyle(fontSize: 26, fontWeight: FontWeight.w700),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'You have successfully verified your account.',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: AppColors.textMuted),
-          ),
           const SizedBox(height: 20),
           AppButton(
-            title: 'Browse Home',
+            title: 'Continue',
             onPressed: () => Navigator.of(context).pop(),
+          ),
+          TextButton(
+            onPressed: _resending ? null : _resend,
+            child: Text(_resending ? 'Sending…' : 'Resend email'),
           ),
         ],
       ),

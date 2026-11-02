@@ -6,18 +6,15 @@ import '../../../core/config/app_config.dart';
 import 'auth_service.dart';
 import 'models/app_user.dart';
 
-/// Temporary auth backend.
+/// Offline auth backend used when Firebase is not configured.
 ///
 /// Accepts any valid-looking credentials and keeps the "session" in
-/// `SharedPreferences`, so the UI can be built and demoed end to end. The
-/// email verification step accepts any six-digit code.
-///
-/// Replace with `clerk_flutter` before shipping; see `README.md`.
+/// `SharedPreferences`. Sign-up signs the user in immediately, mirroring
+/// Firebase's behaviour (verification is not blocking).
 class StubAuthService implements AuthService {
   StubAuthService(this._prefs);
 
   static const _userKey = 'auth.stub.user';
-  static const _pendingKey = 'auth.stub.pending_signup';
 
   final SharedPreferences _prefs;
 
@@ -43,48 +40,26 @@ class StubAuthService implements AuthService {
   }
 
   @override
-  Future<void> beginSignUp({
+  Future<void> signUp({
     required String name,
     required String email,
     required String password,
   }) async {
     await _simulateLatency();
-    await _prefs.setString(
-      _pendingKey,
-      jsonEncode({
-        'name': name.trim(),
-        'email': email.trim().toLowerCase(),
-        'password': password,
-      }),
-    );
+    await _persist(_buildUser(email: email.trim(), name: name));
   }
 
   @override
-  Future<void> verifyEmailCode(String code) async {
+  Future<void> resendVerificationEmail() async {
     await _simulateLatency();
-    if (code.trim().length != 6) {
-      throw const AuthException('Enter the 6-digit code from your email.');
-    }
-
-    final raw = _prefs.getString(_pendingKey);
-    if (raw == null) {
-      throw const AuthException('No sign-up is in progress. Try again.');
-    }
-
-    final pending = jsonDecode(raw) as Map<String, dynamic>;
-    await _persist(
-      _buildUser(
-        email: pending['email'] as String,
-        name: pending['name'] as String? ?? '',
-      ),
-    );
-    await _prefs.remove(_pendingKey);
   }
+
+  @override
+  Future<bool> isEmailVerified() async => true;
 
   @override
   Future<void> signOut() async {
     await _prefs.remove(_userKey);
-    await _prefs.remove(_pendingKey);
   }
 
   Future<void> _persist(AppUser user) async {
@@ -100,10 +75,11 @@ class StubAuthService implements AuthService {
 
     return AppUser(
       id: AppConfig.demoUserId,
-      clerkId: 'stub_$slug',
+      authId: 'stub_$slug',
       firstName: parts.isNotEmpty ? parts.first : email.split('@').first,
       lastName: parts.length > 1 ? parts.sublist(1).join(' ') : '',
       email: email,
+      emailVerified: true,
     );
   }
 
