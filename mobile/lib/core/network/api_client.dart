@@ -93,14 +93,8 @@ class ApiClient {
 
   void dispose() => _client.close();
 
-  Future<Map<String, String>> _headers({
-    bool includeJsonContentType = true,
-  }) async {
-    final headers = <String, String>{
-      // ngrok serves an interstitial HTML page to browser-like clients.
-      'ngrok-skip-browser-warning': 'true',
-    };
-    if (includeJsonContentType) headers['Content-Type'] = 'application/json';
+  Future<Map<String, String>> _headers() async {
+    final headers = <String, String>{'Content-Type': 'application/json'};
 
     final token = await tokenProvider?.call();
     if (token != null && token.isNotEmpty) {
