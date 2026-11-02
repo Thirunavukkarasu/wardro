@@ -9,36 +9,36 @@ Wardro is a wardrobe management app that helps users to keep track of their clot
 - View clothes and outfits in a calendar view
 - Analyze usage of clothes
 
-## Installation
-
-1. Clone the repository
-2. Install the required packages
-
-```bash
-npm install
-```
-
-3. Start the server
-
-```bash
-npm start
-```
-
-## Technologies
-
-- React Native (Expo) — `mobile-app/`
-- Flutter — `mobile-app-flutter/`
-- Neon DB
-- BunJS
-
-## Mobile apps
-
-Two mobile clients live side by side:
+## Repository layout
 
 | Directory | Stack | Status |
 | --- | --- | --- |
-| `mobile-app/` | Expo SDK 51 / React Native | Original app, untouched |
-| `mobile-app-flutter/` | Flutter 3.47 | Port of every screen; auth is stubbed pending Clerk |
+| `mobile/` | Flutter 3.47 | Primary app — Firebase auth, per-user data, photo-first UI |
+| `mobile-rn/` | Expo SDK 51 / React Native | Legacy original app, kept for reference |
+| `backend/` | Bun + Hono + Drizzle | API with Firebase ID-token verification |
+| `website/` | Next.js 14 + Tailwind | Marketing site |
+| `api-tests/` | Bruno collections | Manual API testing |
 
-See `mobile-app-flutter/README.md` for run instructions and the Clerk migration path.
+## Running
 
+Each package runs independently:
+
+```bash
+# API → http://localhost:3000
+cd backend && bun install && bun run dev
+
+# Flutter app (web) → http://localhost:8080
+cd mobile && flutter pub get && flutter run -d chrome
+
+# Marketing site → http://localhost:3001
+cd website && npm install && npm run dev -- -p 3001
+```
+
+See `mobile/README.md` for the app architecture and setup details.
+
+## Technologies
+
+- Flutter + Firebase Authentication
+- Bun + Hono + Drizzle ORM
+- Neon Postgres
+- Next.js + Tailwind CSS

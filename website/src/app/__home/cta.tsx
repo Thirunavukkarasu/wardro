@@ -15,7 +15,7 @@ export default function CTA() {
           Wardro is an open-source project. Contribute to the project
         </p>
         <Button asChild variant={"outline"}>
-          <a href="https://github.com/thirunavukkarasu/my-closet">
+          <a href="https://github.com/thirunavukkarasu/wardrobe">
             Start on Github
           </a>
         </Button>

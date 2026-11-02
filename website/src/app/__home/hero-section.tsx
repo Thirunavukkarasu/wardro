@@ -19,7 +19,7 @@ export default function HeroSection() {
         <div className="space-x-4">
           <Button>Download Now</Button>
           <Button asChild variant={"outline"}>
-            <a href="https://github.com/thirunavukkarasu/my-closet">
+            <a href="https://github.com/thirunavukkarasu/wardrobe">
               {/* <GithubIcon size={12} /> */}
               Start on Github
             </a>
