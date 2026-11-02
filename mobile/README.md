@@ -1,8 +1,8 @@
 # Wardro — Flutter app
 
 Flutter port of the Wardro wardrobe-management app. This project lives next to
-the original React Native app (`../mobile-app`) so both can be run and
-compared; nothing in `../mobile-app` was modified.
+the original React Native app (`../mobile-rn`) so both can be run and
+compared; nothing in `../mobile-rn` was modified.
 
 ## Status
 
@@ -172,22 +172,17 @@ Tracked here so the context isn't lost.
 | iOS app | **Out of scope for now** (2026-11-02) | Register the iOS app with bundle ID `com.thirunavukkarasu.wardroMobile`, drop `GoogleService-Info.plist` into `ios/Runner/`, then add iOS options to `firebase_options.dart` |
 | Google sign-in | **Working** — verified 2026-11-02 (web) | Android still needs the debug keystore SHA-1/SHA-256 registered |
 | Backend auth enforcement | **Working** — Firebase ID token verified via JWKS in `backend/src/auth.ts` | — |
-| Per-user data | **Working** — uid → `users` row, all queries scoped to it | Apply the FK migration below |
+| Per-user data | **Working** — uid → `users` row, all queries scoped to it | — |
 | Image storage | Open | Replace `backend/uploads/` with S3/R2 for deployment |
 
-### Pending database migration
+### Database migration
 
-`backend/migrations/0001_bumpy_peter_parker.sql` must be applied to the Neon
-database. It repoints `wardrobe_items.user_id` from `wardrobes(id)` to
-`users(id)` — the original schema had the wrong foreign key, which breaks item
-inserts for any user whose id is not also a wardrobe id. Apply with:
-
-```bash
-cd backend && bunx drizzle-kit migrate
-```
-
-Until it is applied, new accounts can sign in but **adding items will fail**
-for users other than the existing demo user.
+`backend/migrations/0001_bumpy_peter_parker.sql` was **applied on 2026-11-02**.
+It repoints `wardrobe_items.user_id` from `wardrobes(id)` to `users(id)` — the
+original schema had the wrong foreign key, which broke item inserts for any
+user whose id was not also a wardrobe id. Verified after applying: the
+constraint references `users(id) ON DELETE CASCADE`, existing rows are intact,
+and a new user → wardrobe → item insert succeeds (probe rolled back).
 
 
 ## Configuration
