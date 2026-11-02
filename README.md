@@ -26,6 +26,19 @@ npm start
 
 ## Technologies
 
-- React Native (Expo)
+- React Native (Expo) — `mobile-app/`
+- Flutter — `mobile-app-flutter/`
 - Neon DB
 - BunJS
+
+## Mobile apps
+
+Two mobile clients live side by side:
+
+| Directory | Stack | Status |
+| --- | --- | --- |
+| `mobile-app/` | Expo SDK 51 / React Native | Original app, untouched |
+| `mobile-app-flutter/` | Flutter 3.47 | Port of every screen; auth is stubbed pending Clerk |
+
+See `mobile-app-flutter/README.md` for run instructions and the Clerk migration path.
+

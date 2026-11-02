@@ -2,7 +2,7 @@ import { eq, sql } from "drizzle-orm";
 import { Hono } from 'hono'
 import { WardrobeSchema, type Wardrobe } from "@/types";
 import { db } from "@/db";
-import { wardrobesTable } from "@/schema";
+import { wardrobesTable, wardrobeItemsTable } from "@/schema";
 
 const routes = new Hono()
 
@@ -23,6 +23,43 @@ routes.post('/', async (c) => {
         });
     } catch (error) {
         console.error("Error creating wardrobe:", error);
+        const errorMessage = (error as any).message;
+        return Response.json({ error: errorMessage }, { status: 500 });
+    }
+})
+
+// Must stay above the `/:userId` route so `/4/summary` is not parsed as a
+// wardrobe id.
+routes.get('/:userId/summary', async (c) => {
+    try {
+        const userId = parseInt(c.req.param('userId') || '0');
+        if (!userId) {
+            return Response.json({ error: "User ID is required" }, { status: 400 });
+        }
+
+        const response = await db
+            .select({
+                id: wardrobesTable.id,
+                userId: wardrobesTable.userId,
+                name: wardrobesTable.name,
+                description: wardrobesTable.description,
+                createdAt: wardrobesTable.createdAt,
+                itemCount: sql<number>`count(${wardrobeItemsTable.id})`.mapWith(Number),
+            })
+            .from(wardrobesTable)
+            .leftJoin(
+                wardrobeItemsTable,
+                eq(wardrobeItemsTable.wardrobeId, wardrobesTable.id)
+            )
+            .where(eq(wardrobesTable.userId, userId))
+            .groupBy(wardrobesTable.id)
+            .orderBy(wardrobesTable.createdAt);
+
+        return new Response(JSON.stringify({ data: response }), {
+            status: 200,
+        });
+    } catch (error) {
+        console.error("Error fetching wardrobe summary:", error);
         const errorMessage = (error as any).message;
         return Response.json({ error: errorMessage }, { status: 500 });
     }

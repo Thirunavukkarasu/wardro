@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { z } from 'zod';
-import { eq } from 'drizzle-orm';
+import { desc, eq } from 'drizzle-orm';
 
 import { WardrobeItemSchema, type WardrobeItem } from '@/types';
 import { db } from '@/db';
@@ -32,6 +32,22 @@ routes.post('/', async (c) => {
         }
         return Response.json({ error: "Internal Server Error" }, { status: 500 });
     }
+})
+
+// Every item belonging to a user, newest first. Static segment comes before
+// `/:wardrobeId` so `/user/4` is never treated as a wardrobe id.
+routes.get('/user/:userId', async (c) => {
+    const userId = parseInt(c.req.param('userId') || '0');
+    if (!userId) {
+        return Response.json({ error: "Invalid userId" }, { status: 400 });
+    }
+    const items = await db
+        .select()
+        .from(wardrobeItemsTable)
+        .where(eq(wardrobeItemsTable.userId, userId))
+        .orderBy(desc(wardrobeItemsTable.createdAt))
+        .execute();
+    return new Response(JSON.stringify({ data: items }), { status: 200 });
 })
 
 routes.get('/:wardrobeId', async (c) => {
