@@ -1,16 +1,10 @@
+import { and, desc, eq } from 'drizzle-orm'
 import { Hono } from 'hono'
 import { z } from 'zod'
-import {
-    createWardrobeItem,
-    deleteWardrobeItem,
-    getWardrobe,
-    getWardrobeItem,
-    listWardrobeItems,
-    listWardrobeItemsByWardrobe,
-} from '@wardro/dataconnect-admin'
 
 import { WardrobeItemSchema } from '@/types'
-import { dataConnect } from '@/dataConnect'
+import { db } from '@/db'
+import { wardrobeItems, wardrobes } from '@/schema'
 import { requireUser, type AuthEnv } from '@/auth'
 import { removeStoredPhoto } from '@/storage'
 
@@ -18,47 +12,58 @@ const routes = new Hono<AuthEnv>()
 
 routes.use('*', requireUser)
 
-const options = (c: any) => ({
-    impersonate: { authClaims: c.get('authClaims') },
-})
-
 const withUserId = <T extends { ownerUid: string }>(row: T) => ({
     ...row,
     userId: row.ownerUid,
 })
 
+async function ownsWardrobe(wardrobeId: number, uid: string) {
+    const rows = await db
+        .select({ id: wardrobes.id })
+        .from(wardrobes)
+        .where(
+            and(
+                eq(wardrobes.id, wardrobeId),
+                eq(wardrobes.ownerUid, uid)
+            )
+        )
+    return rows.length > 0
+}
+
 routes.post('/', async (c) => {
     try {
         const item = WardrobeItemSchema.parse(await c.req.json())
+        const uid = c.get('uid')
 
-        const { data } = await createWardrobeItem(
-            dataConnect,
-            {
-                itemName: item.itemName,
+        if (!(await ownsWardrobe(item.wardrobeId, uid))) {
+            return Response.json(
+                { error: 'Wardrobe not found' },
+                { status: 404 }
+            )
+        }
+
+        const [created] = await db
+            .insert(wardrobeItems)
+            .values({
+                ownerUid: uid,
                 wardrobeId: item.wardrobeId,
-                photoUri: item.photoUri,
-                purchaseDate: item.purchaseDate,
-                expiryDate: item.expiryDate,
-                price: item.price,
-                brand: item.brand,
-                category: item.category,
-                color: item.color,
-                size: item.size,
-            },
-            options(c)
-        )
+                itemName: item.itemName,
+                photoUri: item.photoUri ?? '',
+                purchaseDate: item.purchaseDate
+                    ? new Date(item.purchaseDate)
+                    : null,
+                expiryDate: item.expiryDate ? new Date(item.expiryDate) : null,
+                price: item.price ?? null,
+                brand: item.brand ?? null,
+                category: item.category ?? null,
+                color: item.color ?? null,
+                size: item.size ?? null,
+                createdAt: new Date(),
+            })
+            .returning()
 
         return Response.json(
-            {
-                data: [
-                    {
-                        ...item,
-                        id: data.wardrobeItem_insert.id,
-                        userId: c.get('uid'),
-                        createdAt: new Date().toISOString(),
-                    },
-                ],
-            },
+            { data: [withUserId(created)] },
             { status: 201 }
         )
     } catch (error: any) {
@@ -67,9 +72,6 @@ routes.post('/', async (c) => {
         if (error instanceof z.ZodError) {
             return Response.json({ error: error.errors }, { status: 400 })
         }
-        if (String(error?.message ?? '').includes('Wardrobe not found')) {
-            return Response.json({ error: 'Wardrobe not found' }, { status: 404 })
-        }
 
         return Response.json({ error: 'Internal Server Error' }, { status: 500 })
     }
@@ -77,10 +79,14 @@ routes.post('/', async (c) => {
 
 // Every item belonging to the authenticated user, newest first.
 routes.get('/', async (c) => {
-    const { data } = await listWardrobeItems(dataConnect, options(c))
+    const items = await db
+        .select()
+        .from(wardrobeItems)
+        .where(eq(wardrobeItems.ownerUid, c.get('uid')))
+        .orderBy(desc(wardrobeItems.createdAt))
 
     return Response.json(
-        { data: data.wardrobeItems.map(withUserId) },
+        { data: items.map(withUserId) },
         { status: 200 }
     )
 })
@@ -91,23 +97,17 @@ routes.get('/:wardrobeId', async (c) => {
         return Response.json({ error: 'Invalid wardrobeId' }, { status: 400 })
     }
 
-    const { data: wardrobe } = await getWardrobe(
-        dataConnect,
-        { id: wardrobeId },
-        options(c)
-    )
-    if (!wardrobe.wardrobe) {
+    if (!(await ownsWardrobe(wardrobeId, c.get('uid')))) {
         return Response.json({ error: 'Wardrobe not found' }, { status: 404 })
     }
 
-    const { data } = await listWardrobeItemsByWardrobe(
-        dataConnect,
-        { wardrobeId },
-        options(c)
-    )
+    const items = await db
+        .select()
+        .from(wardrobeItems)
+        .where(eq(wardrobeItems.wardrobeId, wardrobeId))
 
     return Response.json(
-        { data: data.wardrobeItems.map(withUserId) },
+        { data: items.map(withUserId) },
         { status: 200 }
     )
 })
@@ -119,13 +119,22 @@ routes.delete('/:id', async (c) => {
             return Response.json({ error: 'Invalid item id' }, { status: 400 })
         }
 
-        const { data: found } = await getWardrobeItem(dataConnect, { id }, options(c))
-        if (!found.wardrobeItem) {
+        const rows = await db
+            .select()
+            .from(wardrobeItems)
+            .where(
+                and(
+                    eq(wardrobeItems.id, id),
+                    eq(wardrobeItems.ownerUid, c.get('uid'))
+                )
+            )
+
+        if (rows.length === 0) {
             return Response.json({ error: 'Item not found' }, { status: 404 })
         }
 
-        await deleteWardrobeItem(dataConnect, { id }, options(c))
-        await removeStoredPhoto(found.wardrobeItem.photoUri)
+        await db.delete(wardrobeItems).where(eq(wardrobeItems.id, id))
+        await removeStoredPhoto(rows[0].photoUri)
 
         return new Response(null, { status: 204 })
     } catch (error: any) {

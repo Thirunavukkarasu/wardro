@@ -1,5 +1,0 @@
-connectorId: "wardro"
-generate:
-  adminNodeSdk:
-    outputDir: "../../backend/src/generated/dataconnect"
-    package: "@wardro/dataconnect-admin"

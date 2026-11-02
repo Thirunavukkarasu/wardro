@@ -1,19 +1,17 @@
+import { Hono } from 'hono'
+import { eq, sql } from 'drizzle-orm'
 import { createMiddleware } from 'hono/factory'
 import { createRemoteJWKSet, jwtVerify } from 'jose'
-import type { AuthClaims } from 'firebase-admin/data-connect'
-import { ensureUser } from '@wardro/dataconnect-admin'
 
-import { dataConnect } from '@/dataConnect'
+import { db } from '@/db'
+import { users } from '@/schema'
 
 /**
  * Firebase ID-token verification.
  *
  * Tokens are verified against Google's public JWKS, so no service-account
  * key is needed. The client never sends a user id; identity always comes from
- * the signed token.
- *
- * The verified claims are also used to impersonate the caller when talking to
- * SQL Connect, so `auth.uid` in the connector evaluates to the real user.
+ * the signed token. The uid becomes `owner_uid` on every row.
  */
 const PROJECT_ID = process.env.FIREBASE_PROJECT_ID || 'wardo-ce8d5'
 const ISSUER = `https://securetoken.google.com/${PROJECT_ID}`
@@ -27,7 +25,6 @@ const JWKS = createRemoteJWKSet(
 export type AuthEnv = {
     Variables: {
         uid: string
-        authClaims: AuthClaims
     }
 }
 
@@ -59,26 +56,30 @@ export const requireUser = createMiddleware<AuthEnv>(async (c, next) => {
         return c.json({ error: 'Token subject is missing' }, 401)
     }
 
-    const authClaims = { ...claims, uid, sub: uid } as AuthClaims
-
-    // Wardrobes reference the user row, so make sure it exists before any
-    // handler runs. Upserting is idempotent.
+    // First request creates the user row; later requests only refresh the
+    // profile fields when the provider actually supplied them.
     try {
-        await ensureUser(
-            dataConnect,
-            {
-                email: typeof claims.email === 'string' ? claims.email : undefined,
+        await db
+            .insert(users)
+            .values({
+                uid,
+                email: typeof claims.email === 'string' ? claims.email : null,
                 displayName:
-                    typeof claims.name === 'string' ? claims.name : undefined,
-            },
-            { impersonate: { authClaims } }
-        )
+                    typeof claims.name === 'string' ? claims.name : null,
+                createdAt: new Date(),
+            })
+            .onConflictDoUpdate({
+                target: users.uid,
+                set: {
+                    email: sql`coalesce(excluded.email, ${users.email})`,
+                    displayName: sql`coalesce(excluded.display_name, ${users.displayName})`,
+                },
+            })
     } catch (error) {
         console.error('Could not ensure user row:', error)
         return c.json({ error: 'Could not prepare your account' }, 500)
     }
 
     c.set('uid', uid)
-    c.set('authClaims', authClaims)
     await next()
 })

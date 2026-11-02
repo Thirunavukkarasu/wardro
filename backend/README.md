@@ -1,24 +1,22 @@
 # backend
 
-Hono API for Wardro, backed by Firebase SQL Connect (Cloud SQL Postgres) and
-Firebase Storage.
+Hono API for Wardro, backed by **Drizzle ORM on plain Postgres** and Firebase
+Storage.
 
 ## Local development
 
 ```sh
 bun install
-bun run dev
+DATABASE_URL=postgresql://user:pass@host:5432/db bun run dev
 ```
 
 The API listens on `http://localhost:3000`. Requests need a Firebase ID token
 in `Authorization: Bearer <token>`.
 
-Data access uses the Firebase Admin SDK, so local development needs Application
-Default Credentials:
-
-```sh
-gcloud auth application-default login
-```
+`DATABASE_URL` can point at any Postgres — Neon, Supabase, RDS, a local
+container, or Cloud SQL through the proxy/connector. There is no database
+provider SDK in the application path; switching providers is a connection
+string change.
 
 ## Build and deploy
 
@@ -32,15 +30,20 @@ bun run bundle
 The committed `dist/index.js` is what `npm start` runs on App Hosting. Push to
 `main` to trigger a rollout for the `wardro` backend.
 
-## SQL Connect
+On App Hosting the database is reached through the Cloud SQL connector; those
+variables live in `apphosting.yaml` and `DATABASE_PASSWORD` is a Secret
+Manager secret. To move to another Postgres, set `DATABASE_URL` instead and
+remove the `CLOUD_SQL_*` / `DB_*` variables.
 
-The schema and operations live in `../dataconnect`. After changing them:
+## Database schema
+
+The Drizzle schema is in `src/schema.ts`. Generate and apply migrations with a
+standard Postgres URL:
 
 ```sh
-cd ..
-firebase dataconnect:compile     # validates and regenerates the Admin SDK
-firebase deploy --only dataconnect
+DATABASE_URL=postgresql://... bun run db:generate
+DATABASE_URL=postgresql://... bun run db:push
 ```
 
-`dataconnect:compile` regenerates `src/generated/dataconnect`, which is
-committed and consumed as `@wardro/dataconnect-admin`.
+The current tables (`user`, `wardrobe`, `wardrobe_item`) already exist in the
+database and match `src/schema.ts`.

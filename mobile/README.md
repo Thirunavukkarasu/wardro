@@ -54,7 +54,7 @@ the user — **no endpoint accepts a user id from the client**.
 | `GET /users/me` | Current user row (informational) |
 
 Identity is verified with `jose` against Google's public JWKS, so **no service
-account key is required**. The uid is upserted into the SQL Connect `user` table
+account key is required**. The uid is upserted into the Postgres `user` table
 on first request (`backend/src/auth.ts`).
 
 Photos are uploaded **directly from the app to Firebase Storage** under
@@ -170,15 +170,15 @@ Tracked here so the context isn't lost.
 | iOS app | **Out of scope for now** (2026-11-02) | Register the iOS app with bundle ID `com.thirunavukkarasu.wardroMobile`, drop `GoogleService-Info.plist` into `ios/Runner/`, then add iOS options to `firebase_options.dart` |
 | Google sign-in | **Working** — verified 2026-11-02 (web) | Android still needs the debug keystore SHA-1/SHA-256 registered |
 | Backend auth enforcement | **Working** — Firebase ID token verified via JWKS in `backend/src/auth.ts` | — |
-| Per-user data | **Working** — uid scopes every SQL Connect operation via `auth.uid` | — |
+| Per-user data | **Working** — every Drizzle query is scoped by `owner_uid` | — |
 | Image storage | **Working** — Firebase Storage, `users/{uid}/items/...` | — |
 
 ### Database
 
-The app now uses **Firebase SQL Connect** on Cloud SQL Postgres. The schema and
-typed operations live in the repo root under `dataconnect/`; the backend talks
-to them with the generated Admin SDK. The old Neon/Drizzle migrations have been
-retired.
+The app uses **Drizzle ORM on plain Postgres**. The schema lives in
+`backend/src/schema.ts`; the only runtime configuration is `DATABASE_URL`, so
+the same code runs against Neon, Supabase, RDS, local Postgres, or Cloud SQL.
+App Hosting currently reaches Cloud SQL through the Cloud SQL connector.
 
 
 ## Configuration
