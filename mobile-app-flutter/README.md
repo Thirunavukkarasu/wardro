@@ -37,20 +37,28 @@ Additions not in the React Native app:
 
 ## Backend endpoints used
 
+Every request except `GET /healthcheck`, `GET /uploads/:filename` and the auth
+flow carries `Authorization: Bearer <Firebase ID token>`. The backend verifies
+it and derives the user — **no endpoint accepts a user id from the client**.
+
 | Endpoint | Used by |
 | --- | --- |
-| `GET /wardrobes/:userId/summary` | Home stats and per-wardrobe item counts (single request) |
-| `GET /wardrobeItems/:wardrobeId` | Wardrobe detail screen |
-| `GET /wardrobeItems/user/:userId` | All Items tab |
+| `GET /wardrobes/summary` | Home stats: per-wardrobe item count, total value and cover (single request) |
+| `GET /wardrobes` | Wardrobe picker in Add Item |
+| `GET /wardrobeItems/:wardrobeId` | Wardrobe detail screen (ownership checked) |
+| `GET /wardrobeItems` | All Items tab |
 | `POST /wardrobeItems` | Add item (after the photo is uploaded) |
 | `POST /uploads` | Multipart image upload — returns `{ data: { url } }` |
-| `GET /uploads/:filename` | Serves the stored image (long cache headers) |
+| `GET /uploads/:filename` | Serves the stored image (public, long cache headers) |
 | `POST /wardrobes` | Add wardrobe |
-| `DELETE /wardrobeItems/:id` | Delete item + its uploaded photo |
+| `DELETE /wardrobeItems/:id` | Delete item + its uploaded photo (ownership checked) |
 | `DELETE /wardrobes/:id` | Delete wardrobe (cascades its items and their photos) |
+| `GET /users/me` | Current user row (informational) |
 
-The summary/all-items/upload endpoints were added to `../backend` for this app.
-The existing routes are unchanged.
+Identity is verified with `jose` against Google's public JWKS, so **no service
+account key is required**. The uid is mapped to a `users` row on first request
+(`backend/src/auth.ts`).
+
 
 Photos are written to `backend/uploads/` (git-ignored, override with
 `UPLOAD_DIR`). That is a development store — switch to S3/R2 before deploying,
@@ -76,6 +84,28 @@ flutter run --dart-define=API_BASE_URL=http://localhost:3000/api
 
 iOS simulators use the host network directly. On an Android emulator use
 `http://10.0.2.2:3000/api`.
+
+## Design system
+
+One base colour, used across the app and the marketing site.
+
+| Token | Value |
+| --- | --- |
+| Primary (indigo) | `#4F46E5` |
+| Accent (pink, highlights only) | `#EC4899` |
+| Canvas / cards / borders | `#F7F7FB` / `#FFFFFF` / `#E7E8EF` |
+| Text primary / secondary / muted | `#0F172A` / `#64748B` / `#94A3B8` |
+| Success / warning / danger | `#16A34A` / `#D97706` / `#DC2626` |
+
+Typography is intentionally compact: 26/22/20 for headings, 15 body, 13–14
+labels, 12.5 secondary, 10.5 uppercase eyebrows.
+
+Layout: a Material 3 bottom bar (**Home / Items / Profile**) with labels, plus
+a camera FAB as the app's single primary action. Data-heavy screens lead with
+a compact summary strip (wardrobes · items · value) before the content.
+
+Tokens live in `lib/core/theme/app_colors.dart` and `app_theme.dart`; the
+marketing site's `--primary` in `website/src/app/globals.css` matches.
 
 ## Web presentation
 
@@ -113,21 +143,58 @@ dialog with Resend / Continue; verification never blocks usage.
 | --- | --- |
 | Android | `android/app/google-services.json` in place, applicationId `com.om.wardo`, Google Services Gradle plugin applied |
 | Web | Registered (`1:251900114942:web:6d482f04b8b02cc63372af`), Email/Password provider enabled, config in `lib/firebase_options.dart` |
-| iOS | **Pending** — `GoogleService-Info.plist` was not provided |
+| iOS | **Out of scope** — see the scope decisions below |
 
 The Profile screen shows a "Firebase account" badge when the session came from
 Firebase, and "Local stub session" when the fallback is active.
 
-Wardrobe data is still keyed to `DEMO_USER_ID` (4). The Firebase identity is
-stored as `authId`; mapping Firebase uids to numeric backend users is a
-follow-up.
+### Google sign-in
+
+Enabled in the Firebase project. The client flow is:
+
+- **Web:** `FirebaseAuth.signInWithPopup(GoogleAuthProvider())`.
+- **Android:** `google_sign_in` `authenticate()` → ID token →
+  `FirebaseAuth.signInWithCredential(...)`, using the web OAuth client ID from
+  `firebase_options.dart` (`googleServerClientId`).
+
+Requirements already met: the Google provider is enabled and the web/Android
+apps are registered. When running on Android, make sure the debug keystore's
+**SHA-1/SHA-256** is registered under Project settings → Your Android app,
+otherwise Google returns `ApiException: 10`. On web, `localhost` must be in
+Authentication → Settings → Authorized domains (Firebase adds it by default).
+
+## Scope decisions
+
+Tracked here so the context isn't lost.
+
+| Item | Decision | Needed to resume |
+| --- | --- | --- |
+| iOS app | **Out of scope for now** (2026-11-02) | Register the iOS app with bundle ID `com.thirunavukkarasu.wardroMobile`, drop `GoogleService-Info.plist` into `ios/Runner/`, then add iOS options to `firebase_options.dart` |
+| Google sign-in | **Working** — verified 2026-11-02 (web) | Android still needs the debug keystore SHA-1/SHA-256 registered |
+| Backend auth enforcement | **Working** — Firebase ID token verified via JWKS in `backend/src/auth.ts` | — |
+| Per-user data | **Working** — uid → `users` row, all queries scoped to it | Apply the FK migration below |
+| Image storage | Open | Replace `backend/uploads/` with S3/R2 for deployment |
+
+### Pending database migration
+
+`backend/migrations/0001_bumpy_peter_parker.sql` must be applied to the Neon
+database. It repoints `wardrobe_items.user_id` from `wardrobes(id)` to
+`users(id)` — the original schema had the wrong foreign key, which breaks item
+inserts for any user whose id is not also a wardrobe id. Apply with:
+
+```bash
+cd backend && bunx drizzle-kit migrate
+```
+
+Until it is applied, new accounts can sign in but **adding items will fail**
+for users other than the existing demo user.
+
 
 ## Configuration
 
 | `--dart-define` | Default | Purpose |
 | --- | --- | --- |
 | `API_BASE_URL` | ngrok URL from the RN `.env` | Backend base URL incl. `/api` |
-| `DEMO_USER_ID` | `4` | User id used for `/wardrobes/:userId` |
 | `AUTH_MODE` | `firebase` | `firebase` or `stub` |
 
 ## Known gaps
@@ -140,5 +207,6 @@ follow-up.
 - **Fonts:** the RN app references `font-Jakarta*` classes but ships no Jakarta
   font, so both apps render the system face. Drop Plus Jakarta Sans into
   `assets/fonts/` and register it in `pubspec.yaml` to match the design.
-- **OAuth:** the Google button is present but explains that Clerk isn't wired
-  up yet, rather than signing in.
+- **OAuth:** Google sign-in runs through Firebase (popup on web, native on
+  Android). The button reports configuration errors such as
+  `unauthorized-domain` when the domain is not allow-listed.

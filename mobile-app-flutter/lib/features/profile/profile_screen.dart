@@ -2,11 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../shared/widgets/app_button.dart';
-import '../../shared/widgets/app_text_field.dart';
 import '../auth/auth_scope.dart';
 import '../auth/models/app_user.dart';
 
-/// Profile with a branded header card and the logout action.
+/// Profile tab: identity header plus compact account rows.
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
@@ -17,66 +16,48 @@ class ProfileScreen extends StatelessWidget {
 
     return SafeArea(
       child: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 120),
+        padding: const EdgeInsets.fromLTRB(20, 14, 20, 120),
         children: [
           Text(
-            'My profile',
+            'Profile',
             style: Theme.of(context).textTheme.headlineLarge,
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 14),
           _ProfileHeader(user: user),
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
           Container(
-            padding: const EdgeInsets.fromLTRB(20, 18, 20, 12),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(24),
+              borderRadius: BorderRadius.circular(18),
               border: Border.all(color: AppColors.border),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF101828).withValues(alpha: 0.04),
-                  blurRadius: 16,
-                  offset: const Offset(0, 6),
-                ),
-              ],
             ),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Text(
-                  'ACCOUNT DETAILS',
-                  style: TextStyle(
-                    fontSize: 11,
-                    letterSpacing: 1.4,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textMuted,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                _ReadOnlyField(label: 'First name', value: user?.firstName),
-                _ReadOnlyField(label: 'Last name', value: user?.lastName),
-                _ReadOnlyField(label: 'Email', value: user?.email),
-                _ReadOnlyField(label: 'Phone', value: user?.phone),
-                const SizedBox(height: 16),
-                AppButton(
-                  title: 'Logout',
-                  variant: AppButtonVariant.danger,
-                  iconLeft: const Icon(
-                    Icons.logout,
-                    color: Color(0xFFFEE2E2),
-                    size: 19,
-                  ),
-                  onPressed: () async {
-                    await auth.signOut();
-                    if (!context.mounted) return;
-                    Navigator.of(
-                      context,
-                    ).popUntil((route) => route.isFirst);
-                  },
-                ),
-                const SizedBox(height: 8),
+                _InfoRow(label: 'First name', value: user?.firstName),
+                const Divider(),
+                _InfoRow(label: 'Last name', value: user?.lastName),
+                const Divider(),
+                _InfoRow(label: 'Email', value: user?.email),
+                const Divider(),
+                _InfoRow(label: 'Phone', value: user?.phone),
               ],
             ),
+          ),
+          const SizedBox(height: 16),
+          AppButton(
+            title: 'Log out',
+            variant: AppButtonVariant.danger,
+            iconLeft: const Icon(
+              Icons.logout,
+              color: Color(0xFFFEE2E2),
+              size: 18,
+            ),
+            onPressed: () async {
+              await auth.signOut();
+              if (!context.mounted) return;
+              Navigator.of(context).popUntil((route) => route.isFirst);
+            },
           ),
         ],
       ),
@@ -96,26 +77,22 @@ class _ProfileHeader extends StatelessWidget {
         : 'Wardro member';
 
     return Container(
-      padding: const EdgeInsets.all(22),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF4CA6FF), AppColors.primary],
-        ),
-        borderRadius: BorderRadius.circular(28),
+        gradient: AppColors.brandGradient,
+        borderRadius: BorderRadius.circular(22),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.28),
-            blurRadius: 22,
-            offset: const Offset(0, 10),
+            color: AppColors.primary.withValues(alpha: 0.25),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
       child: Row(
         children: [
           _Avatar(user: user),
-          const SizedBox(width: 16),
+          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -125,26 +102,26 @@ class _ProfileHeader extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    fontSize: 21,
+                    fontSize: 18,
                     fontWeight: FontWeight.w800,
                     color: Colors.white,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 2),
                 Text(
                   user?.email ?? 'Not signed in',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    fontSize: 13,
+                    fontSize: 12.5,
                     color: Color(0xCCFFFFFF),
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 7),
                 Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 4,
+                    horizontal: 9,
+                    vertical: 3,
                   ),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.2),
@@ -155,7 +132,7 @@ class _ProfileHeader extends StatelessWidget {
                         ? 'Local stub session'
                         : 'Firebase account',
                     style: const TextStyle(
-                      fontSize: 11.5,
+                      fontSize: 10.5,
                       fontWeight: FontWeight.w600,
                       color: Colors.white,
                     ),
@@ -180,8 +157,8 @@ class _Avatar extends StatelessWidget {
     final imageUrl = user?.imageUrl;
 
     return Container(
-      width: 68,
-      height: 68,
+      width: 58,
+      height: 58,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: Colors.white,
@@ -198,7 +175,7 @@ class _Avatar extends StatelessWidget {
           : Text(
               user?.initials ?? '?',
               style: const TextStyle(
-                fontSize: 24,
+                fontSize: 21,
                 fontWeight: FontWeight.w800,
                 color: AppColors.primary,
               ),
@@ -207,18 +184,42 @@ class _Avatar extends StatelessWidget {
   }
 }
 
-class _ReadOnlyField extends StatelessWidget {
-  const _ReadOnlyField({required this.label, required this.value});
+class _InfoRow extends StatelessWidget {
+  const _InfoRow({required this.label, required this.value});
 
   final String label;
   final String? value;
 
   @override
   Widget build(BuildContext context) {
-    return AppTextField(
-      label: label,
-      initialValue: (value == null || value!.isEmpty) ? 'Not Found' : value,
-      enabled: false,
+    final text = (value == null || value!.isEmpty) ? 'Not set' : value!;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 11),
+      child: Row(
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 13,
+              color: AppColors.textSecondary,
+            ),
+          ),
+          const Spacer(),
+          Flexible(
+            child: Text(
+              text,
+              textAlign: TextAlign.right,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 13.5,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

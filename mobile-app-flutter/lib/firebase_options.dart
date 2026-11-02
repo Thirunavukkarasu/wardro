@@ -23,6 +23,10 @@ class DefaultFirebaseOptions {
     }
   }
 
+  /// OAuth *web* client ID (from google-services.json). `google_sign_in`
+  /// passes this as `serverClientId` on Android to receive an ID token.
+  static const String googleServerClientId = '251900114942-ntfihbiuu1b7og3t79r79oln1tv4rbgb.apps.googleusercontent.com';
+
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyDBUUxiJTDjJNTHwtp3v92xTbeZRRHomb8',
     appId: '1:251900114942:android:4b6fb438155e6a373372af',

@@ -24,14 +24,23 @@ class AuthController extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
 
   Future<void> initialize() async {
-    final restored = await _service.restoreSession();
-    _user = restored;
-    _status = restored == null ? AuthStatus.signedOut : AuthStatus.signedIn;
+    try {
+      final restored = await _service.restoreSession();
+      _user = restored;
+      _status = restored == null ? AuthStatus.signedOut : AuthStatus.signedIn;
+    } catch (_) {
+      _user = null;
+      _status = AuthStatus.signedOut;
+    }
     notifyListeners();
   }
 
   Future<bool> signIn({required String email, required String password}) {
     return _run(() => _service.signIn(email: email, password: password));
+  }
+
+  Future<bool> signInWithGoogle() {
+    return _run(_service.signInWithGoogle);
   }
 
   Future<bool> signUp({

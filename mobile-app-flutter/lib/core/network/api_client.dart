@@ -8,12 +8,10 @@ import '../../shared/models/picked_photo.dart';
 import '../config/app_config.dart';
 import 'api_exception.dart';
 
+typedef AuthTokenProvider = Future<String?> Function();
+
 /// Thin wrapper over `package:http` that understands the backend's
-/// `{ "data": ... }` response envelope.
-///
-/// The screens depend on this interface rather than on `http` directly, so
-/// swapping in `dio` or adding an auth interceptor later stays local to this
-/// file.
+/// `{ "data": ... }` envelope and attaches the current Firebase ID token.
 class ApiClient {
   ApiClient({http.Client? client, String? baseUrl})
     : _client = client ?? http.Client(),
@@ -21,37 +19,38 @@ class ApiClient {
 
   final http.Client _client;
   final String _baseUrl;
-  final Map<String, String> _defaultHeaders = const {
-    'Content-Type': 'application/json',
-    // ngrok serves an interstitial HTML page to browser-like clients.
-    'ngrok-skip-browser-warning': 'true',
-  };
 
-  Future<dynamic> get(String path) {
-    return _send(() => _client.get(_uri(path), headers: _defaultHeaders));
+  /// Supplied by the auth layer. Every request that has one carries
+  /// `Authorization: Bearer <idToken>`.
+  AuthTokenProvider? tokenProvider;
+
+  Future<dynamic> get(String path) async {
+    final headers = await _headers();
+    return _send(() => _client.get(_uri(path), headers: headers));
   }
 
-  Future<dynamic> post(String path, {Object? body}) {
+  Future<dynamic> post(String path, {Object? body}) async {
+    final headers = await _headers();
     return _send(
       () => _client.post(
         _uri(path),
-        headers: _defaultHeaders,
+        headers: headers,
         body: jsonEncode(body ?? const <String, dynamic>{}),
       ),
     );
   }
 
-  Future<dynamic> delete(String path) {
-    return _send(() => _client.delete(_uri(path), headers: _defaultHeaders));
+  Future<dynamic> delete(String path) async {
+    final headers = await _headers();
+    return _send(() => _client.delete(_uri(path), headers: headers));
   }
-
-  void dispose() => _client.close();
 
   /// Uploads a picked photo and returns the absolute URL to store as
   /// `photoUri`.
   Future<String> uploadPhoto(PickedPhoto photo) async {
+    final headers = await _headers(includeJsonContentType: false);
     final request = http.MultipartRequest('POST', _uri('/uploads'))
-      ..headers['ngrok-skip-browser-warning'] = 'true'
+      ..headers.addAll(headers)
       ..files.add(
         http.MultipartFile.fromBytes(
           'file',
@@ -94,6 +93,24 @@ class ApiClient {
     throw const ApiException('The upload response did not include a URL.');
   }
 
+  void dispose() => _client.close();
+
+  Future<Map<String, String>> _headers({
+    bool includeJsonContentType = true,
+  }) async {
+    final headers = <String, String>{
+      // ngrok serves an interstitial HTML page to browser-like clients.
+      'ngrok-skip-browser-warning': 'true',
+    };
+    if (includeJsonContentType) headers['Content-Type'] = 'application/json';
+
+    final token = await tokenProvider?.call();
+    if (token != null && token.isNotEmpty) {
+      headers['Authorization'] = 'Bearer $token';
+    }
+    return headers;
+  }
+
   Uri _uri(String path) {
     final normalized = path.startsWith('/') ? path : '/$path';
     return Uri.parse('$_baseUrl$normalized');
@@ -113,6 +130,13 @@ class ApiClient {
     }
 
     final dynamic decoded = _decode(response.body);
+
+    if (response.statusCode == 401) {
+      throw const ApiException(
+        'Your session has expired. Please sign in again.',
+        statusCode: 401,
+      );
+    }
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
       throw ApiException(

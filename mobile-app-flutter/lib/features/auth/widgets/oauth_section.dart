@@ -4,17 +4,17 @@ import '../../../core/constants/content.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../shared/widgets/app_button.dart';
 import '../../../shared/widgets/hero_header.dart';
+import '../auth_scope.dart';
 
 /// "Log in with Google" block on both auth screens.
-///
-/// The React Native app runs Clerk's `oauth_google` strategy here. With the
-/// auth stub in place the button stays visible so the layout matches, and
-/// explains itself until Clerk is wired up.
 class OAuthSection extends StatelessWidget {
   const OAuthSection({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final auth = AuthScope.of(context);
+    final busy = auth.isBusy;
+
     return Column(
       children: [
         const SizedBox(height: 16),
@@ -36,11 +36,20 @@ class OAuthSection extends StatelessWidget {
           title: 'Log In with Google',
           variant: AppButtonVariant.outline,
           iconLeft: Image.asset(AppAssets.googleIcon, width: 20, height: 20),
-          onPressed: () {
+          isLoading: busy,
+          onPressed: () async {
+            final signedIn = await auth.signInWithGoogle();
+            if (!context.mounted) return;
+
+            if (signedIn) {
+              Navigator.of(context).popUntil((route) => route.isFirst);
+              return;
+            }
+
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
+              SnackBar(
                 content: Text(
-                  'Google sign-in is not enabled yet. Use email and password.',
+                  auth.errorMessage ?? 'Google sign-in failed. Try again.',
                 ),
               ),
             );
@@ -78,7 +87,7 @@ class AuthFormScaffold extends StatelessWidget {
             children: [
               HeroHeader(title: title),
               Padding(
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [

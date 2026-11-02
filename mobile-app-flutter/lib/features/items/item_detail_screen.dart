@@ -200,7 +200,7 @@ class _Hero extends StatelessWidget {
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
-                  fontSize: 28,
+                  fontSize: 24,
                   height: 1.15,
                   fontWeight: FontWeight.w800,
                   color: Colors.white,
@@ -213,7 +213,7 @@ class _Hero extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    fontSize: 14,
+                    fontSize: 13,
                     fontWeight: FontWeight.w600,
                     color: Color(0xE6FFFFFF),
                   ),
@@ -324,7 +324,7 @@ class _DetailRow extends StatelessWidget {
           Text(
             label,
             style: const TextStyle(
-              fontSize: 14,
+              fontSize: 13,
               color: AppColors.textSecondary,
             ),
           ),
@@ -336,7 +336,7 @@ class _DetailRow extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(
-                fontSize: 15,
+                fontSize: 13.5,
                 fontWeight: FontWeight.w600,
               ),
             ),

@@ -46,7 +46,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   child: const Text(
                     'Skip',
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: 14,
                       fontWeight: FontWeight.w700,
                       color: Colors.black,
                     ),
@@ -73,7 +73,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                           children: [
                             Image.asset(
                               slide.imageAsset,
-                              height: 300,
+                              height: 260,
                               fit: BoxFit.contain,
                             ),
                             const SizedBox(height: 40),
@@ -81,7 +81,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                               slide.title,
                               textAlign: TextAlign.center,
                               style: const TextStyle(
-                                fontSize: 30,
+                                fontSize: 26,
                                 fontWeight: FontWeight.w700,
                                 color: Colors.black,
                               ),
@@ -91,7 +91,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                               slide.description,
                               textAlign: TextAlign.center,
                               style: const TextStyle(
-                                fontSize: 16,
+                                fontSize: 14,
                                 fontWeight: FontWeight.w600,
                                 color: AppColors.textSecondary,
                               ),

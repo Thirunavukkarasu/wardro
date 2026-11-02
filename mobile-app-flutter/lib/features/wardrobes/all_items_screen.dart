@@ -5,6 +5,7 @@ import '../../core/network/api_client.dart';
 import '../../core/network/api_exception.dart';
 import '../../core/network/api_scope.dart';
 import '../../core/theme/app_colors.dart';
+import '../../shared/utils/formatters.dart';
 import '../../shared/utils/layout.dart';
 import '../../shared/widgets/app_pill.dart';
 import '../../shared/widgets/circle_action.dart';
@@ -16,9 +17,11 @@ import '../items/widgets/item_photo_tile.dart';
 import '../wardrobe/models/wardrobe.dart';
 import '../wardrobe/wardrobe_items_screen.dart';
 
-/// "All Items" tab: every garment the user owns, as photo grids per wardrobe.
+/// "Items" tab: every garment, as photo grids grouped by wardrobe.
 class AllItemsScreen extends StatefulWidget {
-  const AllItemsScreen({super.key});
+  const AllItemsScreen({super.key, this.reloadSignal});
+
+  final Listenable? reloadSignal;
 
   @override
   State<AllItemsScreen> createState() => _AllItemsScreenState();
@@ -33,6 +36,23 @@ class _AllItemsScreenState extends State<AllItemsScreen> {
   List<WardrobeItem> _items = const [];
   Map<int, List<WardrobeItem>> _byWardrobe = const {};
 
+  double get _totalValue => _items.fold(
+    0.0,
+    (sum, item) => sum + (item.price ?? 0),
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    widget.reloadSignal?.addListener(_load);
+  }
+
+  @override
+  void dispose() {
+    widget.reloadSignal?.removeListener(_load);
+    super.dispose();
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -43,6 +63,7 @@ class _AllItemsScreenState extends State<AllItemsScreen> {
   }
 
   Future<void> _load() async {
+    if (!mounted) return;
     setState(() {
       _loading = true;
       _error = null;
@@ -50,8 +71,8 @@ class _AllItemsScreenState extends State<AllItemsScreen> {
 
     try {
       final results = await Future.wait<dynamic>([
-        _api.get('/wardrobes/${AppConfig.demoUserId}/summary'),
-        _api.get('/wardrobeItems/user/${AppConfig.demoUserId}'),
+        _api.get('/wardrobes/summary'),
+        _api.get('/wardrobeItems'),
       ]);
 
       final wardrobes = (results[0] as List<dynamic>? ?? const [])
@@ -113,7 +134,7 @@ class _AllItemsScreenState extends State<AllItemsScreen> {
 
     final slivers = <Widget>[
       SliverPadding(
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+        padding: const EdgeInsets.fromLTRB(20, 14, 20, 16),
         sliver: SliverToBoxAdapter(
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -122,28 +143,15 @@ class _AllItemsScreenState extends State<AllItemsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'EVERYTHING YOU OWN',
-                      style: TextStyle(
-                        fontSize: 11,
-                        letterSpacing: 1.4,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textMuted,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
                     Text(
                       'All Items',
                       style: Theme.of(context).textTheme.headlineLarge,
                     ),
                     if (!_loading && _error == null) ...[
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 3),
                       Text(
-                        '${_items.length} ${_items.length == 1 ? 'item' : 'items'} across ${populated.length} ${populated.length == 1 ? 'wardrobe' : 'wardrobes'}',
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: AppColors.textSecondary,
-                        ),
+                        '${_items.length} ${_items.length == 1 ? 'item' : 'items'} · ${formatPrice(_totalValue)}',
+                        style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ],
                   ],
@@ -206,7 +214,7 @@ class _AllItemsScreenState extends State<AllItemsScreen> {
 
         slivers.add(
           SliverPadding(
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 10),
+            padding: const EdgeInsets.fromLTRB(20, 6, 20, 8),
             sliver: SliverToBoxAdapter(
               child: _WardrobeSectionHeader(
                 wardrobe: wardrobe,
@@ -219,15 +227,15 @@ class _AllItemsScreenState extends State<AllItemsScreen> {
 
         slivers.add(
           SliverPadding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 18),
             sliver: SliverLayoutBuilder(
               builder: (context, constraints) {
                 final columns = photoColumnsFor(constraints.crossAxisExtent);
                 return SliverGrid(
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: columns,
-                    mainAxisSpacing: 12,
-                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 10,
+                    crossAxisSpacing: 10,
                     childAspectRatio: 0.72,
                   ),
                   delegate: SliverChildBuilderDelegate(
@@ -274,21 +282,21 @@ class _WardrobeSectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(10),
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 6),
+        padding: const EdgeInsets.symmetric(vertical: 4),
         child: Row(
           children: [
-            const Icon(Icons.checkroom, size: 20, color: AppColors.primary),
-            const SizedBox(width: 8),
+            const Icon(Icons.checkroom, size: 17, color: AppColors.primary),
+            const SizedBox(width: 7),
             Expanded(
               child: Text(
                 wardrobe.name,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
-                  fontSize: 18,
+                  fontSize: 15,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -296,7 +304,7 @@ class _WardrobeSectionHeader extends StatelessWidget {
             AppPill(label: '$itemCount', color: AppColors.textSecondary),
             const Icon(
               Icons.chevron_right,
-              size: 20,
+              size: 18,
               color: AppColors.textMuted,
             ),
           ],

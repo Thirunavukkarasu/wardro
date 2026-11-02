@@ -2,12 +2,12 @@ import 'package:flutter/foundation.dart';
 
 /// The signed-in user as the app knows them.
 ///
-/// `authId` is the identity-provider uid (Firebase `uid`). `id` is the
-/// numeric backend user id used by the wardrobe endpoints.
+/// `authId` is the identity-provider uid (Firebase `uid`). The backend derives
+/// the numeric user row from the verified token, so the app never sends or
+/// needs a user id.
 @immutable
 class AppUser {
   const AppUser({
-    required this.id,
     required this.authId,
     required this.firstName,
     required this.lastName,
@@ -17,7 +17,6 @@ class AppUser {
     this.emailVerified = false,
   });
 
-  final int id;
   final String authId;
   final String firstName;
   final String lastName;
@@ -42,7 +41,6 @@ class AppUser {
   }
 
   Map<String, dynamic> toJson() => {
-    'id': id,
     'authId': authId,
     'firstName': firstName,
     'lastName': lastName,
@@ -53,7 +51,6 @@ class AppUser {
   };
 
   factory AppUser.fromJson(Map<String, dynamic> json) => AppUser(
-    id: (json['id'] as num?)?.toInt() ?? 0,
     // `clerkId` is the pre-Firebase key; keep reading it for stored sessions.
     authId: json['authId'] as String? ?? json['clerkId'] as String? ?? '',
     firstName: json['firstName'] as String? ?? '',

@@ -92,6 +92,14 @@ void main() {
 
       await service.resendVerificationEmail();
     });
+
+    test('Google sign-in creates a session', () async {
+      await service.signInWithGoogle();
+
+      final user = await service.restoreSession();
+      expect(user?.email, 'google.user@example.com');
+      expect(user?.authId, 'stub_google_user');
+    });
   });
 
   group('AuthController', () {

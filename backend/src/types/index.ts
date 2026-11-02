@@ -9,7 +9,6 @@ export const UserSchema = z.object({
 export type User = z.infer<typeof UserSchema>;
 
 export const WardrobeSchema = z.object({
-    userId: z.number().int().positive("User ID must be a positive integer"),
     name: z.string().min(1, "Name is required"),
     description: z.string().optional(), // Description can be optional
 });
@@ -28,7 +27,6 @@ export const WardrobeItemSchema = z.object({
     color: z.string().optional(),
     size: z.string().optional(),
     wardrobeId: z.number().int().positive("Wardrobe ID is required"),
-    userId: z.number().int().positive("User ID is required")
 });
 
 export type WardrobeItem = z.infer<typeof WardrobeItemSchema>;

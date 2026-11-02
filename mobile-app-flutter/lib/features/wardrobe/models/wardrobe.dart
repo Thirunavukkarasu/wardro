@@ -1,4 +1,4 @@
-/// A wardrobe row as returned by `GET /wardrobes/:userId/summary`.
+/// A wardrobe row as returned by `GET /wardrobes/summary`.
 class Wardrobe {
   const Wardrobe({
     required this.id,
@@ -6,6 +6,7 @@ class Wardrobe {
     required this.name,
     required this.description,
     this.itemCount = 0,
+    this.totalValue = 0,
     this.coverPhotoUri = '',
   });
 
@@ -14,6 +15,7 @@ class Wardrobe {
   final String name;
   final String description;
   final int itemCount;
+  final double totalValue;
   final String coverPhotoUri;
 
   /// The cover photo is only renderable when the backend stored a real URL.
@@ -29,6 +31,7 @@ class Wardrobe {
     name: json['name'] as String? ?? '',
     description: json['description'] as String? ?? '',
     itemCount: (json['itemCount'] as num?)?.toInt() ?? 0,
+    totalValue: (json['totalValue'] as num?)?.toDouble() ?? 0,
     coverPhotoUri: json['coverPhotoUri'] as String? ?? '',
   );
 }

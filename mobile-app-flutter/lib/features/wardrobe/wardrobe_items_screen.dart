@@ -221,7 +221,7 @@ class _WardrobeHeader extends StatelessWidget {
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
-                  fontSize: 26,
+                  fontSize: 22,
                   height: 1.15,
                   fontWeight: FontWeight.w800,
                 ),
@@ -233,7 +233,7 @@ class _WardrobeHeader extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    fontSize: 13.5,
+                    fontSize: 12.5,
                     color: AppColors.textSecondary,
                   ),
                 ),

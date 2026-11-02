@@ -13,14 +13,6 @@ class AppConfig {
         'https://0457-2406-7400-76ce-f46b-ad1d-75b0-8a93.ngrok-free.app/api',
   );
 
-  /// The backend has no "current user" endpoint yet, so the home screen asks
-  /// for a wardrobe list by numeric user id. The React Native app hard-codes
-  /// this value; it is configurable here for convenience.
-  static const int demoUserId = int.fromEnvironment(
-    'DEMO_USER_ID',
-    defaultValue: 4,
-  );
-
   /// Authentication backend: `firebase` (default) or `stub`.
   ///
   /// If Firebase is selected but the platform config is incomplete, the app

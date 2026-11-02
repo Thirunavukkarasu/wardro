@@ -42,8 +42,8 @@ class HeroHeader extends StatelessWidget {
             child: Text(
               title,
               style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w600,
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
                 color: Colors.black,
               ),
             ),
@@ -77,7 +77,7 @@ class AuthFooterLink extends StatelessWidget {
         children: [
           Text(
             prompt,
-            style: const TextStyle(fontSize: 17, color: AppColors.textSecondary),
+            style: const TextStyle(fontSize: 13.5, color: AppColors.textSecondary),
           ),
           TextButton(
             onPressed: onTap,
@@ -89,7 +89,7 @@ class AuthFooterLink extends StatelessWidget {
             child: Text(
               actionLabel,
               style: const TextStyle(
-                fontSize: 17,
+                fontSize: 13.5,
                 color: AppColors.primary,
                 fontWeight: FontWeight.w600,
               ),

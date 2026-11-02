@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../../core/config/app_config.dart';
 import '../../core/network/api_exception.dart';
 import '../../core/network/api_scope.dart';
 import '../../core/theme/app_colors.dart';
 import '../../shared/widgets/app_button.dart';
 import '../../shared/widgets/app_text_field.dart';
 import '../../shared/widgets/hero_header.dart';
-import '../auth/auth_scope.dart';
 
 class AddWardrobeScreen extends StatefulWidget {
   const AddWardrobeScreen({super.key});
@@ -35,13 +33,11 @@ class _AddWardrobeScreenState extends State<AddWardrobeScreen> {
 
     setState(() => _saving = true);
     final api = ApiScope.of(context);
-    final userId = AuthScope.of(context).user?.id ?? AppConfig.demoUserId;
 
     try {
       await api.post(
         '/wardrobes',
         body: {
-          'userId': userId,
           'name': _nameController.text.trim(),
           'description': _descriptionController.text.trim(),
         },

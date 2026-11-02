@@ -16,7 +16,7 @@ class AppButton extends StatelessWidget {
     this.iconRight,
     this.isLoading = false,
     this.expand = true,
-    this.padding = const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+    this.padding = const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
   });
 
   final String title;
@@ -54,15 +54,15 @@ class AppButton extends StatelessWidget {
         color: _background,
         elevation: variant == AppButtonVariant.outline ? 0 : 4,
         shadowColor: const Color(0xFFA3A3A3).withValues(alpha: 0.7),
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(14),
         child: InkWell(
           onTap: disabled ? null : onPressed,
-          borderRadius: BorderRadius.circular(999),
+          borderRadius: BorderRadius.circular(14),
           child: Container(
             width: expand ? double.infinity : null,
             padding: padding,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(999),
+              borderRadius: BorderRadius.circular(14),
               border: variant == AppButtonVariant.outline
                   ? Border.all(color: AppColors.border)
                   : null,
@@ -90,7 +90,7 @@ class AppButton extends StatelessWidget {
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: _foreground,
-                        fontSize: 17,
+                        fontSize: 15.5,
                         fontWeight: FontWeight.w700,
                       ),
                     ),

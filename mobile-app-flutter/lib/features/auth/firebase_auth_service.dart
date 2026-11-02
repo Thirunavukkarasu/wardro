@@ -1,23 +1,26 @@
 import 'dart:convert';
 
 import 'package:firebase_auth/firebase_auth.dart' as fb;
+import 'package:flutter/foundation.dart' show debugPrint, kIsWeb;
+import 'package:flutter/services.dart' show PlatformException;
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../../core/config/app_config.dart';
+import '../../../firebase_options.dart';
 import 'auth_service.dart';
 import 'models/app_user.dart';
 
-/// Firebase Authentication backend (email + password).
+/// Firebase Authentication backend (email/password + Google).
 ///
-/// Firebase signs the user in as soon as the account is created, so the
-/// sign-up flow ends with a "verification link sent" step rather than a
-/// 6-digit code — Firebase does not issue codes for email verification.
+/// Identity always comes from the provider; the backend verifies the ID token
+/// and maps the uid to its own user row.
 class FirebaseAuthService implements AuthService {
   FirebaseAuthService(this._prefs);
 
   static const _userKey = 'auth.firebase.user';
 
   final SharedPreferences _prefs;
+  bool _googleInitialised = false;
 
   fb.FirebaseAuth get _auth => fb.FirebaseAuth.instance;
 
@@ -31,7 +34,21 @@ class FirebaseAuthService implements AuthService {
 
     final cached = _readCache();
     if (cached != null && cached.authId == user.uid) return cached;
-    return _toAppUser(user);
+
+    final appUser = _toAppUser(user);
+    await _prefs.setString(_userKey, jsonEncode(appUser.toJson()));
+    return appUser;
+  }
+
+  @override
+  Future<String?> idToken() async {
+    final user = _auth.currentUser;
+    if (user == null) return null;
+    try {
+      return await user.getIdToken();
+    } on fb.FirebaseAuthException {
+      return null;
+    }
   }
 
   @override
@@ -47,6 +64,52 @@ class FirebaseAuthService implements AuthService {
       await _cacheCurrentUser();
     } on fb.FirebaseAuthException catch (error) {
       throw AuthException(_message(error));
+    }
+  }
+
+  @override
+  Future<void> signInWithGoogle() async {
+    try {
+      if (kIsWeb) {
+        // On web the Firebase JS SDK runs the popup itself; `google_sign_in`
+        // is never initialised there (it hangs without a client ID).
+        await _auth.signInWithPopup(fb.GoogleAuthProvider());
+      } else {
+        if (!_googleInitialised) {
+          await GoogleSignIn.instance.initialize(
+            serverClientId: DefaultFirebaseOptions.googleServerClientId,
+          );
+          _googleInitialised = true;
+        }
+        final googleUser = await GoogleSignIn.instance.authenticate();
+        final idToken = googleUser.authentication.idToken;
+        if (idToken == null || idToken.isEmpty) {
+          throw const AuthException(
+            'Google did not return an ID token. Check the OAuth client and '
+            'the Android SHA-1 fingerprint in Firebase.',
+          );
+        }
+        await _auth.signInWithCredential(
+          fb.GoogleAuthProvider.credential(idToken: idToken),
+        );
+      }
+      await _cacheCurrentUser();
+    } on fb.FirebaseAuthException catch (error) {
+      debugPrint(
+        '[auth] Google FirebaseAuthException ${error.code}: ${error.message}',
+      );
+      throw AuthException(_googleMessage(error));
+    } on GoogleSignInException catch (error) {
+      debugPrint(
+        '[auth] GoogleSignInException ${error.code}: ${error.description}',
+      );
+      if (error.code == GoogleSignInExceptionCode.canceled) {
+        throw const AuthException('Google sign-in was cancelled.');
+      }
+      throw AuthException(error.description ?? 'Google sign-in failed.');
+    } on PlatformException catch (error) {
+      debugPrint('[auth] Google PlatformException ${error.code}: ${error.message}');
+      throw AuthException(error.message ?? 'Google sign-in failed.');
     }
   }
 
@@ -113,7 +176,7 @@ class FirebaseAuthService implements AuthService {
   Future<void> _cacheCurrentUser() async {
     final user = _auth.currentUser;
     if (user == null) return;
-    final appUser = await _toAppUser(user);
+    final appUser = _toAppUser(user);
     await _prefs.setString(_userKey, jsonEncode(appUser.toJson()));
   }
 
@@ -127,7 +190,7 @@ class FirebaseAuthService implements AuthService {
     }
   }
 
-  Future<AppUser> _toAppUser(fb.User user) async {
+  AppUser _toAppUser(fb.User user) {
     final name = (user.displayName ?? '').trim();
     final parts = name
         .split(RegExp(r'\s+'))
@@ -136,9 +199,6 @@ class FirebaseAuthService implements AuthService {
     final email = user.email ?? '';
 
     return AppUser(
-      // The backend still keys wardrobes by a numeric user id. Until it maps
-      // Firebase uids to user rows, the demo account is used for data access.
-      id: AppConfig.demoUserId,
       authId: user.uid,
       firstName: parts.isNotEmpty ? parts.first : email.split('@').first,
       lastName: parts.length > 1 ? parts.sublist(1).join(' ') : '',
@@ -148,6 +208,20 @@ class FirebaseAuthService implements AuthService {
       emailVerified: user.emailVerified,
     );
   }
+
+  String _googleMessage(fb.FirebaseAuthException error) => switch (error.code) {
+    'popup-closed-by-user' ||
+    'cancelled' => 'Google sign-in was cancelled.',
+    'popup-blocked' =>
+      'The Google popup was blocked. Allow popups for this site and retry.',
+    'unauthorized-domain' =>
+      'This domain is not authorised for Google sign-in. Add "localhost" '
+          'under Authentication → Settings → Authorized domains.',
+    'operation-not-allowed' => 'Google sign-in is not enabled in Firebase.',
+    'account-exists-with-different-credential' =>
+      'An account already exists for this email with another sign-in method.',
+    _ => error.message ?? 'Google sign-in failed.',
+  };
 
   String _message(fb.FirebaseAuthException error) => switch (error.code) {
     'invalid-email' => 'That email address looks invalid.',

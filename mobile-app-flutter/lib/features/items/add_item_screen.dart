@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../core/config/app_config.dart';
 import '../../core/network/api_client.dart';
 import '../../core/network/api_exception.dart';
 import '../../core/network/api_scope.dart';
@@ -11,7 +10,6 @@ import '../../shared/widgets/app_button.dart';
 import '../../shared/widgets/app_date_field.dart';
 import '../../shared/widgets/app_text_field.dart';
 import '../../shared/widgets/photo_capture_field.dart';
-import '../auth/auth_scope.dart';
 import '../wardrobe/models/wardrobe.dart';
 
 /// Photo-first garment capture. Mirrors `add-wardrobe-items.tsx`, with a
@@ -73,7 +71,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
     });
 
     try {
-      final raw = await _api.get('/wardrobes/${AppConfig.demoUserId}');
+      final raw = await _api.get('/wardrobes');
       final list = (raw as List<dynamic>? ?? const [])
           .map((item) => Wardrobe.fromJson(item as Map<String, dynamic>))
           .toList(growable: false);
@@ -101,7 +99,6 @@ class _AddItemScreenState extends State<AddItemScreen> {
     final payload = <String, dynamic>{
       'itemName': _itemName.text.trim(),
       'wardrobeId': _wardrobeId,
-      'userId': AuthScope.of(context).user?.id ?? AppConfig.demoUserId,
     };
 
     void addIfNotEmpty(String key, String value) {

@@ -2,15 +2,14 @@ import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../../core/config/app_config.dart';
 import 'auth_service.dart';
 import 'models/app_user.dart';
 
 /// Offline auth backend used when Firebase is not configured.
 ///
 /// Accepts any valid-looking credentials and keeps the "session" in
-/// `SharedPreferences`. Sign-up signs the user in immediately, mirroring
-/// Firebase's behaviour (verification is not blocking).
+/// `SharedPreferences`. There is no ID token, so backend requests that require
+/// authentication will be rejected in this mode.
 class StubAuthService implements AuthService {
   StubAuthService(this._prefs);
 
@@ -31,12 +30,31 @@ class StubAuthService implements AuthService {
   }
 
   @override
+  Future<String?> idToken() async => null;
+
+  @override
   Future<void> signIn({
     required String email,
     required String password,
   }) async {
     await _simulateLatency();
-    await _persist(_buildUser(email: email.trim(), name: email.split('@').first));
+    await _persist(
+      _buildUser(email: email.trim(), name: email.split('@').first),
+    );
+  }
+
+  @override
+  Future<void> signInWithGoogle() async {
+    await _simulateLatency();
+    await _persist(
+      const AppUser(
+        authId: 'stub_google_user',
+        firstName: 'Google',
+        lastName: 'User',
+        email: 'google.user@example.com',
+        emailVerified: true,
+      ),
+    );
   }
 
   @override
@@ -74,7 +92,6 @@ class StubAuthService implements AuthService {
     final slug = email.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '_');
 
     return AppUser(
-      id: AppConfig.demoUserId,
       authId: 'stub_$slug',
       firstName: parts.isNotEmpty ? parts.first : email.split('@').first,
       lastName: parts.length > 1 ? parts.sublist(1).join(' ') : '',

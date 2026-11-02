@@ -2,6 +2,8 @@ import { Hono } from 'hono'
 import { mkdir, unlink } from 'node:fs/promises'
 import { join } from 'node:path'
 
+import { requireUser, type AuthEnv } from '@/auth'
+
 /**
  * Minimal local image store.
  *
@@ -50,9 +52,11 @@ export async function removeUploadedFile(photoUri?: string | null) {
     }
 }
 
-const routes = new Hono()
+const routes = new Hono<AuthEnv>()
 
-routes.post('/', async (c) => {
+// Uploading requires a signed-in user; reading images stays public so the
+// browser can render them with a plain <img> request.
+routes.post('/', requireUser, async (c) => {
     try {
         const body = await c.req.parseBody()
         const file = body['file']

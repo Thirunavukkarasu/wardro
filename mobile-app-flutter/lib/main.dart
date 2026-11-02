@@ -23,6 +23,10 @@ Future<void> main() async {
       ? FirebaseAuthService(prefs)
       : StubAuthService(prefs);
 
+  // Every API request carries the Firebase ID token; the backend verifies it
+  // and derives the user from it.
+  apiClient.tokenProvider = authService.idToken;
+
   final authController = AuthController(authService);
   await authController.initialize();
 

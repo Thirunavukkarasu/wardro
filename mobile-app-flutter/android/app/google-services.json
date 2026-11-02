@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "251900114942-r6m4shpo2bat27382vnaaatb2agvm3d5.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.om.wardo",
+            "certificate_hash": "bd86310532a89cee0287d596a82cf6d705a37e27"
+          }
+        },
+        {
           "client_id": "251900114942-ntfihbiuu1b7og3t79r79oln1tv4rbgb.apps.googleusercontent.com",
           "client_type": 3
         }

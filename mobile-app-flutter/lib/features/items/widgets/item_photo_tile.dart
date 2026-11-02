@@ -45,9 +45,9 @@ class ItemPhotoTile extends StatelessWidget {
                 ),
               ),
               Positioned(
-                left: 12,
-                right: 12,
-                bottom: 12,
+                left: 10,
+                right: 10,
+                bottom: 10,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -56,7 +56,7 @@ class ItemPhotoTile extends StatelessWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        fontSize: 14.5,
+                        fontSize: 13.5,
                         height: 1.2,
                         fontWeight: FontWeight.w700,
                         color: Colors.white,
@@ -67,7 +67,7 @@ class ItemPhotoTile extends StatelessWidget {
                       Text(
                         formatPrice(item.price!),
                         style: const TextStyle(
-                          fontSize: 12.5,
+                          fontSize: 11.5,
                           fontWeight: FontWeight.w600,
                           color: Color(0xE6FFFFFF),
                         ),

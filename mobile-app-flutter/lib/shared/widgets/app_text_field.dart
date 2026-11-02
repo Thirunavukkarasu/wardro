@@ -57,12 +57,12 @@ class _AppTextFieldState extends State<AppTextField> {
           Text(
             widget.label,
             style: const TextStyle(
-              fontSize: 17,
+              fontSize: 13.5,
               fontWeight: FontWeight.w600,
               color: AppColors.textPrimary,
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 7),
           TextFormField(
             controller: widget.controller,
             initialValue: widget.controller == null ? widget.initialValue : null,
@@ -75,7 +75,7 @@ class _AppTextFieldState extends State<AppTextField> {
             onChanged: widget.onChanged,
             onFieldSubmitted: widget.onSubmitted,
             validator: widget.validator,
-            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
             decoration: InputDecoration(
               hintText: widget.placeholder,
               errorText: widget.errorText,
