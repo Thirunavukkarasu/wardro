@@ -1,0 +1,39 @@
+# Wardro data model.
+#
+# Users are keyed by their Firebase Auth uid so ownership can be enforced with
+# `auth.uid` in every operation.
+
+type User @table(key: "uid") {
+  uid: String! @default(expr: "auth.uid")
+  email: String
+  displayName: String
+  createdAt: Timestamp! @default(expr: "request.time")
+}
+
+type Wardrobe @table {
+  id: Int! @col(dataType: "serial")
+  name: String!
+  description: String @default(value: "")
+  owner: User! @ref(fields: "ownerUid", references: "uid")
+  ownerUid: String!
+  createdAt: Timestamp! @default(expr: "request.time")
+}
+
+type WardrobeItem @table {
+  id: Int! @col(dataType: "serial")
+  photoUri: String @default(value: "")
+  itemName: String!
+  purchaseDate: Timestamp
+  expiryDate: Timestamp
+  price: Float
+  brand: String
+  category: String
+  color: String
+  size: String
+  state: String @default(value: "newly_purchased")
+  wardrobe: Wardrobe! @ref(fields: "wardrobeId", references: "id")
+  wardrobeId: Int!
+  owner: User! @ref(fields: "ownerUid", references: "uid")
+  ownerUid: String!
+  createdAt: Timestamp! @default(expr: "request.time")
+}

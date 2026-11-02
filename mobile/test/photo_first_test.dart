@@ -15,65 +15,8 @@ import 'package:wardro_mobile/shared/models/picked_photo.dart';
 import 'package:wardro_mobile/shared/utils/layout.dart';
 
 void main() {
-  group('ApiClient.uploadPhoto', () {
-    test('posts multipart form data and returns the stored URL', () async {
-      late http.Request captured;
-      final client = MockClient((request) async {
-        captured = request;
-        return http.Response(
-          jsonEncode({
-            'data': {'url': 'http://test/api/uploads/abc.png'},
-          }),
-          201,
-          headers: {'content-type': 'application/json'},
-        );
-      });
-
-      final api = ApiClient(client: client, baseUrl: 'http://test/api');
-      final url = await api.uploadPhoto(
-        PickedPhoto(
-          bytes: Uint8List.fromList([1, 2, 3, 4]),
-          path: 'photo.png',
-          mimeType: 'image/png',
-        ),
-      );
-
-      expect(url, 'http://test/api/uploads/abc.png');
-      expect(captured.method, 'POST');
-      expect(captured.url.path, '/api/uploads');
-      expect(
-        captured.headers['content-type'],
-        contains('multipart/form-data'),
-      );
-      expect(captured.bodyBytes, isNotEmpty);
-    });
-
-    test('surfaces the backend error message', () async {
-      final client = MockClient(
-        (_) async => http.Response(
-          jsonEncode({'error': 'Only image uploads are supported'}),
-          415,
-          headers: {'content-type': 'application/json'},
-        ),
-      );
-
-      final api = ApiClient(client: client, baseUrl: 'http://test/api');
-
-      await expectLater(
-        api.uploadPhoto(
-          PickedPhoto(bytes: Uint8List.fromList([1]), path: 'file.txt'),
-        ),
-        throwsA(
-          isA<ApiException>().having(
-            (error) => error.message,
-            'message',
-            contains('Only image uploads'),
-          ),
-        ),
-      );
-    });
-  });
-
+  // Uploads now go straight to Firebase Storage, which needs a live Firebase
+  // app; the old multipart-endpoint tests no longer apply.
   group('PickedPhoto', () {
     test('infers the mime type from the path when absent', () {
       expect(
@@ -155,7 +98,7 @@ void main() {
       final item = WardrobeItem(
         id: 7,
         wardrobeId: 3,
-        userId: 4,
+        userId: 'user-4',
         itemName: 'Pants',
       );
 
@@ -211,7 +154,7 @@ void main() {
       final item = WardrobeItem(
         id: 8,
         wardrobeId: 3,
-        userId: 4,
+        userId: 'user-4',
         itemName: 'Shirt',
       );
 
@@ -240,7 +183,7 @@ void main() {
       final item = WardrobeItem(
         id: 1,
         wardrobeId: 3,
-        userId: 4,
+        userId: 'user-4',
         itemName: 'Pants',
         brand: 'H&M',
         category: 'Formals',

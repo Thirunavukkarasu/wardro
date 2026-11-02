@@ -1,115 +1,130 @@
-import { and, eq, sql } from "drizzle-orm";
 import { Hono } from 'hono'
-import { WardrobeSchema } from "@/types";
-import { db } from "@/db";
-import { wardrobesTable, wardrobeItemsTable } from "@/schema";
-import { removeUploadedFile } from "@/modules/uploads";
-import { requireUser, type AuthEnv } from "@/auth";
+import {
+    createWardrobe,
+    deleteWardrobe,
+    listWardrobeItemsByWardrobe,
+    listWardrobes,
+    listWardrobesWithItems,
+} from '@wardro/dataconnect-admin'
+
+import { WardrobeSchema } from '@/types'
+import { dataConnect } from '@/dataConnect'
+import { requireUser, type AuthEnv } from '@/auth'
+import { removeStoredPhoto } from '@/storage'
 
 const routes = new Hono<AuthEnv>()
 
 // Every route below acts on the user named by the verified Firebase token.
 routes.use('*', requireUser)
 
+const options = (c: any) => ({
+    impersonate: { authClaims: c.get('authClaims') },
+})
+
 routes.post('/', async (c) => {
     try {
-        const requestData = await c.req.json();
-        const wardrobe = WardrobeSchema.parse(requestData);
+        const wardrobe = WardrobeSchema.parse(await c.req.json())
 
-        const response = await db.insert(wardrobesTable).values({
+        const { data } = await createWardrobe(
+            dataConnect,
+            {
+                name: wardrobe.name,
+                description: wardrobe.description ?? '',
+            },
+            options(c)
+        )
+
+        const created = {
+            id: data.wardrobe_insert.id,
+            userId: c.get('uid'),
             name: wardrobe.name,
             description: wardrobe.description ?? '',
-            userId: c.get('userId'),
-            createdAt: new Date(),
-        }).returning();
+            createdAt: new Date().toISOString(),
+        }
 
-        return Response.json({ data: response }, { status: 201 });
+        return Response.json({ data: [created] }, { status: 201 })
     } catch (error) {
-        console.error("Error creating wardrobe:", error);
-        const errorMessage = (error as any).message;
-        return Response.json({ error: errorMessage }, { status: 500 });
+        console.error('Error creating wardrobe:', error)
+        return Response.json(
+            { error: (error as Error).message },
+            { status: 500 }
+        )
     }
 })
 
 routes.get('/summary', async (c) => {
     try {
-        const userId = c.get('userId');
+        const { data } = await listWardrobesWithItems(dataConnect, options(c))
 
-        const response = await db
-            .select({
-                id: wardrobesTable.id,
-                userId: wardrobesTable.userId,
-                name: wardrobesTable.name,
-                description: wardrobesTable.description,
-                createdAt: wardrobesTable.createdAt,
-                itemCount: sql<number>`count(${wardrobeItemsTable.id})`.mapWith(Number),
-                totalValue: sql<number>`coalesce(sum(${wardrobeItemsTable.price}), 0)`.mapWith(Number),
-                coverPhotoUri: sql<string | null>`max(nullif(${wardrobeItemsTable.photoUri}, ''))`,
-            })
-            .from(wardrobesTable)
-            .leftJoin(
-                wardrobeItemsTable,
-                eq(wardrobeItemsTable.wardrobeId, wardrobesTable.id)
-            )
-            .where(eq(wardrobesTable.userId, userId))
-            .groupBy(wardrobesTable.id)
-            .orderBy(wardrobesTable.createdAt);
+        const summary = data.wardrobes.map((wardrobe) => ({
+            id: wardrobe.id,
+            userId: wardrobe.ownerUid,
+            name: wardrobe.name,
+            description: wardrobe.description ?? '',
+            createdAt: wardrobe.createdAt,
+            itemCount: wardrobe.items.length,
+            totalValue: wardrobe.items.reduce(
+                (sum, item) => sum + (item.price ?? 0),
+                0
+            ),
+            coverPhotoUri:
+                wardrobe.items.find((item) => !!item.photoUri)?.photoUri ?? null,
+        }))
 
-        return Response.json({ data: response }, { status: 200 });
+        return Response.json({ data: summary }, { status: 200 })
     } catch (error) {
-        console.error("Error fetching wardrobe summary:", error);
-        const errorMessage = (error as any).message;
-        return Response.json({ error: errorMessage }, { status: 500 });
+        console.error('Error fetching wardrobe summary:', error)
+        return Response.json({ error: 'Internal Server Error' }, { status: 500 })
     }
 })
 
 routes.get('/', async (c) => {
     try {
-        const response = await db
-            .select()
-            .from(wardrobesTable)
-            .where(eq(wardrobesTable.userId, c.get('userId')));
+        const { data } = await listWardrobes(dataConnect, options(c))
 
-        return Response.json({ data: response }, { status: 200 });
+        return Response.json(
+            {
+                data: data.wardrobes.map((wardrobe) => ({
+                    ...wardrobe,
+                    userId: wardrobe.ownerUid,
+                })),
+            },
+            { status: 200 }
+        )
     } catch (error) {
-        console.error("Error fetching wardrobes:", error);
-        const errorMessage = (error as any).message;
-        return Response.json({ error: errorMessage }, { status: 500 });
+        console.error('Error fetching wardrobes:', error)
+        return Response.json({ error: 'Internal Server Error' }, { status: 500 })
     }
 })
 
 routes.delete('/:id', async (c) => {
     try {
-        const id = parseInt(c.req.param('id') || '0');
+        const id = parseInt(c.req.param('id') || '0')
         if (!id) {
-            return Response.json({ error: "Invalid wardrobe id" }, { status: 400 });
+            return Response.json({ error: 'Invalid wardrobe id' }, { status: 400 })
         }
 
-        const userId = c.get('userId');
-        const owned = await db
-            .select({ id: wardrobesTable.id })
-            .from(wardrobesTable)
-            .where(and(eq(wardrobesTable.id, id), eq(wardrobesTable.userId, userId)));
+        // Read the children before the cascade removes them so their photos can
+        // be cleaned up from Storage.
+        const items = await listWardrobeItemsByWardrobe(
+            dataConnect,
+            { wardrobeId: id },
+            options(c)
+        )
 
-        if (owned.length === 0) {
-            return Response.json({ error: "Wardrobe not found" }, { status: 404 });
+        const { data } = await deleteWardrobe(dataConnect, { id }, options(c))
+        if (!data.wardrobe_delete) {
+            return Response.json({ error: 'Wardrobe not found' }, { status: 404 })
         }
 
-        // Read the children first so their uploaded files can be cleaned up
-        // after the cascade removes the rows.
-        const items = await db
-            .select()
-            .from(wardrobeItemsTable)
-            .where(eq(wardrobeItemsTable.wardrobeId, id));
+        await Promise.all(
+            items.data.wardrobeItems.map((item) => removeStoredPhoto(item.photoUri))
+        )
 
-        await db.delete(wardrobesTable).where(eq(wardrobesTable.id, id));
-        await Promise.all(items.map((item) => removeUploadedFile(item.photoUri)));
-
-        return new Response(null, { status: 204 });
+        return new Response(null, { status: 204 })
     } catch (error) {
-        console.error("Error deleting wardrobe:", error);
-        const errorMessage = (error as any).message;
-        return Response.json({ error: errorMessage }, { status: 500 });
+        console.error('Error deleting wardrobe:', error)
+        return Response.json({ error: 'Internal Server Error' }, { status: 500 })
     }
 })
 

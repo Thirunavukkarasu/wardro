@@ -1,0 +1,126 @@
+# Queries used by the Hono API.
+#
+# Every operation is scoped to the caller with `auth.uid`, so a user can never
+# read another user's wardrobes or items.
+
+query GetMe @auth(level: USER) {
+  user(key: { uid_expr: "auth.uid" }) {
+    uid
+    email
+    displayName
+    createdAt
+  }
+}
+
+query ListWardrobes @auth(level: USER) {
+  wardrobes(
+    where: { ownerUid: { eq_expr: "auth.uid" } }
+    orderBy: [{ createdAt: ASC }]
+  ) {
+    id
+    name
+    description
+    ownerUid
+    createdAt
+  }
+}
+
+# Used by /wardrobes/summary: one query returns each wardrobe plus the items
+# needed to compute itemCount, totalValue and coverPhotoUri.
+query ListWardrobesWithItems @auth(level: USER) {
+  wardrobes(
+    where: { ownerUid: { eq_expr: "auth.uid" } }
+    orderBy: [{ createdAt: ASC }]
+  ) {
+    id
+    name
+    description
+    ownerUid
+    createdAt
+    items: wardrobeItems_on_wardrobe {
+      id
+      photoUri
+      price
+      createdAt
+    }
+  }
+}
+
+query GetWardrobe($id: Int!) @auth(level: USER) {
+  wardrobe(
+    first: {
+      where: {
+        id: { eq: $id }
+        ownerUid: { eq_expr: "auth.uid" }
+      }
+    }
+  ) {
+    id
+    name
+    description
+    ownerUid
+    createdAt
+  }
+}
+
+query GetWardrobeItem($id: Int!) @auth(level: USER) {
+  wardrobeItem(
+    first: {
+      where: {
+        id: { eq: $id }
+        ownerUid: { eq_expr: "auth.uid" }
+      }
+    }
+  ) {
+    id
+    photoUri
+    wardrobeId
+    ownerUid
+  }
+}
+
+query ListWardrobeItems @auth(level: USER) {
+  wardrobeItems(
+    where: { ownerUid: { eq_expr: "auth.uid" } }
+    orderBy: [{ createdAt: DESC }]
+  ) {
+    id
+    photoUri
+    itemName
+    purchaseDate
+    expiryDate
+    price
+    brand
+    category
+    color
+    size
+    state
+    wardrobeId
+    ownerUid
+    createdAt
+  }
+}
+
+query ListWardrobeItemsByWardrobe($wardrobeId: Int!) @auth(level: USER) {
+  wardrobeItems(
+    where: {
+      wardrobeId: { eq: $wardrobeId }
+      ownerUid: { eq_expr: "auth.uid" }
+    }
+  ) {
+    id
+    photoUri
+    itemName
+    purchaseDate
+    expiryDate
+    price
+    brand
+    category
+    color
+    size
+    state
+    wardrobeId
+    ownerUid
+    createdAt
+  }
+}

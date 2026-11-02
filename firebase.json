@@ -1,0 +1,12 @@
+{
+  "dataconnect": {
+    "source": "dataconnect"
+  },
+  "storage": {
+    "rules": "storage.rules"
+  },
+  "apphosting": {
+    "backendId": "wardro",
+    "rootDir": "/backend"
+  }
+}

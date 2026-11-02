@@ -1,9 +1,9 @@
 import { createMiddleware } from 'hono/factory'
 import { createRemoteJWKSet, jwtVerify } from 'jose'
-import { eq } from 'drizzle-orm'
+import type { AuthClaims } from 'firebase-admin/data-connect'
+import { ensureUser } from '@wardro/dataconnect-admin'
 
-import { db } from '@/db'
-import { usersTable } from '@/schema'
+import { dataConnect } from '@/dataConnect'
 
 /**
  * Firebase ID-token verification.
@@ -11,6 +11,9 @@ import { usersTable } from '@/schema'
  * Tokens are verified against Google's public JWKS, so no service-account
  * key is needed. The client never sends a user id; identity always comes from
  * the signed token.
+ *
+ * The verified claims are also used to impersonate the caller when talking to
+ * SQL Connect, so `auth.uid` in the connector evaluates to the real user.
  */
 const PROJECT_ID = process.env.FIREBASE_PROJECT_ID || 'wardo-ce8d5'
 const ISSUER = `https://securetoken.google.com/${PROJECT_ID}`
@@ -24,7 +27,7 @@ const JWKS = createRemoteJWKSet(
 export type AuthEnv = {
     Variables: {
         uid: string
-        userId: number
+        authClaims: AuthClaims
     }
 }
 
@@ -56,61 +59,26 @@ export const requireUser = createMiddleware<AuthEnv>(async (c, next) => {
         return c.json({ error: 'Token subject is missing' }, 401)
     }
 
-    const userId = await resolveUserId(
-        uid,
-        claims.name,
-        claims.email,
-        claims.email_verified
-    )
-    c.set('uid', uid)
-    c.set('userId', userId)
-    await next()
-})
+    const authClaims = { ...claims, uid, sub: uid } as AuthClaims
 
-/** Maps the provider uid to a local user row, creating it on first use. */
-async function resolveUserId(
-    uid: string,
-    nameClaim: unknown,
-    emailClaim: unknown,
-    emailVerified: unknown
-): Promise<number> {
-    const existing = await db
-        .select()
-        .from(usersTable)
-        .where(eq(usersTable.clerkId, uid))
-
-    if (existing.length > 0) return existing[0].id
-
-    const name = typeof nameClaim === 'string' ? nameClaim.trim() : ''
-    const email = typeof emailClaim === 'string' ? emailClaim.trim() : ''
-
-    // One-time migration from the pre-Firebase user rows: only adopt a row by
-    // email when the provider has verified that the caller owns the address.
-    if (email && emailVerified === true) {
-        const byEmail = await db
-            .select()
-            .from(usersTable)
-            .where(eq(usersTable.email, email))
-
-        if (byEmail.length === 1) {
-            const adopted = await db
-                .update(usersTable)
-                .set({ clerkId: uid, name: name || byEmail[0].name })
-                .where(eq(usersTable.id, byEmail[0].id))
-                .returning()
-
-            return adopted[0].id
-        }
+    // Wardrobes reference the user row, so make sure it exists before any
+    // handler runs. Upserting is idempotent.
+    try {
+        await ensureUser(
+            dataConnect,
+            {
+                email: typeof claims.email === 'string' ? claims.email : undefined,
+                displayName:
+                    typeof claims.name === 'string' ? claims.name : undefined,
+            },
+            { impersonate: { authClaims } }
+        )
+    } catch (error) {
+        console.error('Could not ensure user row:', error)
+        return c.json({ error: 'Could not prepare your account' }, 500)
     }
 
-    const created = await db
-        .insert(usersTable)
-        .values({
-            name: name || email || uid,
-            email,
-            clerkId: uid,
-        })
-        .returning()
-
-    return created[0].id
-}
+    c.set('uid', uid)
+    c.set('authClaims', authClaims)
+    await next()
+})

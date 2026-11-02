@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 
+import 'package:firebase_auth/firebase_auth.dart' as fb;
+import 'package:firebase_storage/firebase_storage.dart' as storage;
 import 'package:http/http.dart' as http;
-import 'package:http_parser/http_parser.dart';
 
 import '../../shared/models/picked_photo.dart';
 import '../config/app_config.dart';
@@ -45,52 +47,48 @@ class ApiClient {
     return _send(() => _client.delete(_uri(path), headers: headers));
   }
 
-  /// Uploads a picked photo and returns the absolute URL to store as
-  /// `photoUri`.
+  /// Uploads a picked photo straight to Firebase Storage and returns the
+  /// download URL to store as `photoUri`.
+  ///
+  /// Photos live under `users/{uid}/items/...`, which is the path the Storage
+  /// rules allow the signed-in user to write.
   Future<String> uploadPhoto(PickedPhoto photo) async {
-    final headers = await _headers(includeJsonContentType: false);
-    final request = http.MultipartRequest('POST', _uri('/uploads'))
-      ..headers.addAll(headers)
-      ..files.add(
-        http.MultipartFile.fromBytes(
-          'file',
-          photo.bytes,
-          filename: photo.filename,
-          contentType: MediaType.parse(photo.resolvedMimeType),
-        ),
-      );
+    final uid = fb.FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null || uid.isEmpty) {
+      throw const ApiException('Sign in again to upload photos.');
+    }
 
-    final http.Response response;
+    final suffix = Random().nextInt(1 << 32).toRadixString(36);
+    final path =
+        'users/$uid/items/${DateTime.now().microsecondsSinceEpoch}-$suffix.${_extensionFor(photo)}';
+
     try {
-      final streamed = await _client
-          .send(request)
-          .timeout(AppConfig.requestTimeout);
-      response = await http.Response.fromStream(streamed);
-    } on TimeoutException catch (error) {
-      throw ApiException('The upload timed out.', cause: error);
-    } on ApiException {
-      rethrow;
+      final ref = storage.FirebaseStorage.instance.ref(path);
+      await ref.putData(
+        photo.bytes,
+        storage.SettableMetadata(contentType: photo.resolvedMimeType),
+      );
+      return await ref.getDownloadURL();
+    } on storage.FirebaseException catch (error) {
+      throw ApiException(
+        error.message ?? 'Could not upload the photo.',
+        cause: error,
+      );
     } on Exception catch (error) {
       throw ApiException(
         'Could not upload the photo. Check your connection.',
         cause: error,
       );
     }
+  }
 
-    final dynamic decoded = _decode(response.body);
-    if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw ApiException(
-        _errorMessage(decoded) ??
-            'Upload failed with status ${response.statusCode}.',
-        statusCode: response.statusCode,
-      );
-    }
-
-    if (decoded is Map<String, dynamic> && decoded['data'] is Map) {
-      final url = (decoded['data'] as Map)['url'];
-      if (url is String && url.isNotEmpty) return url;
-    }
-    throw const ApiException('The upload response did not include a URL.');
+  String _extensionFor(PickedPhoto photo) {
+    return switch (photo.resolvedMimeType) {
+      'image/png' => 'png',
+      'image/webp' => 'webp',
+      'image/gif' => 'gif',
+      _ => 'jpg',
+    };
   }
 
   void dispose() => _client.close();

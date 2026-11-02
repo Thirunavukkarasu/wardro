@@ -1,0 +1,91 @@
+# Mutations used by the Hono API.
+#
+# The API verifies the Firebase ID token and then runs these as the caller
+# through the Admin SDK's impersonation support.
+
+mutation EnsureUser($email: String, $displayName: String) @auth(level: USER) {
+  user_upsert(
+    data: {
+      uid_expr: "auth.uid"
+      email: $email
+      displayName: $displayName
+    }
+  )
+}
+
+mutation CreateWardrobe($name: String!, $description: String) @auth(level: USER) {
+  wardrobe_insert(
+    data: {
+      name: $name
+      description: $description
+      ownerUid_expr: "auth.uid"
+    }
+  )
+}
+
+mutation DeleteWardrobe($id: Int!) @auth(level: USER) {
+  wardrobe_delete(
+    first: {
+      where: {
+        id: { eq: $id }
+        ownerUid: { eq_expr: "auth.uid" }
+      }
+    }
+  )
+}
+
+mutation CreateWardrobeItem(
+  $itemName: String!
+  $wardrobeId: Int!
+  $photoUri: String
+  $purchaseDate: Timestamp
+  $expiryDate: Timestamp
+  $price: Float
+  $brand: String
+  $category: String
+  $color: String
+  $size: String
+  $state: String
+) @auth(level: USER) @transaction {
+  # Reject items aimed at a wardrobe the caller does not own.
+  query @redact {
+    wardrobe(
+      first: {
+        where: {
+          id: { eq: $wardrobeId }
+          ownerUid: { eq_expr: "auth.uid" }
+        }
+      }
+    ) @check(expr: "this != null", message: "Wardrobe not found") {
+      id
+    }
+  }
+
+  wardrobeItem_insert(
+    data: {
+      itemName: $itemName
+      wardrobeId: $wardrobeId
+      ownerUid_expr: "auth.uid"
+      photoUri: $photoUri
+      purchaseDate: $purchaseDate
+      expiryDate: $expiryDate
+      price: $price
+      brand: $brand
+      category: $category
+      color: $color
+      size: $size
+      state: $state
+    }
+  )
+}
+
+mutation DeleteWardrobeItem($id: Int!) @auth(level: USER) {
+  wardrobeItem_delete(
+    first: {
+      where: {
+        id: { eq: $id }
+        ownerUid: { eq_expr: "auth.uid" }
+      }
+    }
+  )
+}

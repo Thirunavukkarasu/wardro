@@ -159,7 +159,7 @@ void main() {
             home: const WardrobeItemsScreen(
               wardrobe: Wardrobe(
                 id: 3,
-                userId: 4,
+                userId: 'user-4',
                 name: 'Sister',
                 description: 'Sister closet',
                 itemCount: 1,
@@ -195,7 +195,7 @@ void main() {
             home: const WardrobeItemsScreen(
               wardrobe: Wardrobe(
                 id: 9,
-                userId: 4,
+                userId: 'user-4',
                 name: 'Empty',
                 description: '',
               ),

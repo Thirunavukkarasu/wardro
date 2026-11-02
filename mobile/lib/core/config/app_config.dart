@@ -5,12 +5,13 @@
 class AppConfig {
   const AppConfig._();
 
-  /// Base URL of the Hono backend. Defaults to the URL currently used by the
-  /// React Native app so both clients hit the same environment.
+  /// Base URL of the Hono backend deployed on Firebase App Hosting.
+  ///
+  /// Override locally with
+  /// `flutter run --dart-define=API_BASE_URL=http://localhost:3000/api`.
   static const String apiBaseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue:
-        'https://0457-2406-7400-76ce-f46b-ad1d-75b0-8a93.ngrok-free.app/api',
+    defaultValue: 'https://wardro--wardo-ce8d5.us-east4.hosted.app/api',
   );
 
   /// Authentication backend: `firebase` (default) or `stub`.

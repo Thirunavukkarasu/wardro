@@ -1,0 +1,21 @@
+runConfig:
+  cpu: 1
+  memoryMiB: 512
+  minInstances: 0
+  maxInstances: 10
+  concurrency: 80
+
+env:
+  - variable: FIREBASE_PROJECT_ID
+    value: wardo-ce8d5
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: FIREBASE_STORAGE_BUCKET
+    value: wardo-ce8d5.firebasestorage.app
+    availability:
+      - RUNTIME
+  - variable: CORS_ORIGINS
+    value: https://wardro--wardo-ce8d5.us-east4.hosted.app
+    availability:
+      - RUNTIME

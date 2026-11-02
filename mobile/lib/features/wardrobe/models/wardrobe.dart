@@ -11,7 +11,7 @@ class Wardrobe {
   });
 
   final int id;
-  final int userId;
+  final String userId;
   final String name;
   final String description;
   final int itemCount;
@@ -27,7 +27,7 @@ class Wardrobe {
 
   factory Wardrobe.fromJson(Map<String, dynamic> json) => Wardrobe(
     id: (json['id'] as num?)?.toInt() ?? 0,
-    userId: (json['userId'] as num?)?.toInt() ?? 0,
+    userId: json['userId']?.toString() ?? '',
     name: json['name'] as String? ?? '',
     description: json['description'] as String? ?? '',
     itemCount: (json['itemCount'] as num?)?.toInt() ?? 0,
