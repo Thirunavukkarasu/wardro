@@ -1,5 +1,6 @@
 import {
     doublePrecision,
+    index,
     integer,
     pgTable,
     serial,
@@ -34,7 +35,7 @@ export const wardrobes = pgTable('wardrobe', {
     createdAt: timestamp('created_at', { withTimezone: true })
         .defaultNow()
         .notNull(),
-})
+}, (table) => [index('wardrobe_ownerUid_idx').on(table.ownerUid)])
 
 export const wardrobeItems = pgTable('wardrobe_item', {
     id: serial('id').primaryKey(),
@@ -57,7 +58,10 @@ export const wardrobeItems = pgTable('wardrobe_item', {
     createdAt: timestamp('created_at', { withTimezone: true })
         .defaultNow()
         .notNull(),
-})
+}, (table) => [
+    index('wardrobe_item_ownerUid_idx').on(table.ownerUid),
+    index('wardrobe_item_wardrobeId_idx').on(table.wardrobeId),
+])
 
 export type InsertUser = typeof users.$inferInsert
 export type SelectUser = typeof users.$inferSelect
