@@ -37,9 +37,9 @@ Additions not in the React Native app:
 
 ## Backend endpoints used
 
-Every request except `GET /healthcheck`, `GET /uploads/:filename` and the auth
-flow carries `Authorization: Bearer <Firebase ID token>`. The backend verifies
-it and derives the user — **no endpoint accepts a user id from the client**.
+Every request except `GET /healthcheck` carries
+`Authorization: Bearer <Firebase ID token>`. The backend verifies it and derives
+the user — **no endpoint accepts a user id from the client**.
 
 | Endpoint | Used by |
 | --- | --- |
@@ -48,21 +48,19 @@ it and derives the user — **no endpoint accepts a user id from the client**.
 | `GET /wardrobeItems/:wardrobeId` | Wardrobe detail screen (ownership checked) |
 | `GET /wardrobeItems` | All Items tab |
 | `POST /wardrobeItems` | Add item (after the photo is uploaded) |
-| `POST /uploads` | Multipart image upload — returns `{ data: { url } }` |
-| `GET /uploads/:filename` | Serves the stored image (public, long cache headers) |
 | `POST /wardrobes` | Add wardrobe |
 | `DELETE /wardrobeItems/:id` | Delete item + its uploaded photo (ownership checked) |
 | `DELETE /wardrobes/:id` | Delete wardrobe (cascades its items and their photos) |
 | `GET /users/me` | Current user row (informational) |
 
 Identity is verified with `jose` against Google's public JWKS, so **no service
-account key is required**. The uid is mapped to a `users` row on first request
-(`backend/src/auth.ts`).
+account key is required**. The uid is upserted into the SQL Connect `user` table
+on first request (`backend/src/auth.ts`).
 
-
-Photos are written to `backend/uploads/` (git-ignored, override with
-`UPLOAD_DIR`). That is a development store — switch to S3/R2 before deploying,
-because most hosts have an ephemeral disk.
+Photos are uploaded **directly from the app to Firebase Storage** under
+`users/{uid}/items/...` (see `ApiClient.uploadPhoto`); the returned download URL
+is stored as `photoUri`. The backend deletes the object when its item or
+wardrobe is deleted.
 
 ## Running
 
@@ -74,8 +72,8 @@ flutter test
 flutter analyze
 ```
 
-`API_BASE_URL` defaults to the ngrok URL the React Native app used, so point it
-at your machine while developing locally:
+`API_BASE_URL` defaults to the App Hosting deployment. Point it at your machine
+while developing locally:
 
 ```bash
 cd ../backend && bun run dev      # http://localhost:3000/api
@@ -172,33 +170,26 @@ Tracked here so the context isn't lost.
 | iOS app | **Out of scope for now** (2026-11-02) | Register the iOS app with bundle ID `com.thirunavukkarasu.wardroMobile`, drop `GoogleService-Info.plist` into `ios/Runner/`, then add iOS options to `firebase_options.dart` |
 | Google sign-in | **Working** — verified 2026-11-02 (web) | Android still needs the debug keystore SHA-1/SHA-256 registered |
 | Backend auth enforcement | **Working** — Firebase ID token verified via JWKS in `backend/src/auth.ts` | — |
-| Per-user data | **Working** — uid → `users` row, all queries scoped to it | — |
-| Image storage | Open | Replace `backend/uploads/` with S3/R2 for deployment |
+| Per-user data | **Working** — uid scopes every SQL Connect operation via `auth.uid` | — |
+| Image storage | **Working** — Firebase Storage, `users/{uid}/items/...` | — |
 
-### Database migration
+### Database
 
-`backend/migrations/0001_bumpy_peter_parker.sql` was **applied on 2026-11-02**.
-It repoints `wardrobe_items.user_id` from `wardrobes(id)` to `users(id)` — the
-original schema had the wrong foreign key, which broke item inserts for any
-user whose id was not also a wardrobe id. Verified after applying: the
-constraint references `users(id) ON DELETE CASCADE`, existing rows are intact,
-and a new user → wardrobe → item insert succeeds (probe rolled back).
+The app now uses **Firebase SQL Connect** on Cloud SQL Postgres. The schema and
+typed operations live in the repo root under `dataconnect/`; the backend talks
+to them with the generated Admin SDK. The old Neon/Drizzle migrations have been
+retired.
 
 
 ## Configuration
 
 | `--dart-define` | Default | Purpose |
 | --- | --- | --- |
-| `API_BASE_URL` | ngrok URL from the RN `.env` | Backend base URL incl. `/api` |
+| `API_BASE_URL` | App Hosting URL + `/api` | Backend base URL incl. `/api` |
 | `AUTH_MODE` | `firebase` | `firebase` or `stub` |
 
 ## Known gaps
 
-- **Old photos stay blank:** items created before the upload endpoint store
-  `blob:` or device-local paths, which cannot be re-rendered. They show the
-  placeholder; re-adding the item stores a real URL.
-- **Local image store:** `backend/uploads/` is disk-backed. Fine for local
-  development; use object storage for anything deployed.
 - **Fonts:** the RN app references `font-Jakarta*` classes but ships no Jakarta
   font, so both apps render the system face. Drop Plus Jakarta Sans into
   `assets/fonts/` and register it in `pubspec.yaml` to match the design.
