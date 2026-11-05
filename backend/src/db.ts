@@ -8,8 +8,8 @@ import * as schema from '@/schema'
  *
  * 1. `DATABASE_URL` — any Postgres (Neon, Supabase, RDS, local, ...). This is
  *    the portable path; switching providers is only a connection-string change.
- * 2. `CLOUD_SQL_CONNECTION_NAME` — Google Cloud SQL through its connector,
- *    used by App Hosting because the instance has no public authorized network.
+ * 2. `CLOUD_SQL_CONNECTION_NAME` — Google Cloud SQL through its connector.
+ *    Optional fallback; production currently uses `DATABASE_URL` (Neon).
  *    The code above the driver is identical.
  */
 async function createPool(): Promise<Pool> {

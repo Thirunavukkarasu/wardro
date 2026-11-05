@@ -43,8 +43,9 @@ and `backend/README.md` for build/deploy details.
 
 - **Database** — Drizzle ORM on plain Postgres. The runtime only needs
   `DATABASE_URL`, so Neon, Supabase, RDS, local Postgres, or Cloud SQL all work
-  without code changes. App Hosting currently reaches the Cloud SQL instance
-  through the Cloud SQL connector (`CLOUD_SQL_CONNECTION_NAME` + DB credentials).
+  without code changes. App Hosting uses a Neon Postgres via the `DATABASE_URL`
+  Secret Manager secret; the Cloud SQL connector remains as a fallback
+  (`CLOUD_SQL_CONNECTION_NAME` + DB credentials).
 - **Storage** — item photos are uploaded by the app to
   `users/{uid}/items/...`; rules live in `storage.rules`. Deploy with
   `firebase deploy --only storage`.

@@ -20,21 +20,9 @@ env:
     availability:
       - RUNTIME
 
-  # App Hosting reaches Cloud SQL through the Cloud SQL connector. To move to
-  # any other Postgres, remove these four and set DATABASE_URL instead.
-  - variable: CLOUD_SQL_CONNECTION_NAME
-    value: wardo-ce8d5:asia-south1:wardo-ce8d5-2-instance
-    availability:
-      - RUNTIME
-  - variable: DB_NAME
-    value: wardo-ce8d5-2-database
-    availability:
-      - RUNTIME
-  - variable: DB_USER
-    value: wardro_app
-    availability:
-      - RUNTIME
-  - variable: DB_PASSWORD
-    secret: DATABASE_PASSWORD
+  # Neon Postgres. The connection string is the DATABASE_URL secret in Secret
+  # Manager (same project); the App Hosting service account needs accessor on it.
+  - variable: DATABASE_URL
+    secret: DATABASE_URL
     availability:
       - RUNTIME

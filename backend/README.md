@@ -30,20 +30,28 @@ bun run bundle
 The committed `dist/index.js` is what `npm start` runs on App Hosting. Push to
 `main` to trigger a rollout for the `wardro` backend.
 
-On App Hosting the database is reached through the Cloud SQL connector; those
-variables live in `apphosting.yaml` and `DATABASE_PASSWORD` is a Secret
-Manager secret. To move to another Postgres, set `DATABASE_URL` instead and
-remove the `CLOUD_SQL_*` / `DB_*` variables.
+On App Hosting the database is a Neon Postgres addressed by `DATABASE_URL`,
+which `apphosting.yaml` reads from the `DATABASE_URL` Secret Manager secret in
+the same project. Create or rotate it with:
+
+```sh
+gcloud secrets versions add DATABASE_URL --project wardo-ce8d5 \
+  --data-file=- <<<"postgresql://user:pass@host/db"
+```
+
+The App Hosting service account needs `roles/secretmanager.secretAccessor` on
+that secret. Cloud SQL is still supported as a fallback: set
+`CLOUD_SQL_CONNECTION_NAME` plus `DB_USER` / `DB_PASSWORD` / `DB_NAME` instead.
 
 ## Database schema
 
-The Drizzle schema is in `src/schema.ts`. Generate and apply migrations with a
-standard Postgres URL:
+The Drizzle schema is in `src/schema.ts`; migrations are committed under
+`drizzle/`.
 
 ```sh
-DATABASE_URL=postgresql://... bun run db:generate
-DATABASE_URL=postgresql://... bun run db:push
+DATABASE_URL=postgresql://... bun run db:generate   # after editing schema.ts
+DATABASE_URL=postgresql://... bun run db:migrate    # apply committed migrations
 ```
 
-The current tables (`user`, `wardrobe`, `wardrobe_item`) already exist in the
-database and match `src/schema.ts`.
+The committed migration has been applied to the Neon database, so `user`,
+`wardrobe`, and `wardrobe_item` exist there and match `src/schema.ts`.
