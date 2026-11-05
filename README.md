@@ -43,8 +43,9 @@ configuration from `mobile-rn/.env` (see `mobile-rn/.env.example`); see
 `mobile-rn/README.md` for the app architecture,
 `mobile-rn/docs/screen-architecture.md` for the agreed navigation/screen
 structure and phasing, and `mobile-rn/docs/design/` for screen blueprints,
-component specs, and design references. `backend/README.md` covers
-build/deploy details.
+component specs, and design references. The shared visual language (Warm
+Neutral + Muted Olive) is documented in [`docs/design-system/`](docs/design-system/README.md).
+`backend/README.md` covers build/deploy details.
 
 ## Deployment
 

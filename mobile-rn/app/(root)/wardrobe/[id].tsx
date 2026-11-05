@@ -23,6 +23,7 @@ import {
   wardrobeItemFromJson,
   type WardrobeItem,
 } from "~/lib/types";
+import { wardroColors } from "~/src/theme/colors";
 
 export default function WardrobeItemsScreen() {
   const { activeProfile } = useProfiles();
@@ -149,7 +150,7 @@ export default function WardrobeItemsScreen() {
               onPress={openEdit}
               className="h-11 w-11 items-center justify-center rounded-full active:bg-surface"
             >
-              <Pencil size={20} color="#0F172A" />
+              <Pencil size={20} color={wardroColors.text.primary} />
             </Pressable>
             <Pressable
               accessibilityRole="button"
@@ -158,7 +159,7 @@ export default function WardrobeItemsScreen() {
               onPress={() => setConfirmVisible(true)}
               className="h-11 w-11 items-center justify-center rounded-full active:bg-surface"
             >
-              <Trash2 size={21} color="#0F172A" />
+              <Trash2 size={21} color={wardroColors.text.primary} />
             </Pressable>
           </View>
         }
@@ -170,8 +171,8 @@ export default function WardrobeItemsScreen() {
           <RefreshControl
             refreshing={loading && items.length > 0}
             onRefresh={load}
-            tintColor="#4F46E5"
-            colors={["#4F46E5"]}
+            tintColor={wardroColors.primaryDark}
+            colors={[wardroColors.primaryDark]}
           />
         }
       >
@@ -188,14 +189,14 @@ export default function WardrobeItemsScreen() {
             <View className="mt-2.5 self-start">
               <AppPill
                 label={`${items.length} ${items.length === 1 ? "item" : "items"}`}
-                color="#4F46E5"
+                color={wardroColors.primaryDark}
               />
             </View>
           </View>
 
           <View className="ml-3">
             <CircleAction
-              icon={<Camera size={24} color="#FFFFFF" />}
+              icon={<Camera size={24} color={wardroColors.surface} />}
               accessibilityLabel="Add item"
               onPress={addItem}
             />
@@ -213,7 +214,7 @@ export default function WardrobeItemsScreen() {
             />
           ) : items.length === 0 ? (
             <EmptyView
-              icon={<Camera size={34} color="#4F46E5" />}
+              icon={<Camera size={34} color={wardroColors.primaryDark} />}
               title="Nothing here yet"
               message="Add your first item to this wardrobe and it will show up here."
               actionLabel="Add Item"

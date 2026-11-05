@@ -2,6 +2,11 @@ import { Tabs, router, useSegments } from "expo-router";
 import { Camera, Shirt, Sun, User } from "lucide-react-native";
 import { Pressable, View } from "react-native";
 
+import {
+  wardroColors,
+  wardroSizes,
+} from "~/src/theme/colors";
+
 export default function TabsLayout() {
   const segments = useSegments();
   const onProfile = segments[segments.length - 1] === "profile";
@@ -11,19 +16,19 @@ export default function TabsLayout() {
       <Tabs
         screenOptions={{
           headerShown: false,
-          tabBarActiveTintColor: "#4F46E5",
-          tabBarInactiveTintColor: "#94A3B8",
+          tabBarActiveTintColor: wardroColors.primaryDark,
+          tabBarInactiveTintColor: wardroColors.text.disabled,
           tabBarLabelStyle: {
             fontSize: 11,
             fontWeight: "700",
             marginTop: 2,
           },
           tabBarStyle: {
-            height: 66,
+            height: wardroSizes.tabBar,
             paddingTop: 6,
             paddingBottom: 6,
-            backgroundColor: "#FFFFFF",
-            borderTopColor: "#E7E8EF",
+            backgroundColor: wardroColors.surface,
+            borderTopColor: wardroColors.border,
             borderTopWidth: 1,
           },
         }}
@@ -56,16 +61,16 @@ export default function TabsLayout() {
           accessibilityRole="button"
           accessibilityLabel="Add item"
           onPress={() => router.push("/(root)/add-wardrobe-items")}
-          className="absolute bottom-[88px] right-5 h-14 w-14 items-center justify-center rounded-full bg-brand active:opacity-80"
+          className="absolute bottom-[88px] right-5 h-14 w-14 items-center justify-center rounded-full bg-wardro-primary-dark active:opacity-80"
           style={{
-            shadowColor: "#4F46E5",
+            shadowColor: wardroColors.primaryDark,
             shadowOpacity: 0.35,
             shadowRadius: 12,
             shadowOffset: { width: 0, height: 6 },
             elevation: 4,
           }}
         >
-          <Camera size={24} color="#FFFFFF" />
+          <Camera size={24} color={wardroColors.surface} />
         </Pressable>
       ) : null}
     </View>

@@ -32,6 +32,7 @@ import {
   type Wardrobe,
   type WardrobeItem,
 } from "~/lib/types";
+import { wardroColors } from "~/src/theme/colors";
 
 function greeting(name: string): string {
   const hour = new Date().getHours();
@@ -132,8 +133,8 @@ export default function TodayScreen() {
           <RefreshControl
             refreshing={loading && wardrobes.length > 0}
             onRefresh={load}
-            tintColor="#4F46E5"
-            colors={["#4F46E5"]}
+            tintColor={wardroColors.primaryDark}
+            colors={[wardroColors.primaryDark]}
           />
         }
       >
@@ -193,13 +194,13 @@ export default function TodayScreen() {
 
         <View className="mt-4 flex-row gap-3">
           <QuickAction
-            icon={<Camera size={20} color="#4F46E5" />}
+            icon={<Camera size={20} color={wardroColors.primaryDark} />}
             label="Add item"
             caption="Snap a garment"
             onPress={() => router.push("/(root)/add-wardrobe-items")}
           />
           <QuickAction
-            icon={<LayoutGrid size={20} color="#4F46E5" />}
+            icon={<LayoutGrid size={20} color={wardroColors.primaryDark} />}
             label="New wardrobe"
             caption="Create a collection"
             onPress={() => router.push("/(root)/add-wardrobe")}
@@ -232,7 +233,7 @@ export default function TodayScreen() {
                   <Text className="text-xs font-semibold text-brand">
                     See all
                   </Text>
-                  <ChevronRight size={14} color="#4F46E5" />
+                  <ChevronRight size={14} color={wardroColors.primaryDark} />
                 </Pressable>
               ) : null}
             </View>
@@ -290,7 +291,7 @@ export default function TodayScreen() {
                   <Text className="text-xs font-semibold text-brand">
                     See all
                   </Text>
-                  <ChevronRight size={14} color="#4F46E5" />
+                  <ChevronRight size={14} color={wardroColors.primaryDark} />
                 </Pressable>
               ) : null}
             </View>
@@ -314,7 +315,7 @@ export default function TodayScreen() {
               ))
             ) : (
               <EmptyView
-                icon={<Shirt size={34} color="#4F46E5" />}
+                icon={<Shirt size={34} color={wardroColors.primaryDark} />}
                 title="No wardrobes yet"
                 message="Create your first wardrobe to start organising your clothes."
                 actionLabel="Add Wardrobe"

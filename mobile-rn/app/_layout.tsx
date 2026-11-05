@@ -16,6 +16,7 @@ import {
   ProfilesProvider,
   useProfiles,
 } from "~/lib/profiles-context";
+import { wardroColors } from "~/src/theme/colors";
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -66,7 +67,7 @@ function RootNavigator() {
   if (booting) {
     return (
       <View className="flex-1 items-center justify-center bg-canvas">
-        <ActivityIndicator size="large" color="#4F46E5" />
+        <ActivityIndicator size="large" color={wardroColors.primaryDark} />
         <Text className="mt-4 text-sm text-ink-secondary">
           {status === "restoring"
             ? "Restoring your session…"
@@ -99,7 +100,7 @@ function RootNavigator() {
     <Stack
       screenOptions={{
         headerShown: false,
-        contentStyle: { backgroundColor: "#F7F7FB" },
+        contentStyle: { backgroundColor: wardroColors.background },
       }}
     >
       <Stack.Screen name="index" />

@@ -4,6 +4,7 @@ import { Image, Pressable, Text, View } from "react-native";
 import AppPill from "~/components/AppPill";
 import { formatPrice } from "~/lib/formatters";
 import { photoUrl, type Wardrobe } from "~/lib/types";
+import { wardroColors } from "~/src/theme/colors";
 
 interface WardrobeCardProps {
   wardrobe: Wardrobe;
@@ -39,7 +40,7 @@ export default function WardrobeCard({
           />
         ) : (
           <View className="h-full w-full items-center justify-center">
-            <Shirt size={22} color="#FFFFFF" />
+            <Shirt size={22} color={wardroColors.surface} />
           </View>
         )}
       </View>
@@ -54,7 +55,11 @@ export default function WardrobeCard({
           </Text>
           <AppPill
             label={String(wardrobe.itemCount)}
-            color={wardrobe.itemCount === 0 ? "#94A3B8" : "#4F46E5"}
+            color={
+              wardrobe.itemCount === 0
+                ? wardroColors.text.disabled
+                : wardroColors.primaryDark
+            }
           />
         </View>
         <Text numberOfLines={1} className="mt-0.5 text-xs text-ink-secondary">
@@ -62,7 +67,7 @@ export default function WardrobeCard({
         </Text>
       </View>
 
-      <ChevronRight size={18} color="#94A3B8" />
+      <ChevronRight size={18} color={wardroColors.text.disabled} />
     </Pressable>
   );
 }

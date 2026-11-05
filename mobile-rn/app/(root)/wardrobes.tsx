@@ -18,6 +18,7 @@ import { api, ApiException } from "~/lib/api";
 import { apiBaseUrl } from "~/lib/firebase-config";
 import { useProfiles } from "~/lib/profiles-context";
 import { wardrobeFromJson, type Wardrobe } from "~/lib/types";
+import { wardroColors } from "~/src/theme/colors";
 
 export default function WardrobesScreen() {
   const { activeProfile } = useProfiles();
@@ -78,7 +79,7 @@ export default function WardrobesScreen() {
             onPress={() => router.push("/(root)/add-wardrobe")}
             className="h-11 w-11 items-center justify-center rounded-full active:bg-surface"
           >
-            <Plus size={22} color="#0F172A" />
+            <Plus size={22} color={wardroColors.text.primary} />
           </Pressable>
         }
       />
@@ -89,8 +90,8 @@ export default function WardrobesScreen() {
           <RefreshControl
             refreshing={loading && wardrobes.length > 0}
             onRefresh={load}
-            tintColor="#4F46E5"
-            colors={["#4F46E5"]}
+            tintColor={wardroColors.primaryDark}
+            colors={[wardroColors.primaryDark]}
           />
         }
       >
@@ -120,7 +121,7 @@ export default function WardrobesScreen() {
           />
         ) : wardrobes.length === 0 ? (
           <EmptyView
-            icon={<LayoutGrid size={34} color="#4F46E5" />}
+            icon={<LayoutGrid size={34} color={wardroColors.primaryDark} />}
             title="No wardrobes yet"
             message="Create a collection for workwear, weekends, or anything else you organise your wardrobe by."
             actionLabel="Add Wardrobe"

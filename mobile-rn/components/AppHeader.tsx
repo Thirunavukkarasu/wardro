@@ -4,6 +4,8 @@ import type { ReactNode } from "react";
 import { Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { wardroColors } from "~/src/theme/colors";
+
 interface AppHeaderProps {
   title: string;
   subtitle?: string;
@@ -45,7 +47,7 @@ export default function AppHeader({
           onPress={goBack}
           className="h-11 w-11 items-center justify-center rounded-full active:bg-surface"
         >
-          <ArrowLeft size={22} color="#0F172A" />
+          <ArrowLeft size={22} color={wardroColors.text.primary} />
         </Pressable>
 
         <View className="flex-1 items-center px-2">

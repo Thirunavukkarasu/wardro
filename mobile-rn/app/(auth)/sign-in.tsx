@@ -16,6 +16,7 @@ import InputField from "~/components/InputField";
 import OAuth from "~/components/OAuth";
 import ScreenHero from "~/components/ScreenHero";
 import { useAuth } from "~/lib/auth-context";
+import { wardroColors } from "~/src/theme/colors";
 
 export default function SignInScreen() {
   const { signIn, busy, error, clearError } = useAuth();
@@ -67,7 +68,7 @@ export default function SignInScreen() {
             <InputField
               label="Email"
               placeholder="Enter email"
-              icon={<Mail size={20} color="#94A3B8" />}
+              icon={<Mail size={20} color={wardroColors.text.disabled} />}
               autoCapitalize="none"
               autoComplete="email"
               keyboardType="email-address"
@@ -82,7 +83,7 @@ export default function SignInScreen() {
             <InputField
               label="Password"
               placeholder="Enter password"
-              icon={<Lock size={20} color="#94A3B8" />}
+              icon={<Lock size={20} color={wardroColors.text.disabled} />}
               secureTextEntry
               autoComplete="password"
               value={password}

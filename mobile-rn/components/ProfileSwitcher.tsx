@@ -3,6 +3,7 @@ import { Pressable, ScrollView, Text, View } from "react-native";
 
 import ProfileAvatar from "~/components/ProfileAvatar";
 import type { Profile } from "~/lib/types";
+import { wardroColors } from "~/src/theme/colors";
 
 interface ProfileSwitcherProps {
   profiles: Profile[];
@@ -63,7 +64,7 @@ export default function ProfileSwitcher({
         style={{ width: 68 }}
       >
         <View className="h-[50px] w-[50px] items-center justify-center rounded-full border border-dashed border-line bg-white">
-          <Plus size={20} color="#4F46E5" />
+          <Plus size={20} color={wardroColors.primaryDark} />
         </View>
         <Text className="mt-1 text-[10.5px] font-semibold text-ink-secondary">
           Add

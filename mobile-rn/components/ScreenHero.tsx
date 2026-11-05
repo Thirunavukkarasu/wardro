@@ -1,5 +1,6 @@
 import { ArrowLeft, Shirt } from "lucide-react-native";
 import { Pressable, Text, View } from "react-native";
+import { wardroColors } from "~/src/theme/colors";
 
 interface ScreenHeroProps {
   title: string;
@@ -24,7 +25,7 @@ export default function ScreenHero({
       <View className="absolute -right-10 -top-12 h-48 w-48 rounded-full bg-white/10" />
       <View className="absolute -bottom-16 left-10 h-40 w-40 rounded-full bg-white/5" />
       <View className="absolute right-8 top-10 opacity-20">
-        <Shirt size={56} color="#FFFFFF" />
+        <Shirt size={56} color={wardroColors.surface} />
       </View>
 
       {onBack ? (
@@ -35,7 +36,7 @@ export default function ScreenHero({
           onPress={onBack}
           className="absolute left-4 top-4 h-10 w-10 items-center justify-center rounded-full bg-white/15 active:bg-white/25"
         >
-          <ArrowLeft size={22} color="#FFFFFF" />
+          <ArrowLeft size={22} color={wardroColors.surface} />
         </Pressable>
       ) : null}
 

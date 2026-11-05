@@ -24,6 +24,7 @@ import {
   wardrobeItemFromJson,
   type WardrobeItem,
 } from "~/lib/types";
+import { wardroColors } from "~/src/theme/colors";
 
 export default function AddItemScreen() {
   const { activeProfile } = useProfiles();
@@ -250,7 +251,7 @@ export default function AddItemScreen() {
         <>
           {isEditing && existingPhotoUri && !photo ? (
             <View className="mb-3 flex-row items-center rounded-[14px] border border-line bg-white px-4 py-3">
-              <ImageIcon size={18} color="#4F46E5" />
+              <ImageIcon size={18} color={wardroColors.primaryDark} />
               <Text className="ml-2 flex-1 text-[12.5px] leading-5 text-ink-secondary">
                 The current photo will be kept. Choose a new one below to
                 replace it.
@@ -310,7 +311,7 @@ export default function AddItemScreen() {
               <InputField
                 label="Item Name"
                 placeholder="Enter item name"
-                icon={<Shirt size={20} color="#94A3B8" />}
+                icon={<Shirt size={20} color={wardroColors.text.disabled} />}
                 value={itemName}
                 onChangeText={(value) => {
                   setItemName(value);
@@ -333,7 +334,7 @@ export default function AddItemScreen() {
               <InputField
                 label="Price"
                 placeholder="Enter price"
-                icon={<Wallet size={20} color="#94A3B8" />}
+                icon={<Wallet size={20} color={wardroColors.text.disabled} />}
                 keyboardType="decimal-pad"
                 value={price}
                 onChangeText={setPrice}
@@ -342,7 +343,7 @@ export default function AddItemScreen() {
               <InputField
                 label="Brand"
                 placeholder="Enter brand"
-                icon={<Store size={20} color="#94A3B8" />}
+                icon={<Store size={20} color={wardroColors.text.disabled} />}
                 value={brand}
                 onChangeText={setBrand}
               />
@@ -350,7 +351,7 @@ export default function AddItemScreen() {
               <InputField
                 label="Category"
                 placeholder="Enter category"
-                icon={<Tag size={20} color="#94A3B8" />}
+                icon={<Tag size={20} color={wardroColors.text.disabled} />}
                 value={category}
                 onChangeText={setCategory}
               />
@@ -358,7 +359,7 @@ export default function AddItemScreen() {
               <InputField
                 label="Color"
                 placeholder="Enter color"
-                icon={<Palette size={20} color="#94A3B8" />}
+                icon={<Palette size={20} color={wardroColors.text.disabled} />}
                 value={color}
                 onChangeText={setColor}
               />
@@ -366,7 +367,7 @@ export default function AddItemScreen() {
               <InputField
                 label="Size"
                 placeholder="Enter size"
-                icon={<Ruler size={20} color="#94A3B8" />}
+                icon={<Ruler size={20} color={wardroColors.text.disabled} />}
                 value={size}
                 onChangeText={setSize}
               />

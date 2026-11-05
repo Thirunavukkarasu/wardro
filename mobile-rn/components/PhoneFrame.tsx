@@ -11,7 +11,7 @@ export default function PhoneFrame({ children }: { children: ReactNode }) {
   }
 
   return (
-    <View className="flex-1 items-center bg-[#0F172A]">
+    <View className="flex-1 items-center bg-wardro-text-primary">
       <View className="h-full w-full max-w-[430px] overflow-hidden bg-canvas">
         {children}
       </View>

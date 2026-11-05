@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Text, TextInput, View } from "react-native";
 
 import { formatInputDate, parseInputDate } from "~/lib/formatters";
+import { wardroColors } from "~/src/theme/colors";
 
 interface DateFieldProps {
   label: string;
@@ -32,7 +33,7 @@ export default function DateField({
       </Text>
 
       <View className="flex-row items-center rounded-[14px] border border-surface bg-surface px-4">
-        <Calendar size={20} color="#94A3B8" />
+        <Calendar size={20} color={wardroColors.text.disabled} />
         <TextInput
           value={text}
           onChangeText={(next) => {
@@ -40,7 +41,7 @@ export default function DateField({
             onChange(parseInputDate(next));
           }}
           placeholder={placeholder}
-          placeholderTextColor="#94A3B8"
+          placeholderTextColor={wardroColors.text.disabled}
           className="ml-3 flex-1 py-3.5 text-[14px] font-semibold text-ink"
         />
       </View>

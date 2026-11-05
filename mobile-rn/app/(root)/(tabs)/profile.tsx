@@ -15,6 +15,7 @@ import ProfileAvatar from "~/components/ProfileAvatar";
 import { useAuth } from "~/lib/auth-context";
 import { useProfiles } from "~/lib/profiles-context";
 import { fullName, userInitials } from "~/lib/types";
+import { wardroColors } from "~/src/theme/colors";
 
 function InfoRow({ label, value }: { label: string; value?: string | null }) {
   return (
@@ -66,7 +67,7 @@ export default function ProfileScreen() {
         <View
           className="mt-3.5 flex-row items-center rounded-[22px] bg-brand p-[18px]"
           style={{
-            shadowColor: "#4F46E5",
+            shadowColor: wardroColors.primaryDark,
             shadowOpacity: 0.25,
             shadowRadius: 20,
             shadowOffset: { width: 0, height: 8 },
@@ -119,7 +120,7 @@ export default function ProfileScreen() {
             onPress={() => router.push("/(root)/add-profile")}
             className="flex-row items-center rounded-full bg-brand/10 px-3 py-1.5 active:opacity-70"
           >
-            <Plus size={14} color="#4F46E5" />
+            <Plus size={14} color={wardroColors.primaryDark} />
             <Text className="ml-1 text-xs font-bold text-brand">Add</Text>
           </Pressable>
         </View>
@@ -176,7 +177,7 @@ export default function ProfileScreen() {
                   }
                   className="h-10 w-10 items-center justify-center rounded-full active:bg-surface"
                 >
-                  <Pencil size={17} color="#64748B" />
+                  <Pencil size={17} color={wardroColors.text.secondary} />
                 </Pressable>
               </View>
             </View>
@@ -202,7 +203,7 @@ export default function ProfileScreen() {
             title="Log out"
             variant="danger"
             onPress={logOut}
-            iconLeft={<LogOut size={18} color="#FEE2E2" />}
+            iconLeft={<LogOut size={18} color={wardroColors.surface} />}
           />
         </View>
       </ScrollView>

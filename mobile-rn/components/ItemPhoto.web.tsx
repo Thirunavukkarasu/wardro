@@ -28,7 +28,7 @@ export default function ItemPhoto({
   }
 
   return (
-    <View className="h-full w-full bg-[#E9EFF7]">
+    <View className="h-full w-full bg-wardro-surface-secondary">
       {!large ? (
         <View className="absolute inset-0">
           <ItemPhotoPlaceholder item={item} />

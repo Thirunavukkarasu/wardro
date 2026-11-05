@@ -8,15 +8,10 @@ import CustomButton from "~/components/CustomButton";
 import FormScreen from "~/components/FormScreen";
 import InputField from "~/components/InputField";
 import { useProfiles } from "~/lib/profiles-context";
-
-const PROFILE_COLORS = [
-  "#4F46E5",
-  "#EC4899",
-  "#D97706",
-  "#0D9488",
-  "#64748B",
-  "#7C3AED",
-];
+import {
+  wardroColors,
+  wardroProfileColors,
+} from "~/src/theme/colors";
 
 export default function AddProfileScreen() {
   const params = useLocalSearchParams<{
@@ -36,7 +31,9 @@ export default function AddProfileScreen() {
   } = useProfiles();
 
   const [name, setName] = useState(params.name ?? "");
-  const [color, setColor] = useState(params.color ?? PROFILE_COLORS[0]);
+  const [color, setColor] = useState(
+    params.color ?? wardroProfileColors[0],
+  );
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [confirmVisible, setConfirmVisible] = useState(false);
@@ -112,7 +109,7 @@ export default function AddProfileScreen() {
         <InputField
           label="Name"
           placeholder="e.g. Swati, Kids, Work capsule"
-          icon={<User size={20} color="#94A3B8" />}
+          icon={<User size={20} color={wardroColors.text.disabled} />}
           value={name}
           onChangeText={(value) => {
             setName(value);
@@ -127,7 +124,7 @@ export default function AddProfileScreen() {
             Avatar colour
           </Text>
           <View className="flex-row flex-wrap gap-3">
-            {PROFILE_COLORS.map((option) => {
+            {wardroProfileColors.map((option) => {
               const selected = option === color;
 
               return (
@@ -172,7 +169,7 @@ export default function AddProfileScreen() {
                 canDelete ? "bg-danger active:opacity-80" : "bg-danger/40"
               }`}
             >
-              <Trash2 size={16} color="#FEE2E2" />
+              <Trash2 size={16} color={wardroColors.surface} />
               <Text className="ml-2 text-xs font-bold text-red-100">
                 {deleting ? "Deleting…" : "Delete Profile"}
               </Text>

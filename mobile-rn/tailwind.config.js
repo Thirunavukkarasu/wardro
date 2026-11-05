@@ -1,30 +1,68 @@
 const { hairlineWidth } = require("nativewind/theme");
+const tokens = require("./src/theme/tokens.json");
+
+const { colors, radius, spacing, fontFamily, fontSize, fontWeight, shadows } =
+  tokens;
+const iconSizes = Object.fromEntries(
+  Object.entries(tokens.iconSizes).map(([key, value]) => [
+    `icon-${key}`,
+    `${value}px`,
+  ]),
+);
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   darkMode: "class",
-  content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}"],
+  content: [
+    "./app/**/*.{ts,tsx}",
+    "./components/**/*.{ts,tsx}",
+    "./src/**/*.{ts,tsx}",
+  ],
   presets: [require("nativewind/preset")],
   theme: {
     extend: {
       colors: {
+        // Wardro semantic tokens — use these in all new code.
+        wardro: {
+          background: colors.background,
+          surface: colors.surface,
+          "surface-secondary": colors.surfaceSecondary,
+          primary: colors.primary,
+          "primary-dark": colors.primaryDark,
+          "primary-light": colors.primaryLight,
+          accent: colors.accent,
+          text: {
+            primary: colors.text.primary,
+            secondary: colors.text.secondary,
+            disabled: colors.text.disabled,
+          },
+          border: colors.border,
+          danger: colors.danger,
+          success: colors.success,
+          warning: colors.warning,
+        },
+
+        // Backward-compatible aliases for screens that have not migrated yet.
+        // They point at the Wardro palette so the whole app shares one look.
         brand: {
-          DEFAULT: "#4F46E5",
-          deep: "#4338CA",
-          soft: "#EEF0FF",
+          DEFAULT: colors.primaryDark,
+          deep: colors.primaryDark,
+          soft: colors.primaryLight,
         },
-        pink: "#EC4899",
-        canvas: "#F7F7FB",
-        surface: "#F1F2F7",
-        line: "#E7E8EF",
+        pink: colors.accent,
+        canvas: colors.background,
+        surface: colors.surfaceSecondary,
+        line: colors.border,
         ink: {
-          DEFAULT: "#0F172A",
-          secondary: "#64748B",
-          muted: "#94A3B8",
+          DEFAULT: colors.text.primary,
+          secondary: colors.text.secondary,
+          muted: colors.text.disabled,
         },
-        success: "#16A34A",
-        warning: "#D97706",
-        danger: "#DC2626",
+        success: colors.success,
+        warning: colors.warning,
+        danger: colors.danger,
+
+        // shadcn/radix tokens used by the legacy components/ui primitives.
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -58,6 +96,28 @@ module.exports = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+      },
+      borderRadius: radius,
+      spacing,
+      fontFamily,
+      fontSize,
+      fontWeight,
+      boxShadow: shadows,
+      width: {
+        ...iconSizes,
+        avatar: `${tokens.sizes.avatar}px`,
+        fab: `${tokens.sizes.fab}px`,
+      },
+      height: {
+        ...iconSizes,
+        avatar: `${tokens.sizes.avatar}px`,
+        fab: `${tokens.sizes.fab}px`,
+      },
+      minWidth: {
+        touch: `${tokens.sizes.touchTarget}px`,
+      },
+      minHeight: {
+        touch: `${tokens.sizes.touchTarget}px`,
       },
       borderWidth: {
         hairline: hairlineWidth(),

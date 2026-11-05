@@ -1,6 +1,7 @@
 import { Text, View } from "react-native";
 
 import { formatPrice } from "~/lib/formatters";
+import { wardroColors } from "~/src/theme/colors";
 
 interface SummaryStripProps {
   wardrobes: number;
@@ -37,7 +38,7 @@ export default function SummaryStrip({
     <View
       className="flex-row items-center rounded-[18px] border border-line bg-white px-2 py-3.5"
       style={{
-        shadowColor: "#0F172A",
+        shadowColor: wardroColors.text.primary,
         shadowOpacity: 0.04,
         shadowRadius: 16,
         shadowOffset: { width: 0, height: 6 },

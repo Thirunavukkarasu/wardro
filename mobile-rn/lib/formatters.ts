@@ -1,3 +1,5 @@
+import { wardroColors } from "~/src/theme/colors";
+
 const monthNames = [
   "Jan",
   "Feb",
@@ -83,14 +85,14 @@ export function stateLabel(state: string): string {
 export function stateColor(state: string): string {
   switch (state) {
     case "in_use":
-      return "#16A34A";
+      return wardroColors.success;
     case "faded":
-      return "#D97706";
+      return wardroColors.warning;
     case "expired":
-      return "#DC2626";
+      return wardroColors.danger;
     case "archived":
-      return "#94A3B8";
+      return wardroColors.text.disabled;
     default:
-      return "#4F46E5";
+      return wardroColors.primaryDark;
   }
 }

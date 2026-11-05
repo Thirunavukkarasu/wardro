@@ -3,12 +3,13 @@ import type { ReactNode } from "react";
 import { ActivityIndicator, Text, View } from "react-native";
 
 import CustomButton from "~/components/CustomButton";
+import { wardroColors } from "~/src/theme/colors";
 
 /** Centred spinner used while a screen loads. */
 export function LoadingView({ message }: { message?: string }) {
   return (
     <View className="items-center py-9">
-      <ActivityIndicator size="large" color="#4F46E5" />
+      <ActivityIndicator size="large" color={wardroColors.primaryDark} />
       {message ? (
         <Text className="mt-4 text-sm text-ink-secondary">{message}</Text>
       ) : null}
@@ -31,7 +32,7 @@ export function ErrorView({
   return (
     <View className="rounded-[20px] border border-danger/25 bg-danger/5 p-6">
       <View className="items-center">
-        <CloudOff size={44} color="#DC2626" />
+        <CloudOff size={44} color={wardroColors.danger} />
         <Text className="mt-3 text-center text-base font-bold text-ink">
           {title}
         </Text>

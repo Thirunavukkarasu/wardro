@@ -41,6 +41,7 @@ import {
   wardrobeItemFromJson,
   type WardrobeItem,
 } from "~/lib/types";
+import { wardroColors } from "~/src/theme/colors";
 
 function RoundIconButton({
   icon,
@@ -58,7 +59,7 @@ function RoundIconButton({
       onPress={onPress}
       className="h-10 w-10 items-center justify-center rounded-full bg-white/90 active:opacity-80"
       style={{
-        shadowColor: "#0F172A",
+        shadowColor: wardroColors.text.primary,
         shadowOpacity: 0.18,
         shadowRadius: 6,
         shadowOffset: { width: 0, height: 2 },
@@ -224,27 +225,27 @@ export default function ItemDetailScreen() {
   const subtitle = [item.brand, item.category].filter(Boolean).join(" · ");
   const details: Array<{ icon: ReactNode; label: string; value: string }> = [
     item.brand && {
-      icon: <Store size={20} color="#94A3B8" />,
+      icon: <Store size={20} color={wardroColors.text.disabled} />,
       label: "Brand",
       value: item.brand,
     },
     item.category && {
-      icon: <Tag size={20} color="#94A3B8" />,
+      icon: <Tag size={20} color={wardroColors.text.disabled} />,
       label: "Category",
       value: item.category,
     },
     item.size && {
-      icon: <Ruler size={20} color="#94A3B8" />,
+      icon: <Ruler size={20} color={wardroColors.text.disabled} />,
       label: "Size",
       value: item.size,
     },
     item.color && {
-      icon: <Palette size={20} color="#94A3B8" />,
+      icon: <Palette size={20} color={wardroColors.text.disabled} />,
       label: "Colour",
       value: item.color,
     },
     item.price !== null && {
-      icon: <Wallet size={20} color="#94A3B8" />,
+      icon: <Wallet size={20} color={wardroColors.text.disabled} />,
       label: "Price",
       value: formatPrice(item.price),
     },
@@ -267,8 +268,16 @@ export default function ItemDetailScreen() {
             <Svg width="100%" height="100%">
               <Defs>
                 <LinearGradient id="heroFade" x1="0" y1="0" x2="0" y2="1">
-                  <Stop offset="0" stopColor="#000000" stopOpacity="0" />
-                  <Stop offset="1" stopColor="#000000" stopOpacity="0.82" />
+                  <Stop
+                    offset="0"
+                    stopColor={wardroColors.text.primary}
+                    stopOpacity="0"
+                  />
+                  <Stop
+                    offset="1"
+                    stopColor={wardroColors.text.primary}
+                    stopOpacity="0.82"
+                  />
                 </LinearGradient>
               </Defs>
               <Rect width="100%" height="100%" fill="url(#heroFade)" />
@@ -280,7 +289,7 @@ export default function ItemDetailScreen() {
             style={{ top: insets.top + 8 }}
           >
             <RoundIconButton
-              icon={<ArrowLeft size={22} color="#0F172A" />}
+              icon={<ArrowLeft size={22} color={wardroColors.text.primary} />}
               label="Go back"
               onPress={() => router.back()}
             />
@@ -291,12 +300,12 @@ export default function ItemDetailScreen() {
             style={{ top: insets.top + 8 }}
           >
             <RoundIconButton
-              icon={<Pencil size={21} color="#0F172A" />}
+              icon={<Pencil size={21} color={wardroColors.text.primary} />}
               label="Edit item"
               onPress={openEdit}
             />
             <RoundIconButton
-              icon={<Trash2 size={22} color="#0F172A" />}
+              icon={<Trash2 size={22} color={wardroColors.text.primary} />}
               label="Delete item"
               onPress={() => setConfirmVisible(true)}
             />
@@ -330,7 +339,7 @@ export default function ItemDetailScreen() {
             {item.category ? <AppPill label={item.category} /> : null}
             {item.size ? <AppPill label={`Size ${item.size}`} /> : null}
             {item.color ? (
-              <AppPill label={item.color} color="#64748B" />
+              <AppPill label={item.color} color={wardroColors.text.secondary} />
             ) : null}
           </View>
 
@@ -360,14 +369,14 @@ export default function ItemDetailScreen() {
             <InfoCard title="DATES">
               {item.purchaseDate ? (
                 <DetailRow
-                  icon={<ShoppingBag size={20} color="#94A3B8" />}
+                  icon={<ShoppingBag size={20} color={wardroColors.text.disabled} />}
                   label="Bought"
                   value={formatShortDate(item.purchaseDate)}
                 />
               ) : null}
               {item.expiryDate ? (
                 <DetailRow
-                  icon={<CalendarClock size={20} color="#94A3B8" />}
+                  icon={<CalendarClock size={20} color={wardroColors.text.disabled} />}
                   label="Expires"
                   value={formatShortDate(item.expiryDate)}
                 />
@@ -378,7 +387,7 @@ export default function ItemDetailScreen() {
           {item.createdAt ? (
             <InfoCard title="ADDED">
               <DetailRow
-                icon={<Calendar size={20} color="#94A3B8" />}
+                icon={<Calendar size={20} color={wardroColors.text.disabled} />}
                 label="Added to Wardro"
                 value={formatShortDate(item.createdAt)}
               />

@@ -4,6 +4,7 @@ import { Pressable, Text, View } from "react-native";
 import DateTimePicker from "react-native-date-picker";
 
 import { formatLongDate } from "~/lib/formatters";
+import { wardroColors } from "~/src/theme/colors";
 
 interface DateFieldProps {
   label: string;
@@ -31,7 +32,7 @@ export default function DateField({
         onPress={() => setOpen(true)}
         className="flex-row items-center rounded-[14px] border border-surface bg-surface px-4 py-3.5 active:opacity-90"
       >
-        <Calendar size={20} color="#94A3B8" />
+        <Calendar size={20} color={wardroColors.text.disabled} />
         <Text
           className={`ml-3 flex-1 text-[14px] font-semibold ${
             value ? "text-ink" : "text-ink-muted"
@@ -45,7 +46,7 @@ export default function DateField({
             hitSlop={8}
             onPress={() => onChange(null)}
           >
-            <X size={18} color="#94A3B8" />
+            <X size={18} color={wardroColors.text.disabled} />
           </Pressable>
         ) : null}
       </Pressable>

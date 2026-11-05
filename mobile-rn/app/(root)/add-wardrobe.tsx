@@ -8,6 +8,7 @@ import FormScreen from "~/components/FormScreen";
 import InputField from "~/components/InputField";
 import { api, ApiException } from "~/lib/api";
 import { useProfiles } from "~/lib/profiles-context";
+import { wardroColors } from "~/src/theme/colors";
 
 export default function AddWardrobeScreen() {
   const { activeProfile } = useProfiles();
@@ -89,7 +90,7 @@ export default function AddWardrobeScreen() {
       <InputField
         label="Name"
         placeholder="Enter name"
-        icon={<Shirt size={20} color="#94A3B8" />}
+        icon={<Shirt size={20} color={wardroColors.text.disabled} />}
         value={name}
         onChangeText={(value) => {
           setName(value);
@@ -100,7 +101,7 @@ export default function AddWardrobeScreen() {
       <InputField
         label="Description"
         placeholder="Enter description"
-        icon={<FileText size={20} color="#94A3B8" />}
+        icon={<FileText size={20} color={wardroColors.text.disabled} />}
         value={description}
         onChangeText={(value) => {
           setDescription(value);

@@ -35,6 +35,7 @@ import {
   type Wardrobe,
   type WardrobeItem,
 } from "~/lib/types";
+import { wardroColors } from "~/src/theme/colors";
 
 function FilterChip({
   label,
@@ -213,12 +214,12 @@ export default function ClosetScreen() {
         </View>
 
         <View className="mt-3 flex-row items-center rounded-[14px] border border-line bg-white px-4">
-          <Search size={18} color="#94A3B8" />
+          <Search size={18} color={wardroColors.text.disabled} />
           <TextInput
             value={query}
             onChangeText={setQuery}
             placeholder="Search name, brand, category…"
-            placeholderTextColor="#94A3B8"
+            placeholderTextColor={wardroColors.text.disabled}
             autoCapitalize="none"
             className="ml-2.5 flex-1 py-3 text-[14px] font-semibold text-ink outline-none"
           />
@@ -228,7 +229,7 @@ export default function ClosetScreen() {
               hitSlop={8}
               onPress={() => setQuery("")}
             >
-              <X size={18} color="#94A3B8" />
+              <X size={18} color={wardroColors.text.disabled} />
             </Pressable>
           ) : null}
         </View>
@@ -285,7 +286,7 @@ export default function ClosetScreen() {
               onPress={() => router.push("/(root)/wardrobes")}
               className="flex-row items-center rounded-full border border-line bg-white px-3.5 py-2 active:opacity-80"
             >
-              <LayoutGrid size={14} color="#4F46E5" />
+              <LayoutGrid size={14} color={wardroColors.primaryDark} />
               <Text className="ml-1.5 text-[12.5px] font-semibold text-brand">
                 Manage
               </Text>
@@ -302,8 +303,8 @@ export default function ClosetScreen() {
           <RefreshControl
             refreshing={loading && items.length > 0}
             onRefresh={load}
-            tintColor="#4F46E5"
-            colors={["#4F46E5"]}
+            tintColor={wardroColors.primaryDark}
+            colors={[wardroColors.primaryDark]}
           />
         }
       >
@@ -318,7 +319,7 @@ export default function ClosetScreen() {
           />
         ) : items.length === 0 ? (
           <EmptyView
-            icon={<Shirt size={34} color="#4F46E5" />}
+            icon={<Shirt size={34} color={wardroColors.primaryDark} />}
             title="No items yet"
             message="Snap a photo of a garment and it will show up here, grouped by wardrobe."
             actionLabel="Add Item"
@@ -326,7 +327,7 @@ export default function ClosetScreen() {
           />
         ) : visibleItems.length === 0 ? (
           <EmptyView
-            icon={<Search size={34} color="#4F46E5" />}
+            icon={<Search size={34} color={wardroColors.primaryDark} />}
             title="No matches"
             message="Try a different search term or clear the filters."
             actionLabel={hasFilters ? "Clear filters" : undefined}
@@ -351,7 +352,7 @@ export default function ClosetScreen() {
                   }
                   className="mb-2 mt-2 flex-row items-center py-1 active:opacity-70"
                 >
-                  <Shirt size={17} color="#4F46E5" />
+                  <Shirt size={17} color={wardroColors.primaryDark} />
                   <Text
                     numberOfLines={1}
                     className="mx-2 flex-1 text-[15px] font-bold text-ink"
@@ -360,10 +361,10 @@ export default function ClosetScreen() {
                   </Text>
                   <AppPill
                     label={String(wardrobeItems.length)}
-                    color="#64748B"
+                    color={wardroColors.text.secondary}
                   />
                   <View className="ml-1">
-                    <ChevronRight size={18} color="#94A3B8" />
+                    <ChevronRight size={18} color={wardroColors.text.disabled} />
                   </View>
                 </Pressable>
 

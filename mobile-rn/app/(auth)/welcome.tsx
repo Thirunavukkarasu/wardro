@@ -76,7 +76,9 @@ export default function WelcomeScreen() {
           <View
             key={slide.id}
             className={`mx-1 h-1 w-8 rounded-full ${
-              index === activeIndex ? "bg-brand" : "bg-[#E2E8F0]"
+              index === activeIndex
+                ? "bg-wardro-primary-dark"
+                : "bg-wardro-border"
             }`}
           />
         ))}

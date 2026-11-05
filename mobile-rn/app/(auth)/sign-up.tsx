@@ -18,6 +18,7 @@ import InputField from "~/components/InputField";
 import OAuth from "~/components/OAuth";
 import ScreenHero from "~/components/ScreenHero";
 import { useAuth } from "~/lib/auth-context";
+import { wardroColors } from "~/src/theme/colors";
 
 export default function SignUpScreen() {
   const {
@@ -96,7 +97,7 @@ export default function SignUpScreen() {
             <InputField
               label="Name"
               placeholder="Enter name"
-              icon={<User size={20} color="#94A3B8" />}
+              icon={<User size={20} color={wardroColors.text.disabled} />}
               autoComplete="name"
               value={name}
               onChangeText={(value) => {
@@ -109,7 +110,7 @@ export default function SignUpScreen() {
             <InputField
               label="Email"
               placeholder="Enter email"
-              icon={<Mail size={20} color="#94A3B8" />}
+              icon={<Mail size={20} color={wardroColors.text.disabled} />}
               autoCapitalize="none"
               autoComplete="email"
               keyboardType="email-address"
@@ -124,7 +125,7 @@ export default function SignUpScreen() {
             <InputField
               label="Password"
               placeholder="Enter password"
-              icon={<Lock size={20} color="#94A3B8" />}
+              icon={<Lock size={20} color={wardroColors.text.disabled} />}
               secureTextEntry
               autoComplete="new-password"
               value={password}
@@ -169,7 +170,7 @@ export default function SignUpScreen() {
         <View className="flex-1 items-center justify-center bg-black/40 px-6">
           <View className="w-full max-w-md items-center rounded-[20px] bg-white p-6">
             <View className="h-[72px] w-[72px] items-center justify-center rounded-full bg-brand/10">
-              <MailCheck size={34} color="#4F46E5" />
+              <MailCheck size={34} color={wardroColors.primaryDark} />
             </View>
 
             <Text className="mt-4 text-center text-[22px] font-extrabold text-ink">

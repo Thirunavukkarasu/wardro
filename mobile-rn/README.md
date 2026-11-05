@@ -105,6 +105,11 @@ Visual direction, per-screen blueprints, reusable component specs, and the
 reference images that informed them are in
 [`docs/design/README.md`](docs/design/README.md).
 
+The shared visual language — Warm Neutral + Muted Olive, tokens, typography,
+spacing and component rules — is documented in
+[`../docs/design-system/`](../docs/design-system/README.md). Tokens live in
+`src/theme/tokens.json` and are exposed as `wardro-*` Tailwind classes.
+
 Every pushed screen uses the shared `components/AppHeader.tsx` (44px back
 target, title, optional right action). Add forms use
 `components/FormScreen.tsx` for a fixed header, scrollable content and a sticky

@@ -8,6 +8,8 @@ import {
   type TextInputProps,
 } from "react-native";
 
+import { wardroColors } from "~/src/theme/colors";
+
 interface InputFieldProps extends TextInputProps {
   label: string;
   icon?: ReactNode;
@@ -46,7 +48,7 @@ export default function InputField({
 
         <TextInput
           className={`flex-1 py-3.5 text-[14px] font-semibold text-ink outline-none ${inputStyle}`}
-          placeholderTextColor="#94A3B8"
+          placeholderTextColor={wardroColors.text.disabled}
           secureTextEntry={obscured}
           {...props}
         />
@@ -58,9 +60,9 @@ export default function InputField({
             onPress={() => setObscured((current) => !current)}
           >
             {obscured ? (
-              <EyeOff size={20} color="#94A3B8" />
+              <EyeOff size={20} color={wardroColors.text.disabled} />
             ) : (
-              <Eye size={20} color="#94A3B8" />
+              <Eye size={20} color={wardroColors.text.disabled} />
             )}
           </Pressable>
         ) : null}

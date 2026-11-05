@@ -1,4 +1,5 @@
 import type { User } from "firebase/auth";
+import { wardroColors } from "~/src/theme/colors";
 
 export type AuthStatus = "restoring" | "signedOut" | "signedIn";
 
@@ -35,7 +36,7 @@ export function profileFromJson(json: Record<string, unknown>): Profile {
     id: Number(json.id ?? 0),
     userId: String(json.userId ?? json.ownerUid ?? ""),
     name: String(json.name ?? "Profile"),
-    color: String(json.color ?? "#4F46E5"),
+    color: String(json.color ?? wardroColors.primaryDark),
     avatarUrl: json.avatarUrl ? String(json.avatarUrl) : null,
     isDefault: Boolean(json.isDefault),
     wardrobeCount: Number(json.wardrobeCount ?? 0),

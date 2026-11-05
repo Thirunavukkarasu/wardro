@@ -1,3 +1,4 @@
+import { wardroColors } from "~/src/theme/colors";
 import { ScrollViewStyleReset } from 'expo-router/html';
 import { type PropsWithChildren } from 'react';
 
@@ -30,5 +31,5 @@ export default function Root({ children }: PropsWithChildren) {
 
 const responsiveBackground = `
 body {
-  background-color: #0F172A;
+  background-color: ${wardroColors.text.primary};
 }`;

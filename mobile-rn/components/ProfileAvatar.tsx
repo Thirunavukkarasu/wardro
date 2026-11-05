@@ -1,6 +1,10 @@
 import { Image, Text, View } from "react-native";
 
 import { initialsForName, type Profile } from "~/lib/types";
+import {
+  legacyIndigoProfileColor,
+  wardroColors,
+} from "~/src/theme/colors";
 
 interface ProfileAvatarProps {
   profile: Pick<Profile, "name" | "color" | "avatarUrl">;
@@ -14,10 +18,18 @@ export default function ProfileAvatar({
   size = 44,
   active = false,
 }: ProfileAvatarProps) {
+  // The original default profile colour was indigo; normalize it to the new
+  // brand olive without rewriting the stored user preference.
+  const baseColor = profile.color || wardroColors.primaryDark;
+  const avatarColor =
+    baseColor.toLowerCase() === legacyIndigoProfileColor
+      ? wardroColors.primaryDark
+      : baseColor;
+
   return (
     <View
       className={`items-center justify-center rounded-full border-2 ${
-        active ? "border-brand" : "border-transparent"
+        active ? "border-wardro-primary" : "border-transparent"
       }`}
       style={{ width: size + 6, height: size + 6 }}
     >
@@ -26,7 +38,7 @@ export default function ProfileAvatar({
         style={{
           width: size,
           height: size,
-          backgroundColor: profile.color,
+          backgroundColor: avatarColor,
         }}
       >
         {profile.avatarUrl ? (
@@ -37,7 +49,7 @@ export default function ProfileAvatar({
           />
         ) : (
           <Text
-            className="font-extrabold text-white"
+            className="font-extrabold text-wardro-surface"
             style={{ fontSize: size * 0.36 }}
           >
             {initialsForName(profile.name)}

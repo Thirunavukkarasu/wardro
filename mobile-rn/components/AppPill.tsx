@@ -1,6 +1,8 @@
 import { Text, View } from "react-native";
 import type { ReactNode } from "react";
 
+import { wardroColors } from "~/src/theme/colors";
+
 interface AppPillProps {
   label: string;
   color?: string;
@@ -11,7 +13,7 @@ interface AppPillProps {
 /** Small rounded label used for counts, sizes and item states. */
 export default function AppPill({
   label,
-  color = "#4F46E5",
+  color = wardroColors.primaryDark,
   icon,
   filled = false,
 }: AppPillProps) {
@@ -23,7 +25,7 @@ export default function AppPill({
       {icon ? <View className="mr-1">{icon}</View> : null}
       <Text
         className="text-[11.5px] font-semibold"
-        style={{ color: filled ? "#FFFFFF" : color }}
+        style={{ color: filled ? wardroColors.surface : color }}
       >
         {label}
       </Text>

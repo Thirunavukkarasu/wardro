@@ -3,6 +3,7 @@ import { Camera, ImageIcon, RefreshCw } from "lucide-react-native";
 import { Alert, Image, Platform, Pressable, Text, View } from "react-native";
 
 import type { PickedPhoto } from "~/lib/types";
+import { wardroColors } from "~/src/theme/colors";
 
 interface PhotoCaptureFieldProps {
   photo: PickedPhoto | null;
@@ -73,7 +74,7 @@ export default function PhotoCaptureField({
     return (
       <View>
         <View
-          className="w-full overflow-hidden rounded-[16px] bg-surface"
+          className="w-full overflow-hidden rounded-card bg-wardro-surface-secondary"
           style={{ height }}
         >
           <Image
@@ -86,7 +87,7 @@ export default function PhotoCaptureField({
           onPress={() => onChange(null)}
           className="mt-3 flex-row items-center justify-center py-2"
         >
-          <RefreshCw size={16} color="#64748B" />
+          <RefreshCw size={16} color={wardroColors.text.secondary} />
           <Text className="ml-2 text-sm font-semibold text-ink-secondary">
             Retake photo
           </Text>
@@ -97,10 +98,10 @@ export default function PhotoCaptureField({
 
   return (
     <View
-      className="w-full items-center justify-center rounded-[16px] border border-line bg-surface"
+      className="w-full items-center justify-center rounded-card border border-wardro-border bg-wardro-surface-secondary"
       style={{ height }}
     >
-      <Camera size={56} color="#94A3B8" />
+      <Camera size={56} color={wardroColors.text.disabled} />
       <Text className="mt-3 text-sm text-ink-secondary">
         Add a photo of this item
       </Text>
@@ -109,26 +110,34 @@ export default function PhotoCaptureField({
         {Platform.OS !== "web" ? (
           <Pressable
             onPress={() => handlePick("camera")}
-            className="flex-row items-center rounded-full bg-brand px-5 py-2.5 active:opacity-80"
+            className="flex-row items-center rounded-full bg-wardro-primary-dark px-5 py-2.5 active:opacity-80"
           >
-            <Camera size={17} color="#FFFFFF" />
+            <Camera size={17} color={wardroColors.surface} />
             <Text className="ml-2 text-sm font-semibold text-white">Snap</Text>
           </Pressable>
         ) : null}
 
         <Pressable
           onPress={() => handlePick("library")}
-          className={`flex-row items-center rounded-full border border-line px-5 py-2.5 active:opacity-80 ${
-            Platform.OS === "web" ? "bg-brand" : "bg-white"
+          className={`flex-row items-center rounded-full border border-wardro-border px-5 py-2.5 active:opacity-80 ${
+            Platform.OS === "web"
+              ? "bg-wardro-primary-dark"
+              : "bg-wardro-surface"
           }`}
         >
           <ImageIcon
             size={17}
-            color={Platform.OS === "web" ? "#FFFFFF" : "#0F172A"}
+            color={
+              Platform.OS === "web"
+                ? wardroColors.surface
+                : wardroColors.text.primary
+            }
           />
           <Text
             className={`ml-2 text-sm font-semibold ${
-              Platform.OS === "web" ? "text-white" : "text-ink"
+              Platform.OS === "web"
+                ? "text-wardro-surface"
+                : "text-wardro-text-primary"
             }`}
           >
             {Platform.OS === "web" ? "Choose photo" : "Gallery"}
