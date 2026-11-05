@@ -1,5 +1,5 @@
 import { Tabs, router, useSegments } from "expo-router";
-import { Camera, Shirt, Sun, User } from "lucide-react-native";
+import { Camera, MessageCircle, Shirt, Sun, User } from "lucide-react-native";
 import { Pressable, View } from "react-native";
 
 import {
@@ -9,7 +9,8 @@ import {
 
 export default function TabsLayout() {
   const segments = useSegments();
-  const onProfile = segments[segments.length - 1] === "profile";
+  const lastSegment = segments[segments.length - 1];
+  const hideFab = lastSegment === "profile" || lastSegment === "chat";
 
   return (
     <View className="flex-1">
@@ -48,6 +49,15 @@ export default function TabsLayout() {
           }}
         />
         <Tabs.Screen
+          name="chat"
+          options={{
+            title: "Chat",
+            tabBarIcon: ({ color }) => (
+              <MessageCircle size={22} color={color} />
+            ),
+          }}
+        />
+        <Tabs.Screen
           name="profile"
           options={{
             title: "Profile",
@@ -56,7 +66,7 @@ export default function TabsLayout() {
         />
       </Tabs>
 
-      {!onProfile ? (
+      {!hideFab ? (
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Add item"

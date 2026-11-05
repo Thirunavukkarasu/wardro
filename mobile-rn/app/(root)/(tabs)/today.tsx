@@ -142,7 +142,7 @@ export default function TodayScreen() {
           <View className="flex-1">
             <Text className="text-[13px] font-semibold text-ink-secondary">
               {greeting(
-                activeProfile?.name.split(/\s+/)[0] ??
+                profiles.find((profile) => profile.isDefault)?.name.split(/\s+/)[0] ??
                   user?.firstName ??
                   "",
               )}

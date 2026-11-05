@@ -8,6 +8,7 @@ New contributors and AI agents should start at [`AGENTS.md`](AGENTS.md), which m
 
 - Add, edit, and delete clothes
 - Create outfits
+- Chat with the local LangGraph wardrobe agent (pilot)
 - View clothes and outfits in a calendar view
 - Analyze usage of clothes
 

@@ -29,6 +29,7 @@ Every value is public client configuration and is embedded in the bundle.
 | Variable | Purpose |
 | --- | --- |
 | `EXPO_PUBLIC_API_URL` | Hono backend base URL, including `/api` |
+| `EXPO_PUBLIC_AGENT_URL` | Local FastAPI agent base URL (`http://localhost:8000` for web, `10.0.2.2` for an Android emulator, LAN IP for a device) |
 | `EXPO_PUBLIC_FIREBASE_*` | Firebase web app config for project `wardo-ce8d5` |
 | `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` | OAuth web client used by web popup sign-in |
 | `EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID` | OAuth client for native Google sign-in on Android |
@@ -78,6 +79,7 @@ message instead of prompting.
 | `app/(auth)/sign-up.tsx` | Account creation + verification-link dialog |
 | `app/(root)/(tabs)/today.tsx` | Dashboard: greeting, summary, quick actions, recent items, wardrobe preview |
 | `app/(root)/(tabs)/closet.tsx` | Searchable, category/wardrobe-filterable garment grid + manage-collections entry |
+| `app/(root)/(tabs)/chat.tsx` | Chat with the local LangGraph agent, scoped to the active profile |
 | `app/(root)/(tabs)/profile.tsx` | Account details and sign-out |
 | `app/(root)/wardrobes.tsx` | Manage collections (pushed screen) |
 | `app/(root)/add-wardrobe.tsx` | Create or edit a wardrobe |
@@ -86,14 +88,35 @@ message instead of prompting.
 | `app/(root)/wardrobe/[id].tsx` | One wardrobe's photo grid, edit and delete |
 | `app/(root)/item/[id].tsx` | Item hero, details, edit and delete |
 
-Navigation currently uses three bottom tabs — **Today / Closet / Profile** —
-with the camera FAB as the global add-item action. There is deliberately no
-hamburger drawer: primary destinations stay visible and thumb-reachable.
-`app/(root)/(tabs)/_layout.tsx` owns the tab bar and FAB.
+Navigation currently uses four bottom tabs — **Today / Closet / Chat /
+Profile** — with the camera FAB as the global add-item action on Today and
+Closet. There is deliberately no hamburger drawer: primary destinations stay
+visible and thumb-reachable. `app/(root)/(tabs)/_layout.tsx` owns the tab bar
+and FAB.
 
-The agreed target adds **Create** and **Calendar** as those features ship. See
+Chat is a **local-agent pilot**: it calls the FastAPI `wardro-agent` service in
+development and uses the active profile for context. The agent has no wardrobe
+tools yet, so replies are illustrative. The longer-term navigation still plans
+for **Create** and **Calendar**; their relationship to Chat is an open product
+decision. See
 [`docs/screen-architecture.md`](docs/screen-architecture.md) for the full
 screen inventory, principles, migration plan, and rationale.
+
+### Running chat locally
+
+Start the agent service (and Ollama) before opening the Chat tab:
+
+```bash
+cd ../wardro-agent
+uv sync
+uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+The app reads `EXPO_PUBLIC_AGENT_URL`; the default is `http://localhost:8000`.
+For the Android emulator use `http://10.0.2.2:8000`, and for a physical device
+use the computer's LAN IP. The agent is development-only: it accepts
+`user_id`/`profile_id` in the request body and has no Firebase auth or
+internal-JWT verification yet.
 
 **Multi-profile support is implemented:** one account owns several profiles,
 Today shows a profile rail, and the Profile tab manages them. Every wardrobe,
@@ -131,13 +154,15 @@ order:
    ownership-checked `PATCH` endpoints. ✅
 5. **Multi-profile foundation** — household account, default profile,
    profile-scoped API, Today switcher, Profile management and cascade delete. ✅
-6. **Favorites & wear tracking** — favourite flags and wear logs; the data
+6. **AI chat pilot** — Chat tab, local LangGraph agent client and active-profile
+   context. ✅ Auth proxy, real wardrobe tools and persistence are next.
+7. **Favorites & wear tracking** — favourite flags and wear logs; the data
    foundation for analytics and suggestions.
-7. **Create** — outfit builder + saved library; becomes the prominent middle
+8. **Create** — outfit builder + saved library; becomes the prominent middle
    tab when real. Calendar starts as a segment inside Create.
-8. **Calendar** — promote outfit planning to a tab when it is substantial.
-9. **Weather, suggestions & analytics** — Today cards plus a full analytics
-   screen, backed by wear data and an opt-in weather location.
+9. **Calendar** — promote outfit planning to a tab when it is substantial.
+10. **Weather, suggestions & analytics** — Today cards plus a full analytics
+    screen, backed by wear data and an opt-in weather location.
 
 ## Backend endpoints used
 
@@ -166,10 +191,23 @@ Photos are uploaded directly from the app to Firebase Storage under
 `users/{uid}/items/...` (`lib/api.ts`), and the returned download URL is stored
 as `photoUri`. Storage rules live in `../storage.rules`.
 
+## Agent endpoint used
+
+Chat calls the FastAPI service directly in development:
+
+| Endpoint | Used by |
+| --- | --- |
+| `POST {EXPO_PUBLIC_AGENT_URL}/api/v1/chat` | Chat tab: `{ message, thread_id, user_id, profile_id }` |
+
+The response is `{ thread_id, intent, agent, message, metadata }`. This is a
+development-only path; production chat will go through the Hono `/api/ai/*`
+proxy with Firebase auth and a short-lived internal JWT.
+
 ## Design tokens
 
-Indigo `#4F46E5`, pink accent `#EC4899`, canvas `#F7F7FB`, surface `#F1F2F7`,
-border `#E7E8EF`; text `#0F172A` / `#64748B` / `#94A3B8`; status
-`#16A34A` / `#D97706` / `#DC2626`. They are registered in
-`tailwind.config.js` as `brand`, `pink`, `canvas`, `surface`, `line`, `ink`,
-`success`, `warning`, and `danger`.
+The Warm Neutral + Muted Olive palette lives in `src/theme/tokens.json` and is
+exposed through `tailwind.config.js` as `wardro-*` classes (with legacy
+`brand`/`canvas`/`line`/`ink` aliases). Use the semantic classes in new code;
+do not add raw hex outside `src/theme/`. The full system — colours, typography,
+spacing, components and screen layouts — is documented in
+[`../docs/design-system/`](../docs/design-system/README.md).

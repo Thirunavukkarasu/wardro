@@ -9,6 +9,12 @@ images live in [`design/`](design/README.md). The final five-destination
 navigation is **Today · Closet · Create · Calendar · Profile**; the phases below
 introduce those destinations only as their features ship.
 
+> **Chat pilot (2026-11-05).** A fourth **Chat** tab now calls the local
+> `wardro-agent` service and uses the active profile for context. It is a
+> development pilot, not yet part of the final five-destination plan. The
+> final placement of chat — and whether it absorbs Create/Calendar or remains a
+> top-level destination — is an open decision after the wardrobe tools land.
+
 ## 1. Principles
 
 - **Bottom tabs for primary navigation.** No hamburger drawer. Primary
@@ -144,7 +150,9 @@ differently so “Profile / More” does not become a junk drawer.
 ## 5. Migration from the current implementation
 
 Phase 1 is complete: the app ships **Today · Closet · Profile** (3 tabs), with
-collections managed from a pushed Wardrobes screen.
+collections managed from a pushed Wardrobes screen. The separate 2026-11-05
+Chat pilot adds a fourth **Chat** tab; it is intentionally outside the phased
+plan until the final IA decision.
 
 1. **Rename Home → Today.** ✅
 2. **Merge Wardrobes + Items into Closet.** ✅
@@ -178,11 +186,22 @@ As of 2026-11-05:
   add/edit wardrobe, and Profile with profile management are built.
 - Multi-profile is implemented (household account, cascade delete) and the
   backend schema has been migrated.
+- A **Chat** tab is wired to the local FastAPI/LangGraph agent. It sends the
+  active profile and conversation thread; the agent still returns illustrative
+  answers because wardrobe tools are not connected.
+- The Today greeting uses the account's default profile name (Tiru) rather
+  than the active profile, so switching to Swati/Arush/Adiran does not change
+  the account greeting.
 - Not built: outfits, calendar, favourites, wear tracking, analytics, weather,
-  suggestions.
+  suggestions, chat auth proxy, real wardrobe tools and conversation
+  persistence.
 
 ## 7. Open decisions
 
+- **Chat placement:** the Chat tab is a pilot. Decide whether it stays a
+  top-level destination, becomes the entry point to outfit creation, or is
+  reached from Today's AI-stylist card. Do not finalise the five-tab map until
+  the wardrobe tools make the answer concrete.
 - **Profiles:** household account and cascade delete are implemented; profile
   photos, per-profile PINs and separate-account households remain future work.
   See [`multi-profile.md`](multi-profile.md).

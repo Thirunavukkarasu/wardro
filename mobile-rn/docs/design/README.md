@@ -50,6 +50,11 @@ Profile and analytics follow. The current app covers Today, Closet, Clothing
 details, Add clothing, Profile, and the multi-profile foundation; outfits and
 the calendar are the next product differentiators.
 
+A **Chat** tab was added as a pilot on 2026-11-05. It calls the local LangGraph
+agent and uses the active profile, but the agent has no wardrobe tools yet.
+Chat's final place in the IA is an open decision; see
+[`../screen-architecture.md`](../screen-architecture.md).
+
 ## Development priority
 
 | Priority | Screens | Reason | Current status |
@@ -57,6 +62,7 @@ the calendar are the next product differentiators.
 | **P0** | Today, Closet | Main experience | Built; profile rail on Today |
 | **P0** | Multi-profile foundation | Family / shared account | Built (household model, cascade delete) |
 | **P0** | Add/Edit clothing, Clothing details | Core CRUD | Built |
+| **P0** | AI chat pilot | The assistant is the product's core interaction | Chat tab wired to the local agent; wardrobe tools next |
 | **P1** | Outfit builder, Saved outfits | Main product value | Not built |
 | **P1** | Calendar | Outfit planning | Not built |
 | **P2** | Profile, Analytics | Supporting experience | Profile + profile management built; analytics not built |

@@ -50,4 +50,11 @@ export const apiBaseUrl =
   process.env.EXPO_PUBLIC_API_URL ||
   "https://wardro--wardo-ce8d5.us-east4.hosted.app/api";
 
+/**
+ * Local FastAPI agent base URL (wardro-agent). Use the LAN IP instead of
+ * localhost when running on a physical device.
+ */
+export const agentBaseUrl =
+  process.env.EXPO_PUBLIC_AGENT_URL || "http://localhost:8000";
+
 export const requestTimeoutMs = 20_000;
