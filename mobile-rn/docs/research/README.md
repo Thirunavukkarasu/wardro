@@ -28,6 +28,14 @@ decision. Add one focused document per topic here as it is investigated.
 - **Monetization and retention** (if pursued) — premium outfit tools,
   analytics, wardrobe limits, and what must remain free.
 
+## Related research
+
+Architecture and data-model research synthesized from the Notion exports and
+the simulation dataset lives in the repository-level
+[`docs/research/`](../../../docs/research/README.md). It covers the proposed AI
+service boundary, profile/item schema extensions, and the phased migration
+plan.
+
 ## How to use this folder
 
 1. Create a dated markdown file per topic, e.g.

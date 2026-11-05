@@ -45,6 +45,9 @@ configuration from `mobile-rn/.env` (see `mobile-rn/.env.example`); see
 structure and phasing, and `mobile-rn/docs/design/` for screen blueprints,
 component specs, and design references. The shared visual language (Warm
 Neutral + Muted Olive) is documented in [`docs/design-system/`](docs/design-system/README.md).
+Research notes and the Notion synthesis live in [`docs/research/`](docs/research/README.md);
+the four-profile simulation dataset is in
+[`datasets/wardrobe-simulation/`](datasets/wardrobe-simulation/README.md).
 `backend/README.md` covers build/deploy details.
 
 ## Deployment

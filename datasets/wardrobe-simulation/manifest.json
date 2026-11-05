@@ -1,0 +1,1016 @@
+{
+  "dataset": "wardrobe-simulation",
+  "version": 1,
+  "generatedAt": "2026-11-05",
+  "description": "Four-profile wardrobe simulation dataset with CC-licensed reference photography.",
+  "currency": "INR",
+  "profiles": [
+    {
+      "key": "tiru",
+      "name": "Tiru",
+      "color": "#62694B",
+      "relationship": "self",
+      "profileType": "adult",
+      "ageGroup": "adult",
+      "wardrobes": [
+        {
+          "name": "Work",
+          "type": "work",
+          "description": "Office and smart-casual pieces",
+          "items": [
+            {
+              "key": "tiru-black-crew-tshirt",
+              "itemName": "Black Crew T-Shirt",
+              "category": "Tops",
+              "subcategory": "T-shirt",
+              "brand": "Atelier Nord",
+              "color": "Black",
+              "size": "M",
+              "price": 1200,
+              "currency": "INR",
+              "state": "in_use",
+              "seasons": [
+                "all-season"
+              ],
+              "occasions": [
+                "office",
+                "casual"
+              ],
+              "material": "Cotton",
+              "pattern": "Plain",
+              "fit": "Regular",
+              "sleeve": "Short",
+              "styleTags": [
+                "minimal",
+                "layering"
+              ],
+              "notes": "Layers under the navy blazer.",
+              "image": "images/tiru-black-crew-tshirt.jpg",
+              "sourceKey": "shirt_hanger"
+            },
+            {
+              "key": "tiru-navy-blazer",
+              "itemName": "Navy Wool Blazer",
+              "category": "Outerwear",
+              "subcategory": "Blazer",
+              "brand": "North & Loom",
+              "color": "Navy",
+              "size": "40",
+              "price": 6800,
+              "currency": "INR",
+              "state": "in_use",
+              "seasons": [
+                "all-season"
+              ],
+              "occasions": [
+                "office"
+              ],
+              "material": "Wool blend",
+              "pattern": "Plain",
+              "fit": "Regular",
+              "sleeve": "Long",
+              "styleTags": [
+                "tailored",
+                "office"
+              ],
+              "notes": "Structured shoulder; pairs with denim or trousers.",
+              "image": "images/tiru-navy-blazer.jpg",
+              "sourceKey": "blazer"
+            },
+            {
+              "key": "tiru-indigo-jeans",
+              "itemName": "Indigo Straight Jeans",
+              "category": "Bottoms",
+              "subcategory": "Jeans",
+              "brand": "Roam Supply",
+              "color": "Indigo",
+              "size": "32",
+              "price": 2600,
+              "currency": "INR",
+              "state": "in_use",
+              "seasons": [
+                "all-season"
+              ],
+              "occasions": [
+                "office",
+                "casual"
+              ],
+              "material": "Denim",
+              "pattern": "Plain",
+              "fit": "Straight",
+              "sleeve": "Full",
+              "styleTags": [
+                "denim",
+                "everyday"
+              ],
+              "notes": "Heavyweight denim that holds its shape.",
+              "image": "images/tiru-indigo-jeans.jpg",
+              "sourceKey": "jeans_denim2"
+            },
+            {
+              "key": "tiru-leather-watch",
+              "itemName": "Leather Strap Watch",
+              "category": "Accessories",
+              "subcategory": "Watch",
+              "brand": "Morrow & Co",
+              "color": "Tan",
+              "size": "One size",
+              "price": 8500,
+              "currency": "INR",
+              "state": "in_use",
+              "seasons": [
+                "all-season"
+              ],
+              "occasions": [
+                "office",
+                "formal"
+              ],
+              "material": "Leather / steel",
+              "pattern": "Plain",
+              "fit": "Regular",
+              "sleeve": "None",
+              "styleTags": [
+                "classic",
+                "gift"
+              ],
+              "notes": "Everyday watch with a tan leather strap.",
+              "image": "images/tiru-leather-watch.jpg",
+              "sourceKey": "watch"
+            }
+          ]
+        },
+        {
+          "name": "Weekend",
+          "type": "casual",
+          "description": "Relaxed weekend layers",
+          "items": [
+            {
+              "key": "tiru-denim-jacket",
+              "itemName": "Washed Denim Jacket",
+              "category": "Outerwear",
+              "subcategory": "Denim jacket",
+              "brand": "Roam Supply",
+              "color": "Indigo",
+              "size": "M",
+              "price": 4200,
+              "currency": "INR",
+              "state": "in_use",
+              "seasons": [
+                "all-season"
+              ],
+              "occasions": [
+                "casual"
+              ],
+              "material": "Denim",
+              "pattern": "Washed",
+              "fit": "Regular",
+              "sleeve": "Long",
+              "styleTags": [
+                "denim",
+                "weekend"
+              ],
+              "notes": "Soft washed denim for layering.",
+              "image": "images/tiru-denim-jacket.jpg",
+              "sourceKey": "denim"
+            },
+            {
+              "key": "tiru-white-sneakers",
+              "itemName": "White Leather Sneakers",
+              "category": "Shoes",
+              "subcategory": "Sneakers",
+              "brand": "Common Form",
+              "color": "White",
+              "size": "UK 9",
+              "price": 3900,
+              "currency": "INR",
+              "state": "in_use",
+              "seasons": [
+                "all-season"
+              ],
+              "occasions": [
+                "casual"
+              ],
+              "material": "Leather",
+              "pattern": "Plain",
+              "fit": "Regular",
+              "sleeve": "None",
+              "styleTags": [
+                "minimal",
+                "everyday"
+              ],
+              "notes": "Clean white sneakers for weekends.",
+              "image": "images/tiru-white-sneakers.jpg",
+              "sourceKey": "sneakers_white2"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "swati",
+      "name": "Swati",
+      "color": "#B8A58A",
+      "relationship": "spouse",
+      "profileType": "adult",
+      "ageGroup": "adult",
+      "wardrobes": [
+        {
+          "name": "Everyday",
+          "type": "casual",
+          "description": "Daily rotation",
+          "items": [
+            {
+              "key": "swati-cream-linen-shirt",
+              "itemName": "Cream Linen Shirt",
+              "category": "Tops",
+              "subcategory": "Shirt",
+              "brand": "Linen & Loom",
+              "color": "Cream",
+              "size": "S",
+              "price": 2200,
+              "currency": "INR",
+              "state": "in_use",
+              "seasons": [
+                "spring",
+                "summer"
+              ],
+              "occasions": [
+                "casual",
+                "office"
+              ],
+              "material": "Linen",
+              "pattern": "Plain",
+              "fit": "Regular",
+              "sleeve": "Long",
+              "styleTags": [
+                "minimal",
+                "everyday"
+              ],
+              "notes": "Breathable linen shirt for warm days.",
+              "image": "images/swati-cream-linen-shirt.jpg",
+              "sourceKey": "blouse_orvis"
+            },
+            {
+              "key": "swati-light-wash-flared-jeans",
+              "itemName": "Light Wash Flared Jeans",
+              "category": "Bottoms",
+              "subcategory": "Jeans",
+              "brand": "Roam Supply",
+              "color": "Light blue",
+              "size": "28",
+              "price": 2600,
+              "currency": "INR",
+              "state": "in_use",
+              "seasons": [
+                "all-season"
+              ],
+              "occasions": [
+                "casual"
+              ],
+              "material": "Denim",
+              "pattern": "Washed",
+              "fit": "Flared",
+              "sleeve": "Full",
+              "styleTags": [
+                "denim",
+                "everyday"
+              ],
+              "notes": "Soft light-wash denim with a flared leg.",
+              "image": "images/swati-light-wash-flared-jeans.jpg",
+              "sourceKey": "jeans_museum"
+            },
+            {
+              "key": "swati-leather-satchel",
+              "itemName": "Tan Leather Satchel",
+              "category": "Accessories",
+              "subcategory": "Handbag",
+              "brand": "Casa Cuir",
+              "color": "Tan",
+              "size": "One size",
+              "price": 5400,
+              "currency": "INR",
+              "state": "in_use",
+              "seasons": [
+                "all-season"
+              ],
+              "occasions": [
+                "casual",
+                "office"
+              ],
+              "material": "Leather",
+              "pattern": "Plain",
+              "fit": "Regular",
+              "sleeve": "None",
+              "styleTags": [
+                "leather",
+                "everyday"
+              ],
+              "notes": "Structured satchel with a top handle.",
+              "image": "images/swati-leather-satchel.jpg",
+              "sourceKey": "handbag_modern"
+            },
+            {
+              "key": "swati-black-boots",
+              "itemName": "Black Lace-Up Boots",
+              "category": "Shoes",
+              "subcategory": "Ankle boots",
+              "brand": "Casa Cuir",
+              "color": "Black",
+              "size": "EU 38",
+              "price": 4800,
+              "currency": "INR",
+              "state": "in_use",
+              "seasons": [
+                "autumn",
+                "winter"
+              ],
+              "occasions": [
+                "casual"
+              ],
+              "material": "Leather",
+              "pattern": "Plain",
+              "fit": "Regular",
+              "sleeve": "None",
+              "styleTags": [
+                "leather",
+                "winter"
+              ],
+              "notes": "Lace-up ankle boots with a low heel.",
+              "image": "images/swati-black-boots.jpg",
+              "sourceKey": "boots_heel"
+            }
+          ]
+        },
+        {
+          "name": "Occasion",
+          "type": "occasion",
+          "description": "Dresses and occasion layers",
+          "items": [
+            {
+              "key": "swati-floral-dress",
+              "itemName": "Floral Fit-and-Flare Dress",
+              "category": "Dresses",
+              "subcategory": "Floral dress",
+              "brand": "Bloom Atelier",
+              "color": "Black / floral",
+              "size": "S",
+              "price": 3600,
+              "currency": "INR",
+              "state": "in_use",
+              "seasons": [
+                "spring",
+                "summer"
+              ],
+              "occasions": [
+                "party",
+                "occasion"
+              ],
+              "material": "Viscose",
+              "pattern": "Floral",
+              "fit": "Fit-and-flare",
+              "sleeve": "Short",
+              "styleTags": [
+                "floral",
+                "statement"
+              ],
+              "notes": "The dress for evenings and celebrations.",
+              "image": "images/swati-floral-dress.jpg",
+              "sourceKey": "dress_floral"
+            },
+            {
+              "key": "swati-red-trench",
+              "itemName": "Red Trench Coat",
+              "category": "Outerwear",
+              "subcategory": "Trench coat",
+              "brand": "North & Loom",
+              "color": "Red",
+              "size": "S",
+              "price": 7200,
+              "currency": "INR",
+              "state": "in_use",
+              "seasons": [
+                "autumn",
+                "winter"
+              ],
+              "occasions": [
+                "occasion",
+                "travel"
+              ],
+              "material": "Cotton blend",
+              "pattern": "Plain",
+              "fit": "Regular",
+              "sleeve": "Long",
+              "styleTags": [
+                "statement",
+                "outerwear"
+              ],
+              "notes": "A bright layer over neutral outfits.",
+              "image": "images/swati-red-trench.jpg",
+              "sourceKey": "trench"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "arush",
+      "name": "Arush",
+      "color": "#66846B",
+      "relationship": "child",
+      "profileType": "child",
+      "ageGroup": "8-10",
+      "wardrobes": [
+        {
+          "name": "School",
+          "type": "school",
+          "description": "School-day kit",
+          "items": [
+            {
+              "key": "arush-blue-tee",
+              "itemName": "Blue Cotton T-Shirt",
+              "category": "Tops",
+              "subcategory": "T-shirt",
+              "brand": "Playhouse",
+              "color": "Blue",
+              "size": "8Y",
+              "price": 700,
+              "currency": "INR",
+              "state": "in_use",
+              "seasons": [
+                "summer"
+              ],
+              "occasions": [
+                "school",
+                "casual"
+              ],
+              "material": "Cotton",
+              "pattern": "Graphic",
+              "fit": "Regular",
+              "sleeve": "Short",
+              "styleTags": [
+                "play",
+                "school"
+              ],
+              "notes": "Soft cotton tee for school days.",
+              "image": "images/arush-blue-tee.jpg",
+              "sourceKey": "tee_blue_unironed"
+            },
+            {
+              "key": "arush-yellow-jacket",
+              "itemName": "Yellow Lightweight Jacket",
+              "category": "Outerwear",
+              "subcategory": "Jacket",
+              "brand": "Playhouse",
+              "color": "Yellow",
+              "size": "8Y",
+              "price": 1600,
+              "currency": "INR",
+              "state": "in_use",
+              "seasons": [
+                "spring",
+                "autumn"
+              ],
+              "occasions": [
+                "school",
+                "outdoor"
+              ],
+              "material": "Cotton",
+              "pattern": "Plain",
+              "fit": "Regular",
+              "sleeve": "Long",
+              "styleTags": [
+                "bright",
+                "outerwear"
+              ],
+              "notes": "Packable jacket for school mornings.",
+              "image": "images/arush-yellow-jacket.jpg",
+              "sourceKey": "child_jacket"
+            },
+            {
+              "key": "arush-kids-sneakers",
+              "itemName": "White Kids Sneakers",
+              "category": "Shoes",
+              "subcategory": "Sneakers",
+              "brand": "Little Step",
+              "color": "White / green",
+              "size": "13C",
+              "price": 1200,
+              "currency": "INR",
+              "state": "in_use",
+              "seasons": [
+                "all-season"
+              ],
+              "occasions": [
+                "school",
+                "sports"
+              ],
+              "material": "Mesh",
+              "pattern": "Plain",
+              "fit": "Regular",
+              "sleeve": "None",
+              "styleTags": [
+                "easy-on",
+                "school"
+              ],
+              "notes": "Velcro sneakers for school.",
+              "image": "images/arush-kids-sneakers.jpg",
+              "sourceKey": "kids_sneakers"
+            },
+            {
+              "key": "arush-utility-backpack",
+              "itemName": "Grey School Backpack",
+              "category": "Accessories",
+              "subcategory": "Backpack",
+              "brand": "Little Step",
+              "color": "Grey",
+              "size": "One size",
+              "price": 1100,
+              "currency": "INR",
+              "state": "in_use",
+              "seasons": [
+                "all-season"
+              ],
+              "occasions": [
+                "school"
+              ],
+              "material": "Polyester",
+              "pattern": "Plain",
+              "fit": "Regular",
+              "sleeve": "None",
+              "styleTags": [
+                "school",
+                "utility"
+              ],
+              "notes": "Padded school backpack for books and water.",
+              "image": "images/arush-utility-backpack.jpg",
+              "sourceKey": "school_bag"
+            }
+          ]
+        },
+        {
+          "name": "Play",
+          "type": "casual",
+          "description": "Playground and weekends",
+          "items": [
+            {
+              "key": "arush-navy-cap",
+              "itemName": "Navy Baseball Cap",
+              "category": "Accessories",
+              "subcategory": "Cap",
+              "brand": "Playhouse",
+              "color": "Navy",
+              "size": "One size",
+              "price": 500,
+              "currency": "INR",
+              "state": "in_use",
+              "seasons": [
+                "summer"
+              ],
+              "occasions": [
+                "play"
+              ],
+              "material": "Cotton",
+              "pattern": "Plain",
+              "fit": "Regular",
+              "sleeve": "None",
+              "styleTags": [
+                "sun",
+                "play"
+              ],
+              "notes": "Adjustable cap for sunny days.",
+              "image": "images/arush-navy-cap.jpg",
+              "sourceKey": "cap"
+            },
+            {
+              "key": "arush-camp-shorts",
+              "itemName": "Tan Camp Shorts",
+              "category": "Bottoms",
+              "subcategory": "Shorts",
+              "brand": "Playhouse",
+              "color": "Tan",
+              "size": "8Y",
+              "price": 600,
+              "currency": "INR",
+              "state": "in_use",
+              "seasons": [
+                "summer"
+              ],
+              "occasions": [
+                "play",
+                "outdoor"
+              ],
+              "material": "Cotton",
+              "pattern": "Plain",
+              "fit": "Regular",
+              "sleeve": "None",
+              "styleTags": [
+                "play",
+                "summer"
+              ],
+              "notes": "Easy shorts for camp and playground.",
+              "image": "images/arush-camp-shorts.jpg",
+              "sourceKey": "shorts_boy1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "adiran",
+      "name": "Adiran",
+      "color": "#C18A48",
+      "relationship": "child",
+      "profileType": "child",
+      "ageGroup": "4-6",
+      "wardrobes": [
+        {
+          "name": "Everyday",
+          "type": "casual",
+          "description": "Toddler everyday",
+          "items": [
+            {
+              "key": "adiran-grey-hoodie",
+              "itemName": "Grey Pullover Hoodie",
+              "category": "Tops",
+              "subcategory": "Hoodie",
+              "brand": "Playhouse",
+              "color": "Grey",
+              "size": "5Y",
+              "price": 900,
+              "currency": "INR",
+              "state": "in_use",
+              "seasons": [
+                "autumn",
+                "winter"
+              ],
+              "occasions": [
+                "casual"
+              ],
+              "material": "Cotton fleece",
+              "pattern": "Plain",
+              "fit": "Relaxed",
+              "sleeve": "Long",
+              "styleTags": [
+                "cozy",
+                "everyday"
+              ],
+              "notes": "Soft fleece hoodie for cooler days.",
+              "image": "images/adiran-grey-hoodie.jpg",
+              "sourceKey": "hoodie"
+            },
+            {
+              "key": "adiran-navy-track-pants",
+              "itemName": "Navy Track Pants",
+              "category": "Bottoms",
+              "subcategory": "Track pants",
+              "brand": "Little Step",
+              "color": "Navy",
+              "size": "5Y",
+              "price": 800,
+              "currency": "INR",
+              "state": "in_use",
+              "seasons": [
+                "all-season"
+              ],
+              "occasions": [
+                "casual",
+                "sports"
+              ],
+              "material": "Polyester",
+              "pattern": "Side stripe",
+              "fit": "Regular",
+              "sleeve": "None",
+              "styleTags": [
+                "easy-on",
+                "sports"
+              ],
+              "notes": "Elastic waist with side stripes.",
+              "image": "images/adiran-navy-track-pants.jpg",
+              "sourceKey": "tracksuit_museum"
+            },
+            {
+              "key": "adiran-cream-sweater",
+              "itemName": "Cream Knit Sweater",
+              "category": "Tops",
+              "subcategory": "Sweater",
+              "brand": "Little Step",
+              "color": "Cream",
+              "size": "5Y",
+              "price": 1000,
+              "currency": "INR",
+              "state": "in_use",
+              "seasons": [
+                "winter"
+              ],
+              "occasions": [
+                "casual"
+              ],
+              "material": "Wool blend",
+              "pattern": "Ribbed",
+              "fit": "Regular",
+              "sleeve": "Long",
+              "styleTags": [
+                "warm",
+                "layer"
+              ],
+              "notes": "Warm roll-neck sweater.",
+              "image": "images/adiran-cream-sweater.jpg",
+              "sourceKey": "sweater"
+            },
+            {
+              "key": "adiran-blue-sandals",
+              "itemName": "Blue Everyday Sandals",
+              "category": "Shoes",
+              "subcategory": "Sandals",
+              "brand": "Little Step",
+              "color": "Blue",
+              "size": "10C",
+              "price": 900,
+              "currency": "INR",
+              "state": "in_use",
+              "seasons": [
+                "summer"
+              ],
+              "occasions": [
+                "casual",
+                "play"
+              ],
+              "material": "Rubber",
+              "pattern": "Plain",
+              "fit": "Regular",
+              "sleeve": "None",
+              "styleTags": [
+                "water-friendly",
+                "summer"
+              ],
+              "notes": "Easy sandals for warm days.",
+              "image": "images/adiran-blue-sandals.jpg",
+              "sourceKey": "child_sandals"
+            }
+          ]
+        },
+        {
+          "name": "Sports",
+          "type": "sports",
+          "description": "Outdoor and sports",
+          "items": [
+            {
+              "key": "adiran-yellow-raincoat",
+              "itemName": "Yellow Raincoat",
+              "category": "Outerwear",
+              "subcategory": "Raincoat",
+              "brand": "Little Step",
+              "color": "Yellow",
+              "size": "5Y",
+              "price": 1400,
+              "currency": "INR",
+              "state": "in_use",
+              "seasons": [
+                "monsoon"
+              ],
+              "occasions": [
+                "outdoor",
+                "school"
+              ],
+              "material": "PU",
+              "pattern": "Plain",
+              "fit": "Regular",
+              "sleeve": "Long",
+              "styleTags": [
+                "rain",
+                "bright"
+              ],
+              "notes": "Bright raincoat with a hood.",
+              "image": "images/adiran-yellow-raincoat.jpg",
+              "sourceKey": "raincoat_yellow"
+            },
+            {
+              "key": "adiran-blue-sneakers",
+              "itemName": "Blue Sport Sneakers",
+              "category": "Shoes",
+              "subcategory": "Sneakers",
+              "brand": "Little Step",
+              "color": "Blue",
+              "size": "10C",
+              "price": 1300,
+              "currency": "INR",
+              "state": "in_use",
+              "seasons": [
+                "all-season"
+              ],
+              "occasions": [
+                "sports",
+                "play"
+              ],
+              "material": "Mesh",
+              "pattern": "Two-tone",
+              "fit": "Regular",
+              "sleeve": "None",
+              "styleTags": [
+                "sports",
+                "easy-on"
+              ],
+              "notes": "Lightweight sneakers for running and play.",
+              "image": "images/adiran-blue-sneakers.jpg",
+              "sourceKey": "kids_sneakers2"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "sources": {
+    "blazer": {
+      "title": "File:Navy blazer jacket.jpg",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "creator": "\u30b5\u30d5\u30a3\u30eb",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Navy_blazer_jacket.jpg",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/0/04/Navy_blazer_jacket.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original"
+    },
+    "blouse_orvis": {
+      "title": "File:Womens orvis shirt white.jpg",
+      "license": "CC0",
+      "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+      "creator": "Punker1999",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Womens_orvis_shirt_white.jpg",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/d/d4/Womens_orvis_shirt_white.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original"
+    },
+    "boots_heel": {
+      "title": "File:Black high-heeled boots in synthetic leather 1.jpg",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "",
+      "creator": "W.carter",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Black_high-heeled_boots_in_synthetic_leather_1.jpg",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/a/a7/Black_high-heeled_boots_in_synthetic_leather_1.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original"
+    },
+    "cap": {
+      "title": "File:Baseball cap.jpg",
+      "license": "Public domain",
+      "licenseUrl": "",
+      "creator": "TexasRebel",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Baseball_cap.jpg",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/e/eb/Baseball_cap.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original"
+    },
+    "child_jacket": {
+      "title": "File:Jacket, child's (AM 1966.79-1).jpg",
+      "license": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+      "creator": "Unknown authorUnknown author",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Jacket,_child%27s_(AM_1966.79-1).jpg",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/c/c0/Jacket%2C_child%27s_%28AM_1966.79-1%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original"
+    },
+    "child_sandals": {
+      "title": "File:Child playing in water puddle with blue sandals on a sunny day.jpg",
+      "license": "CC BY 2.0",
+      "licenseUrl": "",
+      "creator": "Shixart1985",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Child_playing_in_water_puddle_with_blue_sandals_on_a_sunny_day.jpg",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/9/9a/Child_playing_in_water_puddle_with_blue_sandals_on_a_sunny_day.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original"
+    },
+    "denim": {
+      "title": "File:Jean jacket.jpg",
+      "license": "CC0",
+      "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+      "creator": "NikosLikomitros",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Jean_jacket.jpg",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/0/06/Jean_jacket.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original"
+    },
+    "dress_floral": {
+      "title": "File:Black Floral Print Dress, Bronze Fisherman Sandals, and a Black Boater Hat (17064500769).jpg",
+      "license": "CC BY-SA 2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+      "creator": "Jamie",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Black_Floral_Print_Dress,_Bronze_Fisherman_Sandals,_and_a_Black_Boater_Hat_(17064500769).jpg",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/e/e3/Black_Floral_Print_Dress%2C_Bronze_Fisherman_Sandals%2C_and_a_Black_Boater_Hat_%2817064500769%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original"
+    },
+    "handbag_modern": {
+      "title": "File:Leather handbag by Les cuirs d'Agathe (DSC07738).jpg",
+      "license": "CC BY 4.0",
+      "licenseUrl": "",
+      "creator": "Trougnouf (Benoit Brummer), Les cuirs d'Agathe",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Leather_handbag_by_Les_cuirs_d%27Agathe_(DSC07738).jpg",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/a/a3/Leather_handbag_by_Les_cuirs_d%27Agathe_%28DSC07738%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original"
+    },
+    "hoodie": {
+      "title": "File:Hoodie m7agar.jpg",
+      "license": "CC0",
+      "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+      "creator": "YoussefTahoun",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Hoodie_m7agar.jpg",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/c/c2/Hoodie_m7agar.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original"
+    },
+    "jeans_denim2": {
+      "title": "File:Denimjeans2.JPG",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "creator": "No machine-readable author provided. Manda.L.Isch assumed (based on copyright claims).",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Denimjeans2.JPG",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/9/92/Denimjeans2.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original"
+    },
+    "jeans_museum": {
+      "title": "File:Blauwe jeans met wijde pijpen, \u201cMiss Levi\u2019s\u201d, objectnr 75483.JPG",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "creator": "Levi Strauss & Co",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Blauwe_jeans_met_wijde_pijpen,_%E2%80%9CMiss_Levi%E2%80%99s%E2%80%9D,_objectnr_75483.JPG",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/6/66/Blauwe_jeans_met_wijde_pijpen%2C_%E2%80%9CMiss_Levi%E2%80%99s%E2%80%9D%2C_objectnr_75483.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original"
+    },
+    "kids_sneakers": {
+      "title": "File:A pair of kids sneakers.jpg",
+      "license": "CC0",
+      "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+      "creator": "Xzpq",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:A_pair_of_kids_sneakers.jpg",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/3/31/A_pair_of_kids_sneakers.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original"
+    },
+    "kids_sneakers2": {
+      "title": "File:Forgotten children's sneakers in R\u00e5g\u00e5rdsdal 1.jpg",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "creator": "W.carter",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Forgotten_children%27s_sneakers_in_R%C3%A5g%C3%A5rdsdal_1.jpg",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/1/17/Forgotten_children%27s_sneakers_in_R%C3%A5g%C3%A5rdsdal_1.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original"
+    },
+    "raincoat_yellow": {
+      "title": "File:Yellow Raincoat.jpg",
+      "license": "CC BY 2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+      "creator": "Jim Grandy",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Yellow_Raincoat.jpg",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/2/29/Yellow_Raincoat.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original"
+    },
+    "school_bag": {
+      "title": "File:A school Bag.jpg",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "creator": "Manhyia",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:A_school_Bag.jpg",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/b/ba/A_school_Bag.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original"
+    },
+    "shirt_hanger": {
+      "title": "File:Clean-blank-shirt-hanger.jpg",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "creator": "Pajju12",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Clean-blank-shirt-hanger.jpg",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/f/f3/Clean-blank-shirt-hanger.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original"
+    },
+    "shorts_boy1": {
+      "title": "File:Shorts, pair boy's (AM 1995.125.1-1).jpg",
+      "license": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+      "creator": "Unknown authorUnknown author",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Shorts,_pair_boy%27s_(AM_1995.125.1-1).jpg",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/2/2e/Shorts%2C_pair_boy%27s_%28AM_1995.125.1-1%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original"
+    },
+    "sneakers_white2": {
+      "title": "File:White sneakers.jpg",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "creator": "Maksim Sokolov and Melania Sokolova (Toronto)",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:White_sneakers.jpg",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/1/17/White_sneakers.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original"
+    },
+    "sweater": {
+      "title": "File:Jersei-coll-alt.jpg",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "creator": "Joan Rocaguinard",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Jersei-coll-alt.jpg",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/e/ea/Jersei-coll-alt.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original"
+    },
+    "tee_blue_unironed": {
+      "title": "File:Nevy\u017eehlen\u00e9 triko modr\u00e9 zep\u0159edu.JPG",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "creator": "Juan de Vojn\u00edkov",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Nevy%C5%BEehlen%C3%A9_triko_modr%C3%A9_zep%C5%99edu.JPG",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/6/6f/Nevy%C5%BEehlen%C3%A9_triko_modr%C3%A9_zep%C5%99edu.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original"
+    },
+    "tracksuit_museum": {
+      "title": "File:Tracksuit pants (AM 2017.66.26-4).jpg",
+      "license": "CC BY 4.0",
+      "licenseUrl": "",
+      "creator": "Adidas",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Tracksuit_pants_(AM_2017.66.26-4).jpg",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/7/7c/Tracksuit_pants_%28AM_2017.66.26-4%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original"
+    },
+    "trench": {
+      "title": "File:Woman wearing a red Scottevest trench coat at St Katherine's Docks (Tower Bridge behind).jpg",
+      "license": "CC BY 2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+      "creator": "AboutLondon",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Woman_wearing_a_red_Scottevest_trench_coat_at_St_Katherine%27s_Docks_(Tower_Bridge_behind).jpg",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/5/5c/Woman_wearing_a_red_Scottevest_trench_coat_at_St_Katherine%27s_Docks_%28Tower_Bridge_behind%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original"
+    },
+    "watch": {
+      "title": "File:Wristwatch, Hour Angle, Lindbergh, King Collection - DPLA - 48cd2a784bc2d3d4768d0a357ac04d32.jpg",
+      "license": "CC0",
+      "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+      "creator": "Longines-Wittnauer Watch Co",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Wristwatch,_Hour_Angle,_Lindbergh,_King_Collection_-_DPLA_-_48cd2a784bc2d3d4768d0a357ac04d32.jpg",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/1/1e/Wristwatch%2C_Hour_Angle%2C_Lindbergh%2C_King_Collection_-_DPLA_-_48cd2a784bc2d3d4768d0a357ac04d32.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original"
+    }
+  }
+}

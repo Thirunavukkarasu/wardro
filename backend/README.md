@@ -33,6 +33,40 @@ container, or Cloud SQL through the proxy/connector. There is no database
 provider SDK in the application path; switching providers is a connection
 string change.
 
+### Simulation dataset
+
+The checked-in dataset at
+[`datasets/wardrobe-simulation/`](../datasets/wardrobe-simulation/README.md)
+is served read-only under `http://localhost:3000/demo/...`:
+
+- Images: `/demo/images/<item-key>.jpg`
+- Manifest: `/demo/manifest.json`
+- Source root: the repository's dataset directory, or `DEMO_IMAGES_DIR` if set.
+  Deployment images that do not include the dataset simply return 404s.
+
+Seed the four demo profiles (Tiru, Swati, Arush, Adiran) with the current
+owner account:
+
+```sh
+DEMO_BASE_URL=http://localhost:3000/demo bun run seed:demo
+# inspect what would change without committing:
+bun run seed:demo:dry
+```
+
+The seeder is additive and idempotent:
+
+- It targets the first user ordered by wardrobe count, or `DEMO_OWNER_UID`.
+- It reuses the account's default profile as **Tiru** when that profile is the
+  only one or is named after the account holder; otherwise it creates a new
+  Tiru profile.
+- It moves an existing wardrobe named “Swati's” to the **Swati** profile and
+  keeps its items. Nothing is deleted.
+- It writes only the columns that exist at the time it runs. New columns are
+  used only for items it inserts; existing items are never overwritten.
+
+Use `10.0.2.2:3000` for the Android emulator or your LAN IP for a physical
+device. The web app can keep `localhost:3000`.
+
 ## Build and deploy
 
 App Hosting's buildpack runs Node, not Bun, so the Node bundle is committed:

@@ -1,7 +1,11 @@
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+
 import { Hono } from 'hono'
 import { logger } from 'hono/logger'
 import { cors } from 'hono/cors'
 import { serve } from '@hono/node-server'
+import { serveStatic } from '@hono/node-server/serve-static'
 
 import apiRoutes from './routes'
 
@@ -33,6 +37,25 @@ app.use(
         maxAge: 86400,
     })
 )
+// Serve the checked-in simulation images for local development. This route is
+// intentionally unauthenticated: the dataset is demo content, and the app only
+// needs read access to render item photos. In deployments that do not include
+// the repository's dataset directory, set DEMO_IMAGES_DIR or ignore the 404s.
+const demoRoot = process.env.DEMO_IMAGES_DIR
+    ? path.resolve(process.env.DEMO_IMAGES_DIR)
+    : fileURLToPath(
+          new URL('../../datasets/wardrobe-simulation', import.meta.url)
+      )
+
+app.use(
+    '/demo/*',
+    serveStatic({
+        root: demoRoot,
+        rewriteRequestPath: (requestPath) =>
+            requestPath.replace(/^\/demo/, '') || '/',
+    })
+)
+
 app.route('/api', apiRoutes)
 
 serve({ fetch: app.fetch, port: PORT }, (info) => {
