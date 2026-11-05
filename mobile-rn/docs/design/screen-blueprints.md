@@ -24,19 +24,24 @@ Highest priority. This is the habit-forming screen.
 
 | Order | Component | Layout |
 | --- | --- | --- |
-| 1 | Header | Greeting + profile avatar |
-| 2 | Weather | Compact horizontal card |
-| 3 | Today’s outfit | Large featured image |
-| 4 | Quick actions | Create outfit / Add clothes |
-| 5 | Outfit suggestions | Horizontal cards |
-| 6 | Wardrobe insights | Small statistics |
-| 7 | Recently added | Horizontal clothing grid |
+| 1 | Header | Greeting + account avatar |
+| 2 | Profile switcher | Horizontal avatars; active profile + “Add profile” |
+| 3 | Weather | Compact horizontal card |
+| 4 | Today’s outfit | Large featured image |
+| 5 | Quick actions | Create outfit / Add clothes |
+| 6 | Outfit suggestions | Horizontal cards |
+| 7 | Wardrobe insights | Small statistics |
+| 8 | Recently added | Horizontal clothing grid |
 
 **The important thing: Today’s outfit should occupy the most visual space.**
 
 Content and interactions:
 
-- Greeting: time-of-day + user’s first name; avatar opens Profile.
+- Greeting uses the active profile’s name; the account avatar opens Profile.
+- Profile switcher is always visible, even with one profile, so multi-profile
+  is discoverable. Switching profiles refreshes the entire screen.
+- Weather, outfit, suggestions, insights and recent items are all scoped to the
+  active profile.
 - Weather: compact card with temperature, condition, and a one-line styling
   nudge. Location is opt-in under Settings.
 - Today’s outfit: full-width editorial card with outfit image, name, and a
@@ -244,6 +249,7 @@ Data dependency: planned outfits by date (`planned_outfits` with `date`,
 ## Screen 8 — Profile
 
 - Profile picture and name.
+- **Profiles management** (family members / contexts).
 - Wardrobe summary.
 - Analytics entry.
 - Preferences.
@@ -253,7 +259,11 @@ Data dependency: planned outfits by date (`planned_outfits` with `date`,
 
 Notes:
 
-- Keep the account block first; statistics and preferences follow.
+- Keep the account block first; profiles, statistics and preferences follow.
+- Profiles section: avatar, name, counts, edit; “Add profile”; delete inside
+  edit with confirmation. Never allow deleting the last profile.
+- Profile switching is also available on Today; this section is for managing
+  them.
 - Analytics is reachable from here and from the Today insights card; it is not
   a tab.
 - Weather location and notifications are opt-in with clear permission copy.
@@ -284,14 +294,16 @@ wear. Use this as the Analytics screen design, not the Profile layout itself.
 
 | Blueprint | Current implementation |
 | --- | --- |
-| Today | `app/(root)/(tabs)/home.tsx` dashboard |
-| Closet | `app/(root)/(tabs)/items.tsx` + `wardrobes.tsx` (to merge) |
+| Today | `app/(root)/(tabs)/today.tsx` dashboard + profile rail |
+| Closet | `app/(root)/(tabs)/closet.tsx` + `app/(root)/wardrobes.tsx` manager |
 | Clothing details | `app/(root)/item/[id].tsx` |
-| Add clothing | `app/(root)/add-wardrobe-items.tsx` |
+| Add / Edit clothing | `app/(root)/add-wardrobe-items.tsx` |
+| Profiles | `components/ProfileSwitcher.tsx`, `components/ProfileAvatar.tsx` |
+| Add / Edit profile | `app/(root)/add-profile.tsx` |
 | Outfit builder | Not built |
 | Saved outfits | Not built |
 | Calendar | Not built |
-| Profile | `app/(root)/(tabs)/profile.tsx` |
+| Profile | `app/(root)/(tabs)/profile.tsx` (account + profiles) |
 | Analytics | Not built |
 
 ## Backend additions required by these blueprints

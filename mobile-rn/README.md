@@ -76,24 +76,30 @@ message instead of prompting.
 | `app/(auth)/welcome.tsx` | Onboarding pager |
 | `app/(auth)/sign-in.tsx` | Email/password + Google |
 | `app/(auth)/sign-up.tsx` | Account creation + verification-link dialog |
-| `app/(root)/(tabs)/home.tsx` | Dashboard: greeting, summary, quick actions, recent items, wardrobe preview |
-| `app/(root)/(tabs)/wardrobes.tsx` | All collections with summary and add action |
-| `app/(root)/(tabs)/items.tsx` | Searchable, wardrobe-filterable item grid |
+| `app/(root)/(tabs)/today.tsx` | Dashboard: greeting, summary, quick actions, recent items, wardrobe preview |
+| `app/(root)/(tabs)/closet.tsx` | Searchable, category/wardrobe-filterable garment grid + manage-collections entry |
 | `app/(root)/(tabs)/profile.tsx` | Account details and sign-out |
-| `app/(root)/add-wardrobe.tsx` | Create a wardrobe |
-| `app/(root)/add-wardrobe-items.tsx` | Photo-first garment capture |
-| `app/(root)/wardrobe/[id].tsx` | One wardrobe's photo grid |
-| `app/(root)/item/[id].tsx` | Item hero, details and delete |
+| `app/(root)/wardrobes.tsx` | Manage collections (pushed screen) |
+| `app/(root)/add-wardrobe.tsx` | Create or edit a wardrobe |
+| `app/(root)/add-wardrobe-items.tsx` | Photo-first garment create/edit |
+| `app/(root)/add-profile.tsx` | Create or edit a profile |
+| `app/(root)/wardrobe/[id].tsx` | One wardrobe's photo grid, edit and delete |
+| `app/(root)/item/[id].tsx` | Item hero, details, edit and delete |
 
-Navigation currently uses four bottom tabs — **Home / Wardrobes / Items /
-Profile** — with the camera FAB as the global add-item action. There is
-deliberately no hamburger drawer: primary destinations stay visible and
-thumb-reachable. `app/(root)/(tabs)/_layout.tsx` owns the tab bar and FAB.
+Navigation currently uses three bottom tabs — **Today / Closet / Profile** —
+with the camera FAB as the global add-item action. There is deliberately no
+hamburger drawer: primary destinations stay visible and thumb-reachable.
+`app/(root)/(tabs)/_layout.tsx` owns the tab bar and FAB.
 
-The agreed target structure consolidates this into **Today / Closet /
-Profile**, then adds **Create** and **Calendar** as those features ship. See
+The agreed target adds **Create** and **Calendar** as those features ship. See
 [`docs/screen-architecture.md`](docs/screen-architecture.md) for the full
 screen inventory, principles, migration plan, and rationale.
+
+**Multi-profile support is implemented:** one account owns several profiles,
+Today shows a profile rail, and the Profile tab manages them. Every wardrobe,
+item and API request is scoped to the active profile via `X-Profile-Id`. See
+[`docs/multi-profile.md`](docs/multi-profile.md) for the model, schema, API and
+migration details.
 
 Visual direction, per-screen blueprints, reusable component specs, and the
 reference images that informed them are in
@@ -112,34 +118,43 @@ The agreed target IA, screen inventory, and migration steps live in
 [`docs/screen-architecture.md`](docs/screen-architecture.md). In execution
 order:
 
-1. **Navigation shell** — current 4 tabs, shared headers/back buttons, sticky
-   form footers. ✅
-2. **Search & filters** — text search plus wardrobe chips on Items. ✅
-3. **Closet consolidation** — rename Home → Today; merge Wardrobes + Items
-   into one Closet tab with wardrobe filters. Next.
-4. **Edit items & wardrobes** — update details and replace photos (needs
-   `PATCH` routes and a pre-filled form mode).
-5. **Favorites & wear tracking** — favourite flags and wear logs; the data
+1. **Navigation shell** — shared headers/back buttons, sticky form footers. ✅
+2. **Search & filters** — text search plus category/wardrobe chips in Closet. ✅
+3. **Closet consolidation** — Home → Today; Wardrobes + Items merged into one
+   Closet tab, with collections moved to a pushed management screen. ✅
+4. **Edit items & wardrobes** — pre-filled edit modes, photo replacement, and
+   ownership-checked `PATCH` endpoints. ✅
+5. **Multi-profile foundation** — household account, default profile,
+   profile-scoped API, Today switcher, Profile management and cascade delete. ✅
+6. **Favorites & wear tracking** — favourite flags and wear logs; the data
    foundation for analytics and suggestions.
-6. **Outfits** — builder + saved library; becomes the 4th tab when real.
-   Planner starts as a Library/Planner segment inside Outfits.
-7. **Planner** — promote the calendar to a 5th tab only if usage justifies it.
-8. **Weather, suggestions & analytics** — Today cards plus a full analytics
+7. **Create** — outfit builder + saved library; becomes the prominent middle
+   tab when real. Calendar starts as a segment inside Create.
+8. **Calendar** — promote outfit planning to a tab when it is substantial.
+9. **Weather, suggestions & analytics** — Today cards plus a full analytics
    screen, backed by wear data and an opt-in weather location.
 
 ## Backend endpoints used
 
 Every request carries the Firebase ID token.
 
+Wardrobe/item requests also send `X-Profile-Id`; `/profiles` is account-level.
+
 | Endpoint | Used by |
 | --- | --- |
-| `GET /wardrobes/summary` | Home stats + covers |
-| `GET /wardrobes` | Add-item wardrobe picker |
+| `GET /profiles` | Profile rail + Profile management (ensures a default profile) |
+| `POST /profiles` | Add profile |
+| `PATCH /profiles/:id` | Edit profile name/colour |
+| `DELETE /profiles/:id` | Delete profile (cascade; last profile protected) |
+| `GET /wardrobes/summary` | Today stats + covers |
+| `GET /wardrobes` | Add/edit-item wardrobe picker |
 | `POST /wardrobes` | Add wardrobe |
+| `PATCH /wardrobes/:id` | Edit wardrobe name/description |
 | `DELETE /wardrobes/:id` | Delete wardrobe (cascades items + photos) |
-| `GET /wardrobeItems` | All Items tab / item-detail fallback |
+| `GET /wardrobeItems` | Closet / item-detail refresh |
 | `GET /wardrobeItems/:wardrobeId` | Wardrobe detail |
 | `POST /wardrobeItems` | Add item |
+| `PATCH /wardrobeItems/:id` | Edit item fields and replace its photo |
 | `DELETE /wardrobeItems/:id` | Delete item + its photo |
 
 Photos are uploaded directly from the app to Firebase Storage under

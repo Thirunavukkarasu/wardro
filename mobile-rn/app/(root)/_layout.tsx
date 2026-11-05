@@ -6,6 +6,8 @@ export default function RootGroupLayout() {
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="add-wardrobe" />
       <Stack.Screen name="add-wardrobe-items" />
+      <Stack.Screen name="add-profile" />
+      <Stack.Screen name="wardrobes" />
       <Stack.Screen name="wardrobe/[id]" />
       <Stack.Screen name="item/[id]" />
     </Stack>

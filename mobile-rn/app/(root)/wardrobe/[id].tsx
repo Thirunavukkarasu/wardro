@@ -1,5 +1,5 @@
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
-import { Camera, Trash2 } from "lucide-react-native";
+import { Camera, Pencil, Trash2 } from "lucide-react-native";
 import { useCallback, useState } from "react";
 import {
   Pressable,
@@ -17,12 +17,15 @@ import ConfirmDialog from "~/components/ConfirmDialog";
 import ItemPhotoTile from "~/components/ItemPhotoTile";
 import { EmptyView, ErrorView, LoadingView } from "~/components/StatusViews";
 import { api, ApiException } from "~/lib/api";
+import { useProfiles } from "~/lib/profiles-context";
 import {
+  wardrobeFromJson,
   wardrobeItemFromJson,
   type WardrobeItem,
 } from "~/lib/types";
 
 export default function WardrobeItemsScreen() {
+  const { activeProfile } = useProfiles();
   const params = useLocalSearchParams<{
     id: string;
     name?: string;
@@ -31,6 +34,12 @@ export default function WardrobeItemsScreen() {
 
   const wardrobeId = Number(params.id);
   const [items, setItems] = useState<WardrobeItem[]>([]);
+  const [wardrobeName, setWardrobeName] = useState(
+    params.name || "Wardrobe",
+  );
+  const [wardrobeDescription, setWardrobeDescription] = useState(
+    params.description ?? "",
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [confirmVisible, setConfirmVisible] = useState(false);
@@ -41,10 +50,23 @@ export default function WardrobeItemsScreen() {
     setError(null);
 
     try {
-      const rows = await api.get<Record<string, unknown>[]>(
-        `/wardrobeItems/${wardrobeId}`,
-      );
-      setItems((rows ?? []).map(wardrobeItemFromJson));
+      const [itemRows, wardrobeRows] = await Promise.all([
+        api.get<Record<string, unknown>[]>(
+          `/wardrobeItems/${wardrobeId}`,
+        ),
+        api.get<Record<string, unknown>[]>("/wardrobes"),
+      ]);
+
+      setItems((itemRows ?? []).map(wardrobeItemFromJson));
+
+      const current = (wardrobeRows ?? [])
+        .map(wardrobeFromJson)
+        .find((wardrobe) => wardrobe.id === wardrobeId);
+
+      if (current) {
+        setWardrobeName(current.name);
+        setWardrobeDescription(current.description);
+      }
     } catch (loadError) {
       setError(
         loadError instanceof ApiException
@@ -54,7 +76,7 @@ export default function WardrobeItemsScreen() {
     } finally {
       setLoading(false);
     }
-  }, [wardrobeId]);
+  }, [activeProfile?.id, wardrobeId]);
 
   useFocusEffect(
     useCallback(() => {
@@ -74,6 +96,16 @@ export default function WardrobeItemsScreen() {
       params: { id: String(item.id), item: JSON.stringify(item) },
     });
 
+  const openEdit = () =>
+    router.push({
+      pathname: "/(root)/add-wardrobe",
+      params: {
+        id: String(wardrobeId),
+        name: wardrobeName,
+        description: wardrobeDescription,
+      },
+    });
+
   const deleteWardrobe = async () => {
     setDeleting(true);
 
@@ -84,7 +116,7 @@ export default function WardrobeItemsScreen() {
       if (router.canGoBack()) {
         router.back();
       } else {
-        router.replace("/(root)/(tabs)/home");
+        router.replace("/(root)/(tabs)/today");
       }
     } catch (deleteError) {
       setError(
@@ -98,8 +130,8 @@ export default function WardrobeItemsScreen() {
     }
   };
 
-  const name = params.name || "Wardrobe";
-  const description = params.description ?? "";
+  const name = wardrobeName;
+  const description = wardrobeDescription;
 
   return (
     <SafeAreaView
@@ -109,15 +141,26 @@ export default function WardrobeItemsScreen() {
       <AppHeader
         title={name}
         right={
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Delete wardrobe"
-            hitSlop={8}
-            onPress={() => setConfirmVisible(true)}
-            className="h-11 w-11 items-center justify-center rounded-full active:bg-surface"
-          >
-            <Trash2 size={21} color="#0F172A" />
-          </Pressable>
+          <View className="flex-row items-center">
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Edit wardrobe"
+              hitSlop={8}
+              onPress={openEdit}
+              className="h-11 w-11 items-center justify-center rounded-full active:bg-surface"
+            >
+              <Pencil size={20} color="#0F172A" />
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Delete wardrobe"
+              hitSlop={8}
+              onPress={() => setConfirmVisible(true)}
+              className="h-11 w-11 items-center justify-center rounded-full active:bg-surface"
+            >
+              <Trash2 size={21} color="#0F172A" />
+            </Pressable>
+          </View>
         }
       />
 

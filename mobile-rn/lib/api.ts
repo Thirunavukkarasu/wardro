@@ -4,6 +4,13 @@ import { auth, storage } from "~/lib/firebase";
 import { apiBaseUrl, requestTimeoutMs } from "~/lib/firebase-config";
 import type { PickedPhoto } from "~/lib/types";
 
+let activeProfileId: number | null = null;
+
+/** Set the active profile for all wardrobe/item requests. */
+export function setApiProfileId(profileId: number | null) {
+  activeProfileId = profileId;
+}
+
 /** Thrown when the backend responds with a non-2xx status or the request cannot complete. */
 export class ApiException extends Error {
   readonly statusCode?: number;
@@ -78,6 +85,10 @@ class ApiClient {
       "Content-Type": "application/json",
     };
 
+    if (activeProfileId) {
+      headers["X-Profile-Id"] = String(activeProfileId);
+    }
+
     try {
       const token = await auth.currentUser?.getIdToken();
       if (token) headers.Authorization = `Bearer ${token}`;
@@ -94,7 +105,7 @@ class ApiClient {
   }
 
   private async send<T>(
-    method: "GET" | "POST" | "DELETE",
+    method: "GET" | "POST" | "PATCH" | "DELETE",
     path: string,
     body?: unknown,
   ): Promise<T> {
@@ -155,6 +166,10 @@ class ApiClient {
 
   post<T>(path: string, body?: unknown): Promise<T> {
     return this.send<T>("POST", path, body ?? {});
+  }
+
+  patch<T>(path: string, body?: unknown): Promise<T> {
+    return this.send<T>("PATCH", path, body ?? {});
   }
 
   delete<T = void>(path: string): Promise<T> {

@@ -2,6 +2,7 @@ import { router, useFocusEffect } from "expo-router";
 import { LayoutGrid, Plus } from "lucide-react-native";
 import { useCallback, useState } from "react";
 import {
+  Pressable,
   RefreshControl,
   ScrollView,
   Text,
@@ -9,16 +10,17 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import CircleAction from "~/components/CircleAction";
+import AppHeader from "~/components/AppHeader";
 import { EmptyView, ErrorView, LoadingView } from "~/components/StatusViews";
 import SummaryStrip from "~/components/SummaryStrip";
 import WardrobeCard from "~/components/WardrobeCard";
 import { api, ApiException } from "~/lib/api";
 import { apiBaseUrl } from "~/lib/firebase-config";
-import { formatPrice } from "~/lib/formatters";
+import { useProfiles } from "~/lib/profiles-context";
 import { wardrobeFromJson, type Wardrobe } from "~/lib/types";
 
 export default function WardrobesScreen() {
+  const { activeProfile } = useProfiles();
   const [wardrobes, setWardrobes] = useState<Wardrobe[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -41,7 +43,7 @@ export default function WardrobesScreen() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [activeProfile?.id]);
 
   useFocusEffect(
     useCallback(() => {
@@ -59,9 +61,30 @@ export default function WardrobesScreen() {
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-canvas">
+    <SafeAreaView
+      edges={["bottom", "left", "right"]}
+      className="flex-1 bg-canvas"
+    >
+      <AppHeader
+        title="Wardrobes"
+        subtitle={`${activeProfile?.name ?? "Profile"} · ${wardrobes.length} ${
+          wardrobes.length === 1 ? "collection" : "collections"
+        }`}
+        right={
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Add wardrobe"
+            hitSlop={8}
+            onPress={() => router.push("/(root)/add-wardrobe")}
+            className="h-11 w-11 items-center justify-center rounded-full active:bg-surface"
+          >
+            <Plus size={22} color="#0F172A" />
+          </Pressable>
+        }
+      />
+
       <ScrollView
-        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 120 }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32 }}
         refreshControl={
           <RefreshControl
             refreshing={loading && wardrobes.length > 0}
@@ -71,27 +94,6 @@ export default function WardrobesScreen() {
           />
         }
       >
-        <View className="flex-row items-start pt-3.5">
-          <View className="flex-1">
-            <Text className="text-[26px] font-extrabold tracking-tight text-ink">
-              Wardrobes
-            </Text>
-            {!loading && !error ? (
-              <Text className="mt-1 text-xs text-ink-secondary">
-                {wardrobes.length}{" "}
-                {wardrobes.length === 1 ? "collection" : "collections"} ·{" "}
-                {formatPrice(totalValue)}
-              </Text>
-            ) : null}
-          </View>
-
-          <CircleAction
-            icon={<Plus size={26} color="#FFFFFF" />}
-            accessibilityLabel="Add wardrobe"
-            onPress={() => router.push("/(root)/add-wardrobe")}
-          />
-        </View>
-
         <View className="mt-4">
           <SummaryStrip
             wardrobes={wardrobes.length}

@@ -46,20 +46,21 @@ The first meaningful product is seven screens:
 6. Saved outfits
 7. Calendar
 
-Profile and analytics follow. The current app already covers the foundations
-of Today, Closet, Clothing details, Add clothing, and Profile; outfits and the
-calendar are the next product differentiators.
+Profile and analytics follow. The current app covers Today, Closet, Clothing
+details, Add clothing, Profile, and the multi-profile foundation; outfits and
+the calendar are the next product differentiators.
 
 ## Development priority
 
 | Priority | Screens | Reason | Current status |
 | --- | --- | --- | --- |
-| **P0** | Today, Closet | Main experience | Foundations built; Closet consolidation next |
-| **P0** | Add clothing, Clothing details | Core CRUD | Built; edit and richer details next |
+| **P0** | Today, Closet | Main experience | Built; profile rail on Today |
+| **P0** | Multi-profile foundation | Family / shared account | Built (household model, cascade delete) |
+| **P0** | Add/Edit clothing, Clothing details | Core CRUD | Built |
 | **P1** | Outfit builder, Saved outfits | Main product value | Not built |
 | **P1** | Calendar | Outfit planning | Not built |
-| **P2** | Profile, Analytics | Supporting experience | Profile built; analytics not built |
-| **P2** | Search, filters, recommendations | Enhancement | Search + wardrobe filters built; category filters and recommendations next |
+| **P2** | Profile, Analytics | Supporting experience | Profile + profile management built; analytics not built |
+| **P2** | Search, filters, recommendations | Enhancement | Search + category/wardrobe filters built; recommendations next |
 
 ## Documents
 
@@ -68,6 +69,7 @@ calendar are the next product differentiators.
 | [`screen-blueprints.md`](screen-blueprints.md) | Layout order, content, and interactions for every screen |
 | [`components.md`](components.md) | Reusable UI component system and data contracts |
 | [`inspiration.md`](inspiration.md) | What to borrow from each reference image, and what not to copy |
+| [`../multi-profile.md`](../multi-profile.md) | Multi-profile model: schema, API scoping, switcher UI, migration |
 | [`references/`](references/) | Reference screenshots (research material only) |
 | [`../research/`](../research/README.md) | Research backlog: competitors, interviews, recommendation logic, taxonomy, weather, privacy |
 

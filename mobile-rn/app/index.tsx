@@ -6,7 +6,7 @@ export default function Index() {
   const { status } = useAuth();
 
   if (status === "signedIn") {
-    return <Redirect href="/(root)/(tabs)/home" />;
+    return <Redirect href="/(root)/(tabs)/today" />;
   }
 
   return <Redirect href="/(auth)/welcome" />;

@@ -1,16 +1,18 @@
 import { and, eq, sql } from 'drizzle-orm'
 import { Hono } from 'hono'
 
-import { WardrobeSchema } from '@/types'
+import { WardrobeSchema, WardrobeUpdateSchema } from '@/types'
 import { db } from '@/db'
 import { wardrobeItems, wardrobes } from '@/schema'
-import { requireUser, type AuthEnv } from '@/auth'
+import { requireUser } from '@/auth'
+import { requireProfile, type ProfileEnv } from '@/profile'
 import { removeStoredPhoto } from '@/storage'
 
-const routes = new Hono<AuthEnv>()
+const routes = new Hono<ProfileEnv>()
 
-// Every route below acts on the user named by the verified Firebase token.
-routes.use('*', requireUser)
+// Every route below acts on the user named by the verified Firebase token and
+// the profile named by X-Profile-Id.
+routes.use('*', requireUser, requireProfile)
 
 routes.post('/', async (c) => {
     try {
@@ -20,6 +22,7 @@ routes.post('/', async (c) => {
             .insert(wardrobes)
             .values({
                 ownerUid: c.get('uid'),
+                profileId: c.get('profileId'),
                 name: wardrobe.name,
                 description: wardrobe.description ?? '',
                 createdAt: new Date(),
@@ -62,7 +65,12 @@ routes.get('/summary', async (c) => {
                 wardrobeItems,
                 eq(wardrobeItems.wardrobeId, wardrobes.id)
             )
-            .where(eq(wardrobes.ownerUid, c.get('uid')))
+            .where(
+                and(
+                    eq(wardrobes.ownerUid, c.get('uid')),
+                    eq(wardrobes.profileId, c.get('profileId'))
+                )
+            )
             .groupBy(wardrobes.id)
             .orderBy(wardrobes.createdAt)
 
@@ -78,7 +86,12 @@ routes.get('/', async (c) => {
         const rows = await db
             .select()
             .from(wardrobes)
-            .where(eq(wardrobes.ownerUid, c.get('uid')))
+            .where(
+                and(
+                    eq(wardrobes.ownerUid, c.get('uid')),
+                    eq(wardrobes.profileId, c.get('profileId'))
+                )
+            )
 
         return Response.json(
             { data: rows.map((row) => ({ ...row, userId: row.ownerUid })) },
@@ -87,6 +100,60 @@ routes.get('/', async (c) => {
     } catch (error) {
         console.error('Error fetching wardrobes:', error)
         return Response.json({ error: 'Internal Server Error' }, { status: 500 })
+    }
+})
+
+routes.patch('/:id', async (c) => {
+    try {
+        const id = parseInt(c.req.param('id') || '0')
+        if (!id) {
+            return Response.json({ error: 'Invalid wardrobe id' }, { status: 400 })
+        }
+
+        const body = WardrobeUpdateSchema.parse(await c.req.json())
+        const updates: Partial<typeof wardrobes.$inferInsert> = {}
+
+        if (body.name !== undefined) updates.name = body.name
+        if (body.description !== undefined) {
+            updates.description = body.description
+        }
+
+        if (Object.keys(updates).length === 0) {
+            return Response.json(
+                { error: 'No fields to update' },
+                { status: 400 }
+            )
+        }
+
+        const [updated] = await db
+            .update(wardrobes)
+            .set(updates)
+            .where(
+                and(
+                    eq(wardrobes.id, id),
+                    eq(wardrobes.ownerUid, c.get('uid')),
+                    eq(wardrobes.profileId, c.get('profileId'))
+                )
+            )
+            .returning()
+
+        if (!updated) {
+            return Response.json(
+                { error: 'Wardrobe not found' },
+                { status: 404 }
+            )
+        }
+
+        return Response.json(
+            { data: [{ ...updated, userId: updated.ownerUid }] },
+            { status: 200 }
+        )
+    } catch (error) {
+        console.error('Error updating wardrobe:', error)
+        return Response.json(
+            { error: (error as Error).message },
+            { status: 400 }
+        )
     }
 })
 
@@ -101,11 +168,23 @@ routes.delete('/:id', async (c) => {
         const items = await db
             .select({ photoUri: wardrobeItems.photoUri })
             .from(wardrobeItems)
-            .where(eq(wardrobeItems.wardrobeId, id))
+            .where(
+                and(
+                    eq(wardrobeItems.wardrobeId, id),
+                    eq(wardrobeItems.ownerUid, uid),
+                    eq(wardrobeItems.profileId, c.get('profileId'))
+                )
+            )
 
         const deleted = await db
             .delete(wardrobes)
-            .where(and(eq(wardrobes.id, id), eq(wardrobes.ownerUid, uid)))
+            .where(
+                and(
+                    eq(wardrobes.id, id),
+                    eq(wardrobes.ownerUid, uid),
+                    eq(wardrobes.profileId, c.get('profileId'))
+                )
+            )
             .returning({ id: wardrobes.id })
 
         if (deleted.length === 0) {

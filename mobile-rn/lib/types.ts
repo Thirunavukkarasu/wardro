@@ -18,6 +18,43 @@ export interface AppUser {
   emailVerified: boolean;
 }
 
+export interface Profile {
+  id: number;
+  userId: string;
+  name: string;
+  color: string;
+  avatarUrl: string | null;
+  isDefault: boolean;
+  wardrobeCount: number;
+  itemCount: number;
+  createdAt: string | null;
+}
+
+export function profileFromJson(json: Record<string, unknown>): Profile {
+  return {
+    id: Number(json.id ?? 0),
+    userId: String(json.userId ?? json.ownerUid ?? ""),
+    name: String(json.name ?? "Profile"),
+    color: String(json.color ?? "#4F46E5"),
+    avatarUrl: json.avatarUrl ? String(json.avatarUrl) : null,
+    isDefault: Boolean(json.isDefault),
+    wardrobeCount: Number(json.wardrobeCount ?? 0),
+    itemCount: Number(json.itemCount ?? 0),
+    createdAt: json.createdAt ? String(json.createdAt) : null,
+  };
+}
+
+export function initialsForName(name: string): string {
+  const letters = name
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((word) => word[0]?.toUpperCase() ?? "")
+    .join("");
+  return letters || "?";
+}
+
 export interface Wardrobe {
   id: number;
   userId: string;

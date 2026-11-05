@@ -1,10 +1,19 @@
-import { router } from "expo-router";
-import { LogOut } from "lucide-react-native";
-import { Image, ScrollView, Text, View } from "react-native";
+import { router, useFocusEffect } from "expo-router";
+import { LogOut, Pencil, Plus } from "lucide-react-native";
+import { useCallback } from "react";
+import {
+  Image,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import CustomButton from "~/components/CustomButton";
+import ProfileAvatar from "~/components/ProfileAvatar";
 import { useAuth } from "~/lib/auth-context";
+import { useProfiles } from "~/lib/profiles-context";
 import { fullName, userInitials } from "~/lib/types";
 
 function InfoRow({ label, value }: { label: string; value?: string | null }) {
@@ -24,6 +33,19 @@ function InfoRow({ label, value }: { label: string; value?: string | null }) {
 
 export default function ProfileScreen() {
   const { user, signOut } = useAuth();
+  const {
+    profiles,
+    activeProfile,
+    switchProfile,
+    refreshProfiles,
+    error: profilesError,
+  } = useProfiles();
+
+  useFocusEffect(
+    useCallback(() => {
+      refreshProfiles();
+    }, [refreshProfiles]),
+  );
 
   const name = fullName(user) || "Wardro member";
 
@@ -86,6 +108,84 @@ export default function ProfileScreen() {
             </View>
           </View>
         </View>
+
+        <View className="mb-2 mt-5 flex-row items-center">
+          <Text className="flex-1 text-[15px] font-semibold text-ink">
+            Profiles
+          </Text>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Add profile"
+            onPress={() => router.push("/(root)/add-profile")}
+            className="flex-row items-center rounded-full bg-brand/10 px-3 py-1.5 active:opacity-70"
+          >
+            <Plus size={14} color="#4F46E5" />
+            <Text className="ml-1 text-xs font-bold text-brand">Add</Text>
+          </Pressable>
+        </View>
+
+        <View className="rounded-[18px] border border-line bg-white">
+          {profiles.map((profile, index) => (
+            <View key={profile.id}>
+              {index > 0 ? <View className="ml-16 h-px bg-line" /> : null}
+              <View className="flex-row items-center px-4 py-3">
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={`Switch to ${profile.name}`}
+                  onPress={() => {
+                    switchProfile(profile.id);
+                  }}
+                  className="flex-1 flex-row items-center active:opacity-70"
+                >
+                  <ProfileAvatar
+                    profile={profile}
+                    size={40}
+                    active={profile.id === activeProfile?.id}
+                  />
+                  <View className="ml-3 flex-1">
+                    <Text
+                      numberOfLines={1}
+                      className="text-sm font-bold text-ink"
+                    >
+                      {profile.name}
+                    </Text>
+                    <Text className="mt-0.5 text-[11px] text-ink-secondary">
+                      {profile.wardrobeCount}{" "}
+                      {profile.wardrobeCount === 1
+                        ? "collection"
+                        : "collections"}{" "}
+                      · {profile.itemCount}{" "}
+                      {profile.itemCount === 1 ? "item" : "items"}
+                      {profile.id === activeProfile?.id ? " · Active" : ""}
+                    </Text>
+                  </View>
+                </Pressable>
+
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={`Edit ${profile.name}`}
+                  onPress={() =>
+                    router.push({
+                      pathname: "/(root)/add-profile",
+                      params: {
+                        id: String(profile.id),
+                        name: profile.name,
+                        color: profile.color,
+                      },
+                    })
+                  }
+                  className="h-10 w-10 items-center justify-center rounded-full active:bg-surface"
+                >
+                  <Pencil size={17} color="#64748B" />
+                </Pressable>
+              </View>
+            </View>
+          ))}
+        </View>
+
+        {profilesError ? (
+          <Text className="mt-2 text-xs text-danger">{profilesError}</Text>
+        ) : null}
 
         <View className="mt-4 rounded-[18px] border border-line bg-white px-4">
           <InfoRow label="First name" value={user?.firstName} />

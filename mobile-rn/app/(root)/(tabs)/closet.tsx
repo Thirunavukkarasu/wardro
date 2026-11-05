@@ -1,8 +1,15 @@
 import { router, useFocusEffect } from "expo-router";
-import { ChevronRight, Search, Shirt, X } from "lucide-react-native";
+import {
+  ChevronRight,
+  LayoutGrid,
+  Search,
+  Shirt,
+  X,
+} from "lucide-react-native";
 import {
   useCallback,
   useDeferredValue,
+  useEffect,
   useState,
 } from "react";
 import {
@@ -21,6 +28,7 @@ import { EmptyView, ErrorView, LoadingView } from "~/components/StatusViews";
 import { api, ApiException } from "~/lib/api";
 import { apiBaseUrl } from "~/lib/firebase-config";
 import { formatPrice } from "~/lib/formatters";
+import { useProfiles } from "~/lib/profiles-context";
 import {
   wardrobeFromJson,
   wardrobeItemFromJson,
@@ -57,12 +65,16 @@ function FilterChip({
   );
 }
 
-export default function AllItemsScreen() {
+export default function ClosetScreen() {
+  const { activeProfile } = useProfiles();
   const [wardrobes, setWardrobes] = useState<Wardrobe[]>([]);
   const [items, setItems] = useState<WardrobeItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(
+    null,
+  );
   const [selectedWardrobeId, setSelectedWardrobeId] = useState<number | null>(
     null,
   );
@@ -90,7 +102,7 @@ export default function AllItemsScreen() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [activeProfile?.id]);
 
   useFocusEffect(
     useCallback(() => {
@@ -98,16 +110,41 @@ export default function AllItemsScreen() {
     }, [load]),
   );
 
+  useEffect(() => {
+    setQuery("");
+    setSelectedCategory(null);
+    setSelectedWardrobeId(null);
+  }, [activeProfile?.id]);
+
   const countsByWardrobe = new Map<number, number>();
+  const countsByCategory = new Map<string, number>();
   for (const item of items) {
     countsByWardrobe.set(
       item.wardrobeId,
       (countsByWardrobe.get(item.wardrobeId) ?? 0) + 1,
     );
+
+    const category = item.category.trim();
+    if (category) {
+      countsByCategory.set(
+        category,
+        (countsByCategory.get(category) ?? 0) + 1,
+      );
+    }
   }
+
+  const categoryOptions = [...countsByCategory.keys()].sort((a, b) =>
+    a.localeCompare(b),
+  );
 
   const normalizedQuery = deferredQuery.trim().toLowerCase();
   const visibleItems = items.filter((item) => {
+    if (
+      selectedCategory !== null &&
+      item.category.trim().toLowerCase() !== selectedCategory.toLowerCase()
+    ) {
+      return false;
+    }
     if (
       selectedWardrobeId !== null &&
       item.wardrobeId !== selectedWardrobeId
@@ -141,10 +178,14 @@ export default function AllItemsScreen() {
     0,
   );
 
-  const hasFilters = normalizedQuery.length > 0 || selectedWardrobeId !== null;
+  const hasFilters =
+    normalizedQuery.length > 0 ||
+    selectedCategory !== null ||
+    selectedWardrobeId !== null;
 
   const clearFilters = () => {
     setQuery("");
+    setSelectedCategory(null);
     setSelectedWardrobeId(null);
   };
 
@@ -159,10 +200,11 @@ export default function AllItemsScreen() {
       <View className="px-5 pt-3.5">
         <View>
           <Text className="text-[26px] font-extrabold tracking-tight text-ink">
-            Items
+            Closet
           </Text>
           {!loading && !error ? (
             <Text className="mt-1 text-xs text-ink-secondary">
+              {activeProfile ? `${activeProfile.name} · ` : ""}
               {visibleItems.length}{" "}
               {visibleItems.length === 1 ? "item" : "items"} ·{" "}
               {formatPrice(visibleValue)}
@@ -191,6 +233,30 @@ export default function AllItemsScreen() {
           ) : null}
         </View>
 
+        {categoryOptions.length > 0 ? (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ gap: 8, paddingTop: 12 }}
+          >
+            <FilterChip
+              label="All types"
+              count={items.length}
+              active={selectedCategory === null}
+              onPress={() => setSelectedCategory(null)}
+            />
+            {categoryOptions.map((category) => (
+              <FilterChip
+                key={category}
+                label={category}
+                count={countsByCategory.get(category) ?? 0}
+                active={selectedCategory === category}
+                onPress={() => setSelectedCategory(category)}
+              />
+            ))}
+          </ScrollView>
+        ) : null}
+
         {wardrobes.length > 0 ? (
           <ScrollView
             horizontal
@@ -198,7 +264,7 @@ export default function AllItemsScreen() {
             contentContainerStyle={{ gap: 8, paddingVertical: 12 }}
           >
             <FilterChip
-              label="All"
+              label="All wardrobes"
               count={items.length}
               active={selectedWardrobeId === null}
               onPress={() => setSelectedWardrobeId(null)}
@@ -212,6 +278,18 @@ export default function AllItemsScreen() {
                 onPress={() => setSelectedWardrobeId(wardrobe.id)}
               />
             ))}
+
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Manage wardrobes"
+              onPress={() => router.push("/(root)/wardrobes")}
+              className="flex-row items-center rounded-full border border-line bg-white px-3.5 py-2 active:opacity-80"
+            >
+              <LayoutGrid size={14} color="#4F46E5" />
+              <Text className="ml-1.5 text-[12.5px] font-semibold text-brand">
+                Manage
+              </Text>
+            </Pressable>
           </ScrollView>
         ) : (
           <View className="h-3" />
@@ -250,7 +328,7 @@ export default function AllItemsScreen() {
           <EmptyView
             icon={<Search size={34} color="#4F46E5" />}
             title="No matches"
-            message="Try a different search term or clear the wardrobe filter."
+            message="Try a different search term or clear the filters."
             actionLabel={hasFilters ? "Clear filters" : undefined}
             onAction={hasFilters ? clearFilters : undefined}
           />

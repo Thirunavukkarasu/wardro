@@ -12,7 +12,7 @@ export default function OAuth() {
   const handleGoogleSignIn = async () => {
     const signedIn = await signInWithGoogle();
     if (signedIn) {
-      router.replace("/(root)/(tabs)/home");
+      router.replace("/(root)/(tabs)/today");
     }
   };
 

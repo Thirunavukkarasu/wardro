@@ -16,6 +16,8 @@ product visually coherent and avoids re-implementing cards and empty states.
 | `OutfitCanvas` | Outfit builder | Slots/collage, selection, remove, save preview | New |
 | `UsageStats` | Clothing details, insights | Wears, last worn, cost per wear | New |
 | `BottomNavigation` | All main screens | Five destinations, prominent Create | `Tabs` layout exists; needs the new tabs |
+| `ProfileAvatar` | Today switcher, Profile list, headers | Initials or photo, colour, active ring | Built |
+| `ProfileSwitcher` | Today | Horizontal profile rail with active state and add tile | Built |
 | `AppHeader` | All pushed screens | Back target, title, right action | Built |
 | `FormScreen` | Add/edit forms | Fixed header, scroll, sticky footer | Built |
 | `SearchBar` | Closet | Search input with clear action | Built inside Items; extract |

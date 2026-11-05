@@ -7,6 +7,7 @@ import {
 } from "lucide-react-native";
 import { useCallback, useState, type ReactNode } from "react";
 import {
+  Image,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -16,13 +17,16 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import ItemPhotoTile from "~/components/ItemPhotoTile";
+import ProfileSwitcher from "~/components/ProfileSwitcher";
 import { EmptyView, ErrorView, LoadingView } from "~/components/StatusViews";
 import SummaryStrip from "~/components/SummaryStrip";
 import WardrobeCard from "~/components/WardrobeCard";
 import { api, ApiException } from "~/lib/api";
 import { useAuth } from "~/lib/auth-context";
 import { apiBaseUrl } from "~/lib/firebase-config";
+import { useProfiles } from "~/lib/profiles-context";
 import {
+  userInitials,
   wardrobeFromJson,
   wardrobeItemFromJson,
   type Wardrobe,
@@ -64,8 +68,9 @@ function QuickAction({
   );
 }
 
-export default function HomeScreen() {
+export default function TodayScreen() {
   const { user } = useAuth();
+  const { profiles, activeProfile, switchProfile } = useProfiles();
   const [wardrobes, setWardrobes] = useState<Wardrobe[]>([]);
   const [items, setItems] = useState<WardrobeItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -92,7 +97,7 @@ export default function HomeScreen() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [activeProfile?.id]);
 
   useFocusEffect(
     useCallback(() => {
@@ -132,13 +137,49 @@ export default function HomeScreen() {
           />
         }
       >
-        <View className="pt-3.5">
-          <Text className="text-[13px] font-semibold text-ink-secondary">
-            {greeting(user?.firstName ?? "")}
-          </Text>
-          <Text className="mt-0.5 text-[26px] font-extrabold tracking-tight text-ink">
-            Your Wardrobe
-          </Text>
+        <View className="flex-row items-start pt-3.5">
+          <View className="flex-1">
+            <Text className="text-[13px] font-semibold text-ink-secondary">
+              {greeting(
+                activeProfile?.name.split(/\s+/)[0] ??
+                  user?.firstName ??
+                  "",
+              )}
+            </Text>
+            <Text className="mt-0.5 text-[26px] font-extrabold tracking-tight text-ink">
+              Your Wardrobe
+            </Text>
+          </View>
+
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Open profile"
+            onPress={() => router.push("/(root)/(tabs)/profile")}
+            className="h-11 w-11 overflow-hidden rounded-full border-2 border-white bg-brand/10 active:opacity-80"
+          >
+            {user?.imageUrl ? (
+              <Image
+                source={{ uri: user.imageUrl }}
+                resizeMode="cover"
+                style={{ width: "100%", height: "100%" }}
+              />
+            ) : (
+              <View className="h-full w-full items-center justify-center">
+                <Text className="text-sm font-extrabold text-brand">
+                  {userInitials(user)}
+                </Text>
+              </View>
+            )}
+          </Pressable>
+        </View>
+
+        <View className="mt-4">
+          <ProfileSwitcher
+            profiles={profiles}
+            activeId={activeProfile?.id ?? null}
+            onSelect={(id) => switchProfile(id)}
+            onAdd={() => router.push("/(root)/add-profile")}
+          />
         </View>
 
         <View className="mt-4">
@@ -185,7 +226,7 @@ export default function HomeScreen() {
               <View className="flex-1" />
               {items.length > 0 ? (
                 <Pressable
-                  onPress={() => router.push("/(root)/(tabs)/items")}
+                  onPress={() => router.push("/(root)/(tabs)/closet")}
                   className="flex-row items-center active:opacity-60"
                 >
                   <Text className="text-xs font-semibold text-brand">
@@ -243,7 +284,7 @@ export default function HomeScreen() {
               <View className="flex-1" />
               {wardrobes.length > wardrobePreview.length ? (
                 <Pressable
-                  onPress={() => router.push("/(root)/(tabs)/wardrobes")}
+                  onPress={() => router.push("/(root)/wardrobes")}
                   className="flex-row items-center active:opacity-60"
                 >
                   <Text className="text-xs font-semibold text-brand">

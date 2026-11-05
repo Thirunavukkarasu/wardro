@@ -31,7 +31,7 @@ export default function AppHeader({
       if (router.canGoBack()) {
         router.back();
       } else {
-        router.replace("/(root)/(tabs)/home");
+        router.replace("/(root)/(tabs)/today");
       }
     });
 
@@ -65,7 +65,9 @@ export default function AppHeader({
           ) : null}
         </View>
 
-        <View className="h-11 w-11 items-center justify-center">{right}</View>
+        <View className="h-11 min-w-11 flex-row items-center justify-end">
+          {right}
+        </View>
       </View>
 
       {bordered ? <View className="h-px bg-line" /> : null}

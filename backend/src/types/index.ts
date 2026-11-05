@@ -15,6 +15,10 @@ export const WardrobeSchema = z.object({
 
 export type Wardrobe = z.infer<typeof WardrobeSchema>;
 
+export const WardrobeUpdateSchema = WardrobeSchema.partial();
+
+export type WardrobeUpdate = z.infer<typeof WardrobeUpdateSchema>;
+
 // Define Zod schema for validation
 export const WardrobeItemSchema = z.object({
     photoUri: z.string().optional(),
@@ -30,3 +34,34 @@ export const WardrobeItemSchema = z.object({
 });
 
 export type WardrobeItem = z.infer<typeof WardrobeItemSchema>;
+
+export const WardrobeItemUpdateSchema = z
+    .object({
+        photoUri: z.string().optional(),
+        itemName: z.string().min(1, 'Item name is required').optional(),
+        purchaseDate: z.string().nullable().optional(),
+        expiryDate: z.string().nullable().optional(),
+        price: z.number().nullable().optional(),
+        brand: z.string().nullable().optional(),
+        category: z.string().nullable().optional(),
+        color: z.string().nullable().optional(),
+        size: z.string().nullable().optional(),
+        wardrobeId: z.number().int().positive().optional(),
+    })
+    .refine((value) => Object.keys(value).length > 0, {
+        message: 'No fields to update',
+    });
+
+export type WardrobeItemUpdate = z.infer<typeof WardrobeItemUpdateSchema>;
+
+export const ProfileSchema = z.object({
+    name: z.string().min(1, 'Name is required'),
+    color: z.string().optional(),
+    avatarUrl: z.string().optional(),
+});
+
+export type Profile = z.infer<typeof ProfileSchema>;
+
+export const ProfileUpdateSchema = ProfileSchema.partial();
+
+export type ProfileUpdate = z.infer<typeof ProfileUpdateSchema>;

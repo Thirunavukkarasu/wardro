@@ -12,10 +12,9 @@ interface ItemPhotoProps {
 /**
  * Web photo renderer.
  *
- * Uses the same `Image` configuration as the wardrobe cards (which render
- * these Firebase Storage URLs correctly) and keeps the placeholder behind the
- * image instead of toggling on `onError`. That avoids the react-native-web
- * image-loader effect loop that could leave a valid photo on the fallback.
+ * Uses the same `Image` configuration as the wardrobe cards, with the
+ * placeholder behind the image instead of toggling on `onError`. That keeps
+ * valid Firebase Storage photos from getting stuck on the fallback.
  */
 export default function ItemPhoto({
   item,

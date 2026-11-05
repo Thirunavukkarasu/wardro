@@ -1,9 +1,14 @@
-import { router, useLocalSearchParams } from "expo-router";
+import {
+  router,
+  useFocusEffect,
+  useLocalSearchParams,
+} from "expo-router";
 import {
   ArrowLeft,
   Calendar,
   CalendarClock,
   Palette,
+  Pencil,
   Ruler,
   ShoppingBag,
   Store,
@@ -11,7 +16,12 @@ import {
   Trash2,
   Wallet,
 } from "lucide-react-native";
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  useCallback,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
@@ -122,39 +132,45 @@ export default function ItemDetailScreen() {
   const [confirmVisible, setConfirmVisible] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  useEffect(() => {
-    if (initialItem) return;
+  const load = useCallback(async () => {
+    try {
+      const rows = await api.get<Record<string, unknown>[]>("/wardrobeItems");
+      const found = (rows ?? [])
+        .map(wardrobeItemFromJson)
+        .find((row) => row.id === Number(params.id));
 
-    let cancelled = false;
-
-    (async () => {
-      try {
-        const rows = await api.get<Record<string, unknown>[]>("/wardrobeItems");
-        const found = (rows ?? [])
-          .map(wardrobeItemFromJson)
-          .find((row) => row.id === Number(params.id));
-
-        if (!cancelled) {
-          if (found) setItem(found);
-          else setError("This item could not be found.");
-        }
-      } catch (loadError) {
-        if (!cancelled) {
-          setError(
-            loadError instanceof ApiException
-              ? loadError.message
-              : "Could not load this item.",
-          );
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
+      if (found) {
+        setItem(found);
+        setError(null);
+      } else if (!initialItem) {
+        setError("This item could not be found.");
       }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
+    } catch (loadError) {
+      if (!initialItem) {
+        setError(
+          loadError instanceof ApiException
+            ? loadError.message
+            : "Could not load this item.",
+        );
+      }
+    } finally {
+      setLoading(false);
+    }
   }, [initialItem, params.id]);
+
+  useFocusEffect(
+    useCallback(() => {
+      load();
+    }, [load]),
+  );
+
+  const openEdit = () => {
+    if (!item) return;
+    router.push({
+      pathname: "/(root)/add-wardrobe-items",
+      params: { id: String(item.id), item: JSON.stringify(item) },
+    });
+  };
 
   const deleteItem = async () => {
     if (!item) return;
@@ -167,7 +183,7 @@ export default function ItemDetailScreen() {
       if (router.canGoBack()) {
         router.back();
       } else {
-        router.replace("/(root)/(tabs)/items");
+        router.replace("/(root)/(tabs)/closet");
       }
     } catch (deleteError) {
       setError(
@@ -274,6 +290,11 @@ export default function ItemDetailScreen() {
             className="absolute right-4 flex-row items-center gap-3"
             style={{ top: insets.top + 8 }}
           >
+            <RoundIconButton
+              icon={<Pencil size={21} color="#0F172A" />}
+              label="Edit item"
+              onPress={openEdit}
+            />
             <RoundIconButton
               icon={<Trash2 size={22} color="#0F172A" />}
               label="Delete item"

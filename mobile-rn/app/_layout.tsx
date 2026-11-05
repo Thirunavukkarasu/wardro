@@ -3,10 +3,19 @@ import "~/global.css";
 import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
-import { ActivityIndicator, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Pressable,
+  Text,
+  View,
+} from "react-native";
 
 import PhoneFrame from "~/components/PhoneFrame";
 import { AuthProvider, useAuth } from "~/lib/auth-context";
+import {
+  ProfilesProvider,
+  useProfiles,
+} from "~/lib/profiles-context";
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -20,6 +29,12 @@ export {
  */
 function RootNavigator() {
   const { status } = useAuth();
+  const {
+    loading: profilesLoading,
+    error: profilesError,
+    activeProfile,
+    refreshProfiles,
+  } = useProfiles();
   const segments = useSegments();
   const router = useRouter();
 
@@ -40,17 +55,42 @@ function RootNavigator() {
       inAuthGroup &&
       segments[1] !== "sign-up"
     ) {
-      router.replace("/(root)/(tabs)/home");
+      router.replace("/(root)/(tabs)/today");
     }
   }, [status, segments, router]);
 
-  if (status === "restoring") {
+  const booting =
+    status === "restoring" ||
+    (status === "signedIn" && profilesLoading);
+
+  if (booting) {
     return (
       <View className="flex-1 items-center justify-center bg-canvas">
         <ActivityIndicator size="large" color="#4F46E5" />
         <Text className="mt-4 text-sm text-ink-secondary">
-          Restoring your session…
+          {status === "restoring"
+            ? "Restoring your session…"
+            : "Loading your profiles…"}
         </Text>
+      </View>
+    );
+  }
+
+  if (status === "signedIn" && (profilesError || !activeProfile)) {
+    return (
+      <View className="flex-1 items-center justify-center bg-canvas px-8">
+        <Text className="text-center text-base font-bold text-ink">
+          Couldn’t load your profiles
+        </Text>
+        <Text className="mt-2 text-center text-sm leading-5 text-ink-secondary">
+          {profilesError ?? "No profile is available for this account."}
+        </Text>
+        <Pressable
+          onPress={refreshProfiles}
+          className="mt-5 rounded-full bg-brand px-6 py-3 active:opacity-80"
+        >
+          <Text className="text-sm font-bold text-white">Retry</Text>
+        </Pressable>
       </View>
     );
   }
@@ -73,10 +113,12 @@ function RootNavigator() {
 export default function RootLayout() {
   return (
     <AuthProvider>
-      <PhoneFrame>
-        <StatusBar style="dark" />
-        <RootNavigator />
-      </PhoneFrame>
+      <ProfilesProvider>
+        <PhoneFrame>
+          <StatusBar style="dark" />
+          <RootNavigator />
+        </PhoneFrame>
+      </ProfilesProvider>
     </AuthProvider>
   );
 }

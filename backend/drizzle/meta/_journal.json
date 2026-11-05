@@ -8,6 +8,13 @@
       "when": 1793862846144,
       "tag": "0000_striped_donald_blake",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1793870569041,
+      "tag": "0001_powerful_moon_knight",
+      "breakpoints": true
     }
   ]
 }

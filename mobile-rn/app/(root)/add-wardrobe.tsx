@@ -1,4 +1,4 @@
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { FileText, Shirt } from "lucide-react-native";
 import { useState } from "react";
 import { Text, View } from "react-native";
@@ -7,10 +7,19 @@ import CustomButton from "~/components/CustomButton";
 import FormScreen from "~/components/FormScreen";
 import InputField from "~/components/InputField";
 import { api, ApiException } from "~/lib/api";
+import { useProfiles } from "~/lib/profiles-context";
 
 export default function AddWardrobeScreen() {
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
+  const { activeProfile } = useProfiles();
+  const params = useLocalSearchParams<{
+    id?: string;
+    name?: string;
+    description?: string;
+  }>();
+  const isEditing = Boolean(params.id);
+
+  const [name, setName] = useState(params.name ?? "");
+  const [description, setDescription] = useState(params.description ?? "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -25,15 +34,21 @@ export default function AddWardrobeScreen() {
     setSaving(true);
 
     try {
-      await api.post("/wardrobes", {
+      const payload = {
         name: name.trim(),
         description: description.trim(),
-      });
+      };
+
+      if (isEditing) {
+        await api.patch(`/wardrobes/${params.id}`, payload);
+      } else {
+        await api.post("/wardrobes", payload);
+      }
 
       if (router.canGoBack()) {
         router.back();
       } else {
-        router.replace("/(root)/(tabs)/home");
+        router.replace("/(root)/(tabs)/today");
       }
     } catch (saveError) {
       setError(
@@ -48,8 +63,14 @@ export default function AddWardrobeScreen() {
 
   return (
     <FormScreen
-      title="Add Wardrobe"
-      subtitle="Create a collection"
+      title={isEditing ? "Edit Wardrobe" : "Add Wardrobe"}
+      subtitle={
+        isEditing
+          ? "Update this collection"
+          : activeProfile
+            ? `Add to ${activeProfile.name}'s wardrobe`
+            : "Create a collection"
+      }
       footer={
         <View>
           {error ? (
@@ -58,7 +79,7 @@ export default function AddWardrobeScreen() {
             </Text>
           ) : null}
           <CustomButton
-            title="Add Wardrobe"
+            title={isEditing ? "Save Changes" : "Add Wardrobe"}
             isLoading={saving}
             onPress={save}
           />
@@ -89,7 +110,11 @@ export default function AddWardrobeScreen() {
       />
 
       <Text className="mt-3 text-center text-xs text-ink-muted">
-        Saved to your account via the Wardro backend.
+        {isEditing
+          ? "Changes are saved to your account."
+          : activeProfile
+            ? `Saved to ${activeProfile.name}'s profile.`
+            : "Saved to your account via the Wardro backend."}
       </Text>
     </FormScreen>
   );

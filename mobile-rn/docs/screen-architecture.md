@@ -31,6 +31,10 @@ introduce those destinations only as their features ship.
 - **Consistent screen shells.** Pushed screens use `AppHeader` (44px back
   target, title, optional right action). Forms use `FormScreen` (fixed header,
   scrollable content, sticky action footer).
+- **Profiles scope the wardrobe.** One account can hold multiple profiles
+  (family members or contexts). Every wardrobe, item, outfit and plan belongs
+  to exactly one profile; the active profile is explicit on Today. See
+  [`multi-profile.md`](multi-profile.md).
 
 ## 2. Target navigation
 
@@ -47,6 +51,7 @@ Phased rollout:
 | Phase | Tabs | Why |
 | --- | --- | --- |
 | **1 — Foundations** | Today · Closet · Profile + FAB | Ship only what exists; consolidate the current Home/Wardrobes/Items shell. |
+| **1.5 — Profiles** | (same tabs) | One account, multiple profiles; active-profile switcher on Today; profile management in Profile. **Implemented.** |
 | **2 — Create** | + Create | Add the middle creation tab when the outfit builder and saved-outfit library are real. Calendar starts as a `Library / Calendar` segment inside Create. |
 | **3 — Calendar** | + Calendar | Promote outfit planning to its own tab once the calendar is substantial. |
 | **4 — Intelligence** | (same tabs) | Weather, outfit suggestions, wear tracking, cost-per-wear and analytics appear as cards/screens on Today, Closet, and Profile. |
@@ -91,17 +96,18 @@ differently so “Profile / More” does not become a junk drawer.
 
 | Area | Screen | Purpose | Status |
 | --- | --- | --- | --- |
-| Today | **Today dashboard** | Greeting, summary, quick add, recent items, insights preview | Rename from current Home |
+| Today | **Today dashboard** | Greeting, summary, quick add, recent items, insights preview | Built |
+| Today | **Profile switcher** | Horizontal avatars; switch the active profile, add a profile | Built |
 | Today | Today’s outfit | The planned outfit for today | Later (Phase 2/3) |
 | Today | Weather card | Small weather summary + relevant suggestion | Later (Phase 4) |
 | Today | Outfit suggestions | Rule-based suggestions (weather + least-worn items) | Later (Phase 4) |
 | Today | Insights preview | Value, item count, cost-per-wear; opens Analytics | Later (Phase 4) |
 | Closet | **Closet grid** | Searchable, filterable garments with wardrobe chips | Merge current Items + Wardrobes |
-| Closet | Search & filters | Text search + wardrobe/category/colour/size filters | Search + wardrobe chips already built in Items |
-| Closet | Item detail | Photo hero, details, dates, delete, edit, mark worn | Built; Edit/Wear next |
+| Closet | Search & filters | Text search + wardrobe/category/colour/size filters | Built (category chips appear when data has categories) |
+| Closet | Item detail | Photo hero, details, dates, delete, edit, mark worn | Built; mark worn next |
 | Closet | Add item | Photo-first capture | Built |
-| Closet | Edit item | Pre-filled form + photo replacement | Next |
-| Closet | Add / Edit wardrobe | Create or update a collection | Add built; Edit next |
+| Closet | Edit item | Pre-filled form + photo replacement | Built (photo replace picker) |
+| Closet | Add / Edit wardrobe | Create or update a collection | Built |
 | Closet | Wardrobe detail | One collection’s grid + delete + add | Built |
 | Create | **Create hub** | Prominent middle destination: outfit builder primary, add clothing secondary | Later (Phase 2) |
 | Create | Outfit builder | Compose an outfit from closet items on a large canvas | Later (Phase 2) |
@@ -109,6 +115,8 @@ differently so “Profile / More” does not become a junk drawer.
 | Create | Outfit detail | View/edit/plan an outfit | Later (Phase 2) |
 | Calendar | Planner / calendar | Month or week view with outfit thumbnails by date | Later (Phase 3; starts as a segment in Create) |
 | Profile | Profile | Identity, sign out | Built |
+| Profile | Profiles | List/add/edit/delete profiles; active-profile context | Built |
+| Profile | Add / Edit profile | Name, colour, delete (last profile protected) | Built |
 | Profile | Settings | Units, notifications, weather location, privacy | Later |
 | Profile | Wardrobe analytics | Full analytics view | Later (Phase 4) |
 | Profile | Help / About | Support, version, legal | Later |
@@ -125,31 +133,33 @@ differently so “Profile / More” does not become a junk drawer.
 - **Item detail** — back, edit, delete; later: mark worn, add to outfit.
 - **Wardrobe detail** — back, edit, delete, add item; the count is the
   subtitle, description in the body.
-- **Today** — tap today’s outfit → outfit detail; tap a suggestion → builder;
-  quick actions for Create outfit / Add clothes.
-- **Profile** — identity header, summary, analytics entry, preferences
-  (weather location, notifications), settings, help/about, sign out. Keep
-  “More” visually secondary to the account section.
+- **Today** — the profile switcher sits directly under the greeting; the
+  summary, recent items and wardrobes all belong to the active profile. Tap
+  today’s outfit → detail; tap a suggestion → builder; quick actions for Create
+  outfit / Add clothes.
+- **Profile** — identity header, **Profiles** management, summary, analytics
+  entry, preferences (weather location, notifications), settings, help/about,
+  sign out. Keep “More” visually secondary to the account section.
 
 ## 5. Migration from the current implementation
 
-The app currently ships **Home · Wardrobes · Items · Profile** (4 tabs). To
-reach Phase 1:
+Phase 1 is complete: the app ships **Today · Closet · Profile** (3 tabs), with
+collections managed from a pushed Wardrobes screen.
 
-1. **Rename Home → Today.** Keep the dashboard and greeting; reserve slots for
-   today’s outfit, weather, suggestions, and insights as those land.
-2. **Merge Wardrobes + Items into Closet.**
-   - Closet = current Items screen (search + wardrobe chips + grid).
-   - Add a “Manage wardrobes” section/entry; remove the separate Wardrobes tab.
-   - Wardrobe detail and Add/Edit wardrobe stay as pushed screens.
-3. **Add Edit item / Edit wardrobe.** Requires `PATCH` endpoints and a
-   pre-filled form mode; photo replacement reuses `api.uploadPhoto`.
-4. **Add Create** as the prominent middle tab when the builder exists; keep
+1. **Rename Home → Today.** ✅
+2. **Merge Wardrobes + Items into Closet.** ✅
+   - Closet = search + category/wardrobe chips + grid.
+   - “Manage” opens the pushed Wardrobes screen; the separate tab is gone.
+3. **Add Edit item / Edit wardrobe.** ✅ `PATCH` endpoints, pre-filled edit
+   modes, photo replacement.
+4. **Add multi-profile support.** ✅ See
+   [`multi-profile.md`](multi-profile.md).
+5. **Add Create** as the prominent middle tab when the builder exists; keep
    Calendar inside Create as a segment.
-5. **Add Calendar** as a 5th tab when outfit planning is substantial.
-6. **Add wear tracking + favourites.** These are the data foundation for
+6. **Add Calendar** as a 5th tab when outfit planning is substantial.
+7. **Add wear tracking + favourites.** These are the data foundation for
    analytics and suggestions; add “Mark worn” on item/outfit detail.
-7. **Add weather + suggestions + analytics** as Today cards and a full
+8. **Add weather + suggestions + analytics** as Today cards and a full
    Analytics screen.
 
 Visual layouts, reusable components, and reference images for each step are in
@@ -163,13 +173,19 @@ As of 2026-11-05:
   Firebase Storage photo uploads are in place.
 - Shared `AppHeader` / `FormScreen` shells, back buttons, and sticky form
   footers are in place.
-- Home dashboard, Wardrobes, Items with search and wardrobe filters, item
-  detail, wardrobe detail, add item, add wardrobe, and profile are built.
-- Not built: edit flows, outfits, calendar, favourites, wear tracking,
-  analytics, weather, suggestions.
+- Today dashboard with the profile rail, Closet with search/category/wardrobe
+  filters, the pushed Wardrobes manager, item/wardrobe detail, add/edit item,
+  add/edit wardrobe, and Profile with profile management are built.
+- Multi-profile is implemented (household account, cascade delete) and the
+  backend schema has been migrated.
+- Not built: outfits, calendar, favourites, wear tracking, analytics, weather,
+  suggestions.
 
 ## 7. Open decisions
 
+- **Profiles:** household account and cascade delete are implemented; profile
+  photos, per-profile PINs and separate-account households remain future work.
+  See [`multi-profile.md`](multi-profile.md).
 - **Create hub composition:** outfit builder primary + add-clothing secondary;
   decide whether the tab opens the builder directly or a small create sheet.
 - **Calendar placement:** start as a segment in Create; promote to a 5th tab
@@ -188,6 +204,9 @@ As of 2026-11-05:
 
 - **Phase 1:** one inventory tab, one daily dashboard, no empty destinations,
   every pushed screen has a back control and consistent spacing.
+- **Phase 1.5:** an account can create and switch profiles; all data is scoped
+  to the active profile; the default profile is created automatically; deleting
+  a profile is explicit and never removes the last one. ✅
 - **Phase 2:** an outfit can be created from real closet items, saved, viewed,
   edited, and deleted.
 - **Phase 3:** outfits can be assigned to dates and viewed in a fashion-planner

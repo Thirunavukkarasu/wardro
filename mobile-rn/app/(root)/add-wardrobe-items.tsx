@@ -1,5 +1,6 @@
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import {
+  ImageIcon,
   Palette,
   Ruler,
   Shirt,
@@ -7,7 +8,7 @@ import {
   Tag,
   Wallet,
 } from "lucide-react-native";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 
 import CustomButton from "~/components/CustomButton";
@@ -16,28 +17,60 @@ import FormScreen from "~/components/FormScreen";
 import InputField from "~/components/InputField";
 import PhotoCaptureField from "~/components/PhotoCaptureField";
 import { api, ApiException } from "~/lib/api";
+import { useProfiles } from "~/lib/profiles-context";
 import type { PickedPhoto, Wardrobe } from "~/lib/types";
-import { wardrobeFromJson } from "~/lib/types";
+import {
+  wardrobeFromJson,
+  wardrobeItemFromJson,
+  type WardrobeItem,
+} from "~/lib/types";
 
 export default function AddItemScreen() {
-  const params = useLocalSearchParams<{ wardrobeId?: string }>();
+  const { activeProfile } = useProfiles();
+  const params = useLocalSearchParams<{
+    id?: string;
+    item?: string;
+    wardrobeId?: string;
+  }>();
+
+  const editingItem = useMemo<WardrobeItem | null>(() => {
+    if (!params.item) return null;
+    try {
+      return wardrobeItemFromJson(
+        JSON.parse(params.item) as Record<string, unknown>,
+      );
+    } catch {
+      return null;
+    }
+  }, [params.item]);
+
+  const isEditing = Boolean(editingItem);
 
   const [wardrobes, setWardrobes] = useState<Wardrobe[]>([]);
   const [selectedWardrobeId, setSelectedWardrobeId] = useState<number | null>(
-    null,
+    editingItem?.wardrobeId ?? null,
   );
   const [loadingWardrobes, setLoadingWardrobes] = useState(true);
   const [wardrobesError, setWardrobesError] = useState<string | null>(null);
 
   const [photo, setPhoto] = useState<PickedPhoto | null>(null);
-  const [itemName, setItemName] = useState("");
-  const [purchaseDate, setPurchaseDate] = useState<Date | null>(null);
-  const [expiryDate, setExpiryDate] = useState<Date | null>(null);
-  const [price, setPrice] = useState("");
-  const [brand, setBrand] = useState("");
-  const [category, setCategory] = useState("");
-  const [color, setColor] = useState("");
-  const [size, setSize] = useState("");
+  const [itemName, setItemName] = useState(editingItem?.itemName ?? "");
+  const [purchaseDate, setPurchaseDate] = useState<Date | null>(
+    editingItem?.purchaseDate ?? null,
+  );
+  const [expiryDate, setExpiryDate] = useState<Date | null>(
+    editingItem?.expiryDate ?? null,
+  );
+  const [price, setPrice] = useState(
+    editingItem?.price !== null && editingItem?.price !== undefined
+      ? String(editingItem.price)
+      : "",
+  );
+  const [brand, setBrand] = useState(editingItem?.brand ?? "");
+  const [category, setCategory] = useState(editingItem?.category ?? "");
+  const [color, setColor] = useState(editingItem?.color ?? "");
+  const [size, setSize] = useState(editingItem?.size ?? "");
+  const existingPhotoUri = editingItem?.photoUri ?? "";
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -51,7 +84,7 @@ export default function AddItemScreen() {
       const list = (rows ?? []).map(wardrobeFromJson);
       const preferred = params.wardrobeId
         ? Number(params.wardrobeId)
-        : null;
+        : (editingItem?.wardrobeId ?? null);
 
       setWardrobes(list);
       setSelectedWardrobeId((current) => {
@@ -70,7 +103,7 @@ export default function AddItemScreen() {
     } finally {
       setLoadingWardrobes(false);
     }
-  }, [params.wardrobeId]);
+  }, [activeProfile?.id, editingItem?.wardrobeId, params.wardrobeId]);
 
   useFocusEffect(
     useCallback(() => {
@@ -78,7 +111,7 @@ export default function AddItemScreen() {
     }, [loadWardrobes]),
   );
 
-  const buildPayload = (photoUri?: string) => {
+  const buildCreatePayload = (photoUri?: string) => {
     const payload: Record<string, unknown> = {
       itemName: itemName.trim(),
       wardrobeId: selectedWardrobeId,
@@ -96,6 +129,28 @@ export default function AddItemScreen() {
     if (expiryDate) payload.expiryDate = expiryDate.toISOString();
 
     return payload;
+  };
+
+  const buildUpdatePayload = (photoUri?: string) => {
+    const parsedPrice = price.trim()
+      ? Number.parseFloat(price.trim())
+      : null;
+
+    return {
+      itemName: itemName.trim(),
+      wardrobeId: selectedWardrobeId,
+      photoUri:
+        photoUri !== undefined ? photoUri : existingPhotoUri || "",
+      brand: brand.trim() || null,
+      category: category.trim() || null,
+      color: color.trim() || null,
+      size: size.trim() || null,
+      price: parsedPrice !== null && Number.isFinite(parsedPrice)
+        ? parsedPrice
+        : null,
+      purchaseDate: purchaseDate ? purchaseDate.toISOString() : null,
+      expiryDate: expiryDate ? expiryDate.toISOString() : null,
+    };
   };
 
   const save = async () => {
@@ -118,12 +173,19 @@ export default function AddItemScreen() {
         photoUri = await api.uploadPhoto(photo);
       }
 
-      await api.post("/wardrobeItems", buildPayload(photoUri));
+      if (isEditing && editingItem) {
+        await api.patch(
+          `/wardrobeItems/${editingItem.id}`,
+          buildUpdatePayload(photoUri),
+        );
+      } else {
+        await api.post("/wardrobeItems", buildCreatePayload(photoUri));
+      }
 
       if (router.canGoBack()) {
         router.back();
       } else {
-        router.replace("/(root)/(tabs)/home");
+        router.replace("/(root)/(tabs)/today");
       }
     } catch (saveError) {
       setError(
@@ -143,9 +205,17 @@ export default function AddItemScreen() {
 
   return (
     <FormScreen
-      title="Add Item"
+      title={isEditing ? "Edit Item" : "Add Item"}
       subtitle={
-        selectedWardrobeName ? `Add to ${selectedWardrobeName}` : "New garment"
+        selectedWardrobeName
+          ? isEditing
+            ? `In ${selectedWardrobeName}`
+            : `Add to ${selectedWardrobeName}`
+          : isEditing
+            ? "Update garment"
+            : activeProfile
+              ? `${activeProfile.name}'s wardrobe`
+              : "New garment"
       }
       footer={
         noWardrobes ? undefined : (
@@ -156,7 +226,7 @@ export default function AddItemScreen() {
               </Text>
             ) : null}
             <CustomButton
-              title="Save Item"
+              title={isEditing ? "Save Changes" : "Save Item"}
               isLoading={saving}
               onPress={save}
             />
@@ -178,6 +248,16 @@ export default function AddItemScreen() {
         </View>
       ) : (
         <>
+          {isEditing && existingPhotoUri && !photo ? (
+            <View className="mb-3 flex-row items-center rounded-[14px] border border-line bg-white px-4 py-3">
+              <ImageIcon size={18} color="#4F46E5" />
+              <Text className="ml-2 flex-1 text-[12.5px] leading-5 text-ink-secondary">
+                The current photo will be kept. Choose a new one below to
+                replace it.
+              </Text>
+            </View>
+          ) : null}
+
           <PhotoCaptureField photo={photo} onChange={setPhoto} />
 
           <View className="mt-4">

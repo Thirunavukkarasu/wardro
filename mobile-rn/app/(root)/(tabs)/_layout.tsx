@@ -1,5 +1,5 @@
 import { Tabs, router, useSegments } from "expo-router";
-import { Camera, Home, LayoutGrid, Shirt, User } from "lucide-react-native";
+import { Camera, Shirt, Sun, User } from "lucide-react-native";
 import { Pressable, View } from "react-native";
 
 export default function TabsLayout() {
@@ -29,25 +29,16 @@ export default function TabsLayout() {
         }}
       >
         <Tabs.Screen
-          name="home"
+          name="today"
           options={{
-            title: "Home",
-            tabBarIcon: ({ color }) => <Home size={22} color={color} />,
+            title: "Today",
+            tabBarIcon: ({ color }) => <Sun size={22} color={color} />,
           }}
         />
         <Tabs.Screen
-          name="wardrobes"
+          name="closet"
           options={{
-            title: "Wardrobes",
-            tabBarIcon: ({ color }) => (
-              <LayoutGrid size={22} color={color} />
-            ),
-          }}
-        />
-        <Tabs.Screen
-          name="items"
-          options={{
-            title: "Items",
+            title: "Closet",
             tabBarIcon: ({ color }) => <Shirt size={22} color={color} />,
           }}
         />

@@ -72,7 +72,7 @@ export default function SignUpScreen() {
 
   const continueToApp = () => {
     setVerificationVisible(false);
-    router.replace("/(root)/(tabs)/home");
+    router.replace("/(root)/(tabs)/today");
   };
 
   const message = formError ?? error;

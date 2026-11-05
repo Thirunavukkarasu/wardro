@@ -42,7 +42,7 @@ export default function SignInScreen() {
 
     const signedIn = await signIn(email, password);
     if (signedIn) {
-      router.replace("/(root)/(tabs)/home");
+      router.replace("/(root)/(tabs)/today");
     }
   };
 

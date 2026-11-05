@@ -29,7 +29,7 @@ app.use(
         // header is omitted and the browser blocks the response.
         origin: (origin) => (browserOrigins.includes(origin) ? origin : undefined),
         allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-        allowHeaders: ['Content-Type', 'Authorization'],
+        allowHeaders: ['Content-Type', 'Authorization', 'X-Profile-Id'],
         maxAge: 86400,
     })
 )
