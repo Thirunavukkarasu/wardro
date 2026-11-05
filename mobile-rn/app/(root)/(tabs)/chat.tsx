@@ -28,9 +28,9 @@ interface ChatMessage {
 }
 
 const SUGGESTIONS = [
-  "What should I wear today?",
-  "Build a casual lunch outfit",
-  "What colours work for a wedding?",
+  "What blue tops do I own?",
+  "Build a casual lunch outfit from my closet",
+  "What should I wear to a wedding?",
 ];
 
 function firstName(name: string): string {
@@ -49,7 +49,7 @@ function welcomeText(profileName: string | null): string {
   }
   return `Ask me what ${firstName(
     profileName,
-  )} should wear, how to style a piece, or what to pack. Wardrobe tools are not connected yet, so my suggestions are illustrative — but this is the real agent workflow.`;
+  )} owns, which pieces fit an occasion, or what to pack. I can search the active profile's inventory and suggest combinations from it; image analysis and editing tools are next.`;
 }
 
 export default function ChatScreen() {
@@ -198,8 +198,8 @@ export default function ChatScreen() {
 
         <View className="mx-5 mb-2 rounded-[14px] bg-wardro-primary-light px-3.5 py-2.5">
           <Text className="text-[11.5px] leading-4 text-wardro-primary-dark">
-            Local agent · wardrobe tools are not connected yet. Suggestions are illustrative; the
-            conversation and profile context are real.
+            Local agent · profile inventory is connected. Search and styling use real items; image
+            analysis and editing tools are next.
           </Text>
         </View>
 

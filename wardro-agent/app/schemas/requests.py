@@ -38,6 +38,15 @@ class ChatRequest(BaseModel):
         max_length=128,
         description="DEVELOPMENT ONLY: trusted profile context must come from auth.",
     )
+    firebase_token: str | None = Field(
+        default=None,
+        max_length=4096,
+        description=(
+            "DEVELOPMENT ONLY: Firebase ID token forwarded to the read-only "
+            "wardrobe backend. Never logged, stored in graph state, or checkpointed. "
+            "Replaced by the Bun internal-JWT proxy in the next milestone."
+        ),
+    )
 
     @field_validator("message")
     @classmethod

@@ -39,6 +39,7 @@ class Settings(BaseSettings):
     ollama_health_timeout: float = Field(default=5.0, gt=0.0)
 
     backend_api_url: str = "http://localhost:3000"
+    wardrobe_backend_timeout: float = Field(default=10.0, gt=0.0)
     database_url: str | None = None
 
     # Comma-separated browser origins allowed to call the API. The Expo web client

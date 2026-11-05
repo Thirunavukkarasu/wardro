@@ -219,6 +219,9 @@ async def _execute_agent(
 
 
 def _wardrobe_context(state: WardroState) -> WardrobeContext:
+    snapshot = state.get("wardrobe_context")
+    if snapshot:
+        return WardrobeContext.from_snapshot(snapshot)
     return get_wardrobe_context(
         household_id=state.get("household_id"),
         profile_id=state.get("profile_id"),

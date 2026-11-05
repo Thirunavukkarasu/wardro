@@ -11,6 +11,7 @@ from langgraph.graph.state import CompiledStateGraph
 
 from app.config import Settings, get_settings
 from app.services.ollama_provider import OllamaProvider
+from app.services.wardrobe_backend import WardrobeBackendClient
 
 
 def get_app_settings(request: Request) -> Settings:
@@ -41,6 +42,18 @@ def get_wardrobe_graph(request: Request) -> CompiledStateGraph:
     return graph
 
 
+def get_wardrobe_backend(request: Request) -> WardrobeBackendClient:
+    """Return the read-only wardrobe backend client."""
+    backend = getattr(request.app.state, "wardrobe_backend", None)
+    if backend is None:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Wardrobe backend client is not initialised.",
+        )
+    return backend
+
+
 SettingsDep = Annotated[Settings, Depends(get_app_settings)]
 OllamaProviderDep = Annotated[OllamaProvider, Depends(get_ollama_provider)]
 WorkflowDep = Annotated[CompiledStateGraph, Depends(get_wardrobe_graph)]
+WardrobeBackendDep = Annotated[WardrobeBackendClient, Depends(get_wardrobe_backend)]

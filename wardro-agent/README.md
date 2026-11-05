@@ -19,9 +19,10 @@ returns drafts that the user confirms.
 | --- | --- |
 | FastAPI API, LangGraph workflow, four agents, Ollama provider | Implemented |
 | Intent classification, deterministic routing, structured errors | Implemented |
-| Health, model availability, 59 tests, Ruff checks | Implemented |
+| Health, model availability, 64 tests, Ruff checks | Implemented |
 | Firebase auth / internal JWT from Bun | Not wired — development-only body identity |
-| Real wardrobe inventory | Not wired — `get_wardrobe_context` returns unavailable |
+| Profile-scoped inventory read | Implemented for development via the Firebase token passthrough |
+| Inventory-aware styling | Implemented in text (agents receive the profile inventory) |
 | Conversation persistence | Not wired — checkpointer returns `None` |
 | Vision/image upload | Placeholder — no image is sent to a model |
 | Bun proxy at `/api/ai/*` | Not implemented |
@@ -44,13 +45,18 @@ Implemented:
 - Intent classifier: keyword rules for common requests, LLM structured classification
   for ambiguous messages, safe `general_advice` fallback.
 - Conversation `thread_id` accepted end-to-end and passed to the graph.
-- 59 tests that run without an Ollama server, plus Ruff lint/format checks.
+- 64 tests that run without an Ollama server, plus Ruff lint/format checks.
 - A minimal Expo/React Native test client in the sibling `../mobile-agent-ui/`
   directory that runs in a browser via React Native Web and calls the chat API.
 
-Not implemented in this milestone (see [Limitations](#current-limitations)): the
-Bun→Python authentication proxy, real wardrobe data, conversation persistence,
-image analysis, tool execution, and RAG. The intended integration order is in
+Implemented in this milestone: a read-only, profile-scoped inventory bridge. The
+FastAPI layer fetches the active profile's items from the Bun API using a
+development-only Firebase token and passes the snapshot to the analyst and
+stylist agents. The token is never logged, stored in graph state, or checkpointed.
+
+Not implemented yet (see [Limitations](#current-limitations)): the Bun→Python
+authentication proxy, inventory write/action tools, conversation persistence,
+image analysis, and RAG. The intended integration order is in
 [Next milestones](#next-milestones).
 
 ## Architecture
@@ -295,6 +301,25 @@ The client does not fake token streaming; it shows a thinking indicator until th
 request completes. See [`../mobile-agent-ui/README.md`](../mobile-agent-ui/README.md) for
 configuration and limitations.
 
+## Development inventory bridge
+
+The analyst and stylist agents receive a real, profile-scoped inventory snapshot:
+
+1. The app sends its Firebase ID token as `firebase_token` in the chat request.
+2. FastAPI calls `GET {BACKEND_API_URL}/api/wardrobeItems` with
+   `Authorization: Bearer <token>` and `X-Profile-Id`.
+3. The token is used only for that call. It is **not** placed in `WardroState`,
+   a LangGraph checkpoint, a log line, or an error message.
+4. The item snapshot is put in state and rendered into the agent prompt.
+
+This is a **development bridge**, not the production trust boundary. When Bun
+exposes `/api/ai/*`, Bun will verify Firebase and profile ownership, sign a
+short-lived internal JWT, and Python will verify that JWT. The `firebase_token`
+field should then be removed from the request contract.
+
+If the backend is unreachable or rejects the token, the agent falls back to the
+explicitly-unavailable wardrobe context and says so rather than inventing items.
+
 ## Security: development-only identity injection
 
 The example `user_id`, `household_id`, and `profile_id` values above are **illustrative
@@ -385,9 +410,10 @@ wardro/                          # repository root
 │   │   │   ├── checkpointer.py  # persistence seam (returns None)
 │   │   │   └── workflow.py      # build_workflow() factory
 │   │   ├── services/
-│   │   │   └── ollama_provider.py   # ChatOllama construction, errors, health
+│   │   │   ├── ollama_provider.py   # ChatOllama construction, errors, health
+│   │   │   └── wardrobe_backend.py  # read-only profile inventory client
 │   │   ├── tools/
-│   │   │   └── wardrobe_tools.py    # explicit unavailable wardrobe context
+│   │   │   └── wardrobe_tools.py    # inventory snapshot → prompt context
 │   │   ├── vision/
 │   │   │   ├── image_analyzer.py    # not-yet-available analyser
 │   │   │   └── schemas.py
@@ -420,13 +446,15 @@ wardro/                          # repository root
   production rejects it. Auth middleware is the next security milestone.
 - **No conversation persistence.** `thread_id` is plumbing only until a checkpointer is
   configured. Conversations do not survive between requests.
-- **No real wardrobe inventory.** `get_wardrobe_context` explicitly returns unavailable
-  context, and prompts forbid agents from inventing garments. Outfit suggestions are
-  labelled as illustrative when no wardrobe data exists.
+- **Inventory is read-only and development-authenticated.** The agent can list and
+  reason over the active profile's items, but it cannot create, edit, mark worn, or
+  save outfits. The Bun proxy and internal JWT are still pending, and prompts forbid
+  inventing garments when a snapshot is unavailable.
 - **Vision is a placeholder.** The vision agent explains that image analysis arrives
   next milestone; it never claims to have seen an image.
-- **No tool execution, RAG, embeddings, or multi-agent supervision.** The classifier
-  only returns an intent and never executes tools.
+- **No LLM-directed tool loop, RAG, embeddings, or multi-agent supervision.** Inventory
+  retrieval is deterministic pre-graph work, not a model-selected tool call. The
+  classifier only returns an intent.
 - **Wardrobe/images routers, the backend client, and outfit/history tools are deferred.**
   They are added together with the features they serve rather than shipped as empty
   endpoints or disguised placeholders.
@@ -446,8 +474,9 @@ wardro/                          # repository root
    ownership, signs a short-lived internal JWT, and calls this service. Python verifies
    the JWT and the development-only body identity path is removed. See
    [`docs/research/notion-synthesis.md`](../docs/research/notion-synthesis.md).
-2. **Wardrobe backend integration** — `BackendClient`, real inventory retrieval for the
-   selected profile, and wardrobe tools used by the analyst and stylist agents.
+2. **Wardrobe tools** — build on the read-only inventory bridge with filtered search,
+   item detail, outfit composition, wear logging, saved outfits, and confirmation-gated
+   write actions.
 3. **Vision pipeline** — image upload/URL handling with `qwen3-vl` and structured
    garment extraction.
 4. **Persistence** — PostgreSQL checkpointer, conversation history per thread,

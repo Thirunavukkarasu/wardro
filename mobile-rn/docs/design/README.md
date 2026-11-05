@@ -51,7 +51,8 @@ details, Add clothing, Profile, and the multi-profile foundation; outfits and
 the calendar are the next product differentiators.
 
 A **Chat** tab was added as a pilot on 2026-11-05. It calls the local LangGraph
-agent and uses the active profile, but the agent has no wardrobe tools yet.
+agent and uses the active profile; the agent can read inventory and build
+text suggestions from real items. Rich cards, streaming and vision are next.
 Chat's final place in the IA is an open decision; see
 [`../screen-architecture.md`](../screen-architecture.md).
 

@@ -1,4 +1,5 @@
 import { agentBaseUrl } from "~/lib/firebase-config";
+import { auth } from "~/lib/firebase";
 
 /**
  * Local FastAPI agent client.
@@ -79,6 +80,13 @@ export async function sendAgentMessage({
     controller.abort();
   }, AGENT_TIMEOUT_MS);
 
+  let firebaseToken: string | undefined;
+  try {
+    firebaseToken = await auth.currentUser?.getIdToken();
+  } catch {
+    // The agent will return an illustrative answer if it cannot read inventory.
+  }
+
   try {
     const response = await fetch(endpoint(), {
       method: "POST",
@@ -91,6 +99,7 @@ export async function sendAgentMessage({
         thread_id: threadId,
         user_id: userId,
         profile_id: profileId,
+        ...(firebaseToken ? { firebase_token: firebaseToken } : {}),
       }),
       signal: controller.signal,
     });

@@ -6,10 +6,12 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.config import Settings
+from app.dependencies import get_wardrobe_backend
 from app.graph.routing import Intent, IntentClassification
 from app.main import create_app
 from app.schemas.responses import ChatResponse
 from app.services.ollama_provider import OllamaHealth, OllamaUnavailableError
+from app.services.wardrobe_backend import BackendWardrobeItem
 from tests.conftest import TEST_CHAT_MODEL, TEST_VISION_MODEL, FakeProvider
 
 
@@ -105,6 +107,48 @@ def test_chat_returns_structured_response(client: TestClient) -> None:
     assert validated.message == "Fake agent response."
     assert validated.metadata["identity_source"] == "development_request_body"
     assert validated.metadata["persistence"] == "disabled"
+
+
+def test_chat_uses_profile_inventory_when_development_token_is_supplied(
+    settings: Settings,
+    fake_provider: FakeProvider,
+) -> None:
+    class FakeBackend:
+        async def list_items(self, *, token: str, profile_id: str):
+            assert token == "dev-token"
+            assert profile_id == "profile-123"
+            return [
+                BackendWardrobeItem(
+                    item_id=44,
+                    name="Grey Pullover Hoodie",
+                    category="Tops",
+                    colour="Grey",
+                    brand="Playhouse",
+                    size="5Y",
+                    state="in_use",
+                )
+            ]
+
+    application = create_app(settings=settings, provider=fake_provider)
+    application.dependency_overrides[get_wardrobe_backend] = lambda: FakeBackend()
+
+    with TestClient(application) as test_client:
+        response = test_client.post(
+            "/api/v1/chat",
+            json={
+                "message": "What tops do I own?",
+                "user_id": "user-123",
+                "profile_id": "profile-123",
+                "firebase_token": "dev-token",
+            },
+        )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["metadata"]["wardrobe_context"] == "available"
+    assert body["metadata"]["wardrobe_item_count"] == 1
+    assert fake_provider.chat_calls
+    assert "Grey Pullover Hoodie" in str(fake_provider.chat_calls[-1][-1].content)
 
 
 def test_chat_generates_thread_id_when_omitted(client: TestClient) -> None:

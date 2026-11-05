@@ -7,12 +7,13 @@ from fastapi import APIRouter, HTTPException, status
 from fastapi.responses import JSONResponse
 from langchain_core.messages import HumanMessage
 
-from app.dependencies import SettingsDep, WorkflowDep
+from app.dependencies import SettingsDep, WardrobeBackendDep, WorkflowDep
 from app.graph.routing import Intent, normalize_intent, resolve_agent
 from app.graph.state import WardroState
 from app.policies.access_control import ContextResolutionError, resolve_trusted_context
 from app.schemas.requests import ChatRequest
 from app.schemas.responses import ChatResponse, ErrorResponse
+from app.services.wardrobe_backend import WardrobeBackendError
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +33,7 @@ async def chat(
     request: ChatRequest,
     graph: WorkflowDep,
     settings: SettingsDep,
+    wardrobe_backend: WardrobeBackendDep,
 ) -> ChatResponse | JSONResponse:
     """Send a user message through the agent workflow.
 
@@ -57,6 +59,45 @@ async def chat(
             detail=str(exc),
         ) from exc
 
+    # Inventory is fetched before the graph run and stored as data in state.
+    # The Firebase token itself never enters graph state or a checkpoint.
+    wardrobe_context: dict[str, Any] = {
+        "available": False,
+        "source": "unavailable",
+        "note": "No profile inventory was supplied for this request.",
+        "items": [],
+    }
+
+    if request.firebase_token and context.profile_id:
+        try:
+            items = await wardrobe_backend.list_items(
+                token=request.firebase_token,
+                profile_id=context.profile_id,
+            )
+            wardrobe_context = {
+                "available": True,
+                "source": "backend",
+                "note": "",
+                "items": [item.as_dict() for item in items],
+            }
+        except WardrobeBackendError as exc:
+            logger.warning(
+                "Inventory retrieval failed thread_id=%s: %s",
+                context.thread_id,
+                exc,
+            )
+            wardrobe_context = {
+                "available": False,
+                "source": "backend_error",
+                "note": str(exc),
+                "items": [],
+            }
+    elif not request.firebase_token:
+        logger.info(
+            "No development backend token supplied thread_id=%s; inventory context unavailable.",
+            context.thread_id,
+        )
+
     initial_state: WardroState = {
         "messages": [HumanMessage(content=request.message)],
         "user_id": context.user_id,
@@ -66,6 +107,7 @@ async def chat(
         "intent": None,
         "selected_agent": None,
         "agent_response": None,
+        "wardrobe_context": wardrobe_context,
         "errors": [],
     }
     config: dict[str, Any] = {"configurable": {"thread_id": context.thread_id}}
@@ -86,7 +128,12 @@ async def chat(
     metadata: dict[str, Any] = {
         "model": settings.ollama_chat_model,
         "persistence": "disabled",
-        "wardrobe_context": "unavailable",
+        "wardrobe_context": (
+            "available"
+            if wardrobe_context.get("available")
+            else wardrobe_context.get("source", "unavailable")
+        ),
+        "wardrobe_item_count": len(wardrobe_context.get("items", [])),
         "identity_source": context.identity_source,
     }
 

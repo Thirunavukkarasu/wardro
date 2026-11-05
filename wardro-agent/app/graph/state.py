@@ -1,6 +1,6 @@
 """Shared LangGraph state for the Wardro AI agent workflow."""
 
-from typing import Annotated, NotRequired, TypedDict
+from typing import Annotated, Any, NotRequired, TypedDict
 
 from langchain_core.messages import BaseMessage
 from langgraph.graph.message import add_messages
@@ -25,4 +25,7 @@ class WardroState(TypedDict):
     intent: NotRequired[Intent | None]
     selected_agent: NotRequired[AgentName | None]
     agent_response: NotRequired[str | None]
+    # Serializable snapshot of the profile inventory. The Firebase token used
+    # to fetch it is deliberately not part of graph state or checkpoints.
+    wardrobe_context: NotRequired[dict[str, Any] | None]
     errors: list[str]

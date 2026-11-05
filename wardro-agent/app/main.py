@@ -16,6 +16,7 @@ from app.graph.workflow import build_workflow
 from app.logging_config import configure_logging
 from app.schemas.responses import HealthResponse, OllamaHealthResponse
 from app.services.ollama_provider import OllamaProvider
+from app.services.wardrobe_backend import WardrobeBackendClient
 
 logger = logging.getLogger(__name__)
 
@@ -51,6 +52,7 @@ def create_app(
         application.state.settings = app_settings
         application.state.ollama_provider = ollama_provider
         application.state.wardrobe_graph = workflow
+        application.state.wardrobe_backend = WardrobeBackendClient(app_settings)
 
         if app_settings.is_development:
             logger.warning(
