@@ -1,0 +1,53 @@
+[project]
+name = "wardro-ai"
+version = "0.1.0"
+description = "Wardro AI Agent Service"
+readme = "README.md"
+authors = [
+    { name = "swatiswa", email = "swati.gu11@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.162.0",
+    "httpx>=0.28.1",
+    "langchain>=1.4.8",
+    "langchain-core>=1.7.4",
+    "langchain-ollama>=1.1.0",
+    "langgraph>=1.2.19",
+    "langgraph-checkpoint>=4.3.1",
+    "pydantic-settings>=2.16.2",
+    "python-multipart>=0.0.33",
+    "uvicorn[standard]>=0.54.0",
+]
+
+[project.scripts]
+wardro-ai = "wardro_ai:main"
+
+[build-system]
+requires = ["uv_build>=0.13.7,<0.14.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "mypy>=2.4.1",
+    "pytest>=9.2.0",
+    "pytest-asyncio>=1.4.1.post1",
+    "pytest-cov>=7.1.0",
+    "ruff>=0.17.3",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+pythonpath = ["."]
+testpaths = ["tests"]

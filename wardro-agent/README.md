@@ -1,0 +1,426 @@
+# Wardro AI — Agent Service
+
+Local-first, family wardrobe management and AI styling. This directory contains the
+Python AI agent service: a FastAPI application that routes chat requests through a
+LangGraph workflow to specialised agents backed by local Ollama models.
+
+**No cloud LLM providers are used.** All inference runs against a local Ollama server.
+
+## Milestone 1 status
+
+Implemented:
+
+- FastAPI application with `GET /health`, `GET /health/ollama`, and `POST /api/v1/chat`.
+- Typed configuration via Pydantic Settings (`.env` + environment variables).
+- Shared async Ollama provider built on `ChatOllama`, with separate chat and vision
+  model configuration, model availability checks, and graceful connection errors.
+- LangGraph `StateGraph` with input validation, intent classification, deterministic
+  agent routing, four agents, and response formatting.
+- Intent classifier: keyword rules for common requests, LLM structured classification
+  for ambiguous messages, safe `general_advice` fallback.
+- Conversation `thread_id` accepted end-to-end and passed to the graph.
+- 59 tests that run without an Ollama server, plus Ruff lint/format checks.
+- A minimal Expo/React Native test client in the sibling `../mobile-agent-ui/`
+  directory that runs in a browser via React Native Web and calls the chat API.
+
+Not implemented in this milestone (see [Limitations](#current-limitations)): real
+wardrobe data, authentication middleware, conversation persistence, image analysis,
+tool execution, and RAG.
+
+## Architecture
+
+```text
+FastAPI (app/api, app/main.py)
+    │  validated request (Pydantic)
+    ▼
+Policies (app/policies/access_control.py)
+    │  trusted user/household/profile context
+    ▼
+LangGraph workflow (app/graph/workflow.py)
+    START
+      │
+      ▼
+    validate_input ──(error)──► format_response ──► END
+      │
+      ▼
+    classify_intent        keyword rules, then LLM structured output
+      │
+      ▼
+    select_agent           deterministic intent → agent map
+      │
+      ├── wardrobe_analyst
+      ├── outfit_stylist
+      ├── vision_analyst
+      └── wardrobe_advisor
+      │
+      ▼
+    format_response ──► END
+      │
+      ▼
+OllamaProvider (app/services/ollama_provider.py) ──► local Ollama
+```
+
+Key boundaries:
+
+- **API layer** (`app/api`) owns HTTP contracts and error mapping.
+- **Graph layer** (`app/graph`) owns state, nodes, routing, and workflow assembly.
+- **Agent layer** (`app/agents`) owns role prompts and agent behaviour.
+- **Service layer** (`app/services`) owns LLM construction and error translation.
+- **Policy layer** (`app/policies`) owns trusted-context resolution.
+- **Schemas** (`app/schemas`) define request/response models.
+
+Dependencies are injected: the provider and compiled graph live on `app.state`, and
+nodes receive their dependencies from the workflow factory. Nothing is initialised in
+module-level mutable globals, and agents never construct LLM clients themselves.
+
+### Intent → agent mapping
+
+| Intent | Agent |
+|---|---|
+| `wardrobe_analysis` | `wardrobe_analyst` |
+| `outfit_recommendation` | `outfit_stylist` |
+| `image_analysis` | `vision_analyst` |
+| `general_advice` | `wardrobe_advisor` |
+
+## Prerequisites
+
+- Python **3.12**
+- [uv](https://docs.astral.sh/uv/) (package and dependency management)
+- [Ollama](https://ollama.com/) running locally
+
+## Quick start
+
+### 1. Install uv
+
+```bash
+# macOS / Linux
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# or with Homebrew
+brew install uv
+```
+
+### 2. Install dependencies
+
+```bash
+cd wardro-agent
+uv sync
+```
+
+`uv sync` creates `.venv` from the pinned `uv.lock` and installs the project itself.
+
+### 3. Install and start Ollama
+
+```bash
+# macOS
+brew install ollama
+# or: https://ollama.com/download
+
+ollama serve
+```
+
+In a second terminal, pull the configured models:
+
+```bash
+ollama pull qwen3
+ollama pull qwen3-vl
+
+# Verify
+ollama list
+curl -s http://localhost:11434/api/tags
+```
+
+The models are **not** assumed to be pre-installed. If you use different tags, update
+`OLLAMA_CHAT_MODEL` / `OLLAMA_VISION_MODEL` in `.env`. Use the exact tag you pulled: an
+untagged name such as `qwen3` means `qwen3:latest` to Ollama, not `qwen3:4b`.
+`GET /health/ollama` reports which configured models are missing.
+
+Qwen3.5 models default to thinking mode, which can spend the whole `OLLAMA_NUM_PREDICT`
+budget before producing an answer and can make structured JSON classification return
+empty output. `OLLAMA_DISABLE_THINKING=true` sends `think: false` to Ollama. If you use a
+model that ignores that flag (some Qwen3 tags do), set it to `false`.
+
+### 4. Configure the environment
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env` if your Ollama URL, models, or backend URLs differ. `.env` is gitignored;
+`.env.example` documents every supported variable.
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `APP_NAME` | `Wardro AI` | Application title |
+| `APP_ENV` | `development` | `development`, `test`, `staging`, or `production` |
+| `DEBUG` | `false` | Exposes internal error detail in API responses |
+| `LOG_LEVEL` | `INFO` | Root log level (JSON logs) |
+| `API_V1_PREFIX` | `/api/v1` | API route prefix |
+| `OLLAMA_BASE_URL` | `http://localhost:11434` | Ollama server URL |
+| `OLLAMA_CHAT_MODEL` | `qwen3` | Chat/instruct model |
+| `OLLAMA_VISION_MODEL` | `qwen3-vl` | Vision model (reserved; not used yet) |
+| `OLLAMA_TEMPERATURE` | `0.2` | Sampling temperature |
+| `OLLAMA_NUM_PREDICT` | `1024` | Maximum generated tokens |
+| `OLLAMA_DISABLE_THINKING` | `true` | Send `think: false`; prevents reasoning from consuming the output budget |
+| `OLLAMA_REQUEST_TIMEOUT` | `120` | LLM request timeout (seconds) |
+| `OLLAMA_HEALTH_TIMEOUT` | `5` | Health check timeout (seconds) |
+| `MAX_MESSAGE_LENGTH` | `8000` | Maximum user message length |
+| `MAX_HISTORY_MESSAGES` | `10` | Prior messages forwarded to an agent |
+| `CORS_ORIGINS` | `localhost:8081`, `127.0.0.1:8081`, `localhost:19006`, … | Comma-separated browser origins allowed to call the API |
+| `CORS_ORIGIN_REGEX` | `^https?://(localhost\|127\.0\.0\.1)(:\d+)?$` | Development-only regex that also permits any localhost port |
+| `DATABASE_URL` | — | Reserved for the persistence milestone |
+| `BACKEND_API_URL` | `http://localhost:3000` | Wardrobe backend (not called yet) |
+
+### 5. Start the API
+
+```bash
+uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+OpenAPI docs: <http://localhost:8000/docs>
+
+## API examples
+
+### Health
+
+```bash
+curl -s http://localhost:8000/health | jq
+```
+
+```json
+{
+  "status": "healthy",
+  "service": "wardro-ai",
+  "version": "0.1.0",
+  "environment": "development"
+}
+```
+
+### Ollama health
+
+```bash
+curl -s http://localhost:8000/health/ollama | jq
+```
+
+Returns `200` when Ollama is reachable (status `ok` or `degraded` if a configured
+model is missing) and `503` when Ollama cannot be reached.
+
+### Chat
+
+```bash
+curl -s -X POST http://localhost:8000/api/v1/chat \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "message": "What should I wear for a wedding?",
+    "thread_id": "thread-123",
+    "user_id": "user-123",
+    "household_id": "family-123",
+    "profile_id": "profile-123"
+  }' | jq
+```
+
+```json
+{
+  "success": true,
+  "thread_id": "thread-123",
+  "intent": "outfit_recommendation",
+  "agent": "outfit_stylist",
+  "message": "Here are some illustrative suggestions...",
+  "metadata": {
+    "model": "qwen3",
+    "persistence": "disabled",
+    "wardrobe_context": "unavailable",
+    "identity_source": "development_request_body"
+  }
+}
+```
+
+If `thread_id` is omitted, the API generates one (`thread-<uuid>`). If Ollama is down,
+the API returns `503` with a structured `ErrorResponse`; the workflow never crashes the
+process.
+
+## Expo web test client
+
+`../mobile-agent-ui/` contains a small Expo/React Native client that runs in the browser
+via React Native Web. It is a development harness for exercising the API, not the
+production mobile app.
+
+```bash
+# Terminal 1 — from the repository root
+cd wardro-agent
+uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+
+# Terminal 2 — from the repository root
+cd mobile-agent-ui
+nvm use                 # Node 26 LTS (pinned in .nvmrc)
+npm install
+cp .env.example .env.local   # optional
+npm run web
+```
+
+Open <http://localhost:8081>. The client checks `/health` and `/health/ollama`, sends
+messages to `/api/v1/chat`, and displays the returned intent, agent, and model. The
+**Dev context** panel lets you change the API base URL and the development identity
+fields at runtime.
+
+The client does not fake token streaming; it shows a thinking indicator until the
+request completes. See [`../mobile-agent-ui/README.md`](../mobile-agent-ui/README.md) for
+configuration and limitations.
+
+## Security: development-only identity injection
+
+The example `user_id`, `household_id`, and `profile_id` values above are **illustrative
+and unauthenticated**. This milestone has no authentication middleware.
+
+`app/policies/access_control.py` resolves identity as follows:
+
+- `APP_ENV=development`: identity is read from the request body so the API can be
+  exercised locally. Every response metadata block marks the source as
+  `development_request_body`.
+- Any other `APP_ENV`: client-supplied identity is **rejected** with `401`. The service
+  fails closed rather than treating body values as authenticated.
+
+Before deployment, replace this with verified authentication middleware. Agents must
+never infer user identity from LLM output or from the message text.
+
+## Persistence status
+
+`thread_id` is accepted, validated, returned, and passed to LangGraph as
+`config.configurable.thread_id`. **No checkpointer is configured in this milestone, so
+conversations do not persist between requests and the graph has no cross-request
+memory.** The response metadata states `"persistence": "disabled"`.
+
+`app/graph/checkpointer.py` is the single seam for persistence. `build_workflow(...)`
+already accepts a `checkpointer` argument, so enabling persistence will not require
+rewriting workflow nodes. The next milestone will construct an
+`AsyncPostgresSaver` from `DATABASE_URL`, run its schema setup at startup, and return it
+from `build_checkpointer`. Until then, `build_checkpointer` returns `None`.
+
+## Testing
+
+Tests mock the Ollama provider and do not require a running server.
+
+```bash
+uv run pytest -q
+uv run pytest --cov=app
+```
+
+Coverage includes application startup, both health endpoints, provider configuration and
+error translation, every intent classification path, all four routing paths, each agent
+in isolation, full graph execution, unknown-intent fallback, Ollama-unavailable handling,
+validation failures, and API response validation.
+
+## Linting and formatting
+
+```bash
+uv run ruff check .
+uv run ruff format --check .
+uv run ruff format .
+```
+
+## Docker
+
+```bash
+docker build -t wardro-ai .
+docker run --rm -p 8000:8000 \
+  -e OLLAMA_BASE_URL=http://host.docker.internal:11434 \
+  wardro-ai
+```
+
+The Dockerfile was not built as part of this milestone; verify it in your environment.
+Ollama must be reachable from the container (`host.docker.internal` on macOS/Windows,
+or a host network/gateway on Linux).
+
+## Project structure
+
+```text
+wardro/                          # repository root
+├── wardro-agent/                # this service
+│   ├── app/
+│   │   ├── main.py              # create_app(), lifespan, health endpoints
+│   │   ├── config.py            # Pydantic Settings
+│   │   ├── logging_config.py    # JSON structured logging
+│   │   ├── dependencies.py      # FastAPI dependency providers
+│   │   ├── api/
+│   │   │   └── chat.py          # POST /api/v1/chat
+│   │   ├── agents/
+│   │   │   ├── base.py          # shared agent invocation
+│   │   │   ├── prompts.py       # centralised prompts
+│   │   │   ├── wardrobe_analyst.py
+│   │   │   ├── outfit_stylist.py
+│   │   │   ├── vision_analyst.py
+│   │   │   └── wardrobe_advisor.py
+│   │   ├── graph/
+│   │   │   ├── state.py         # typed WardroState
+│   │   │   ├── routing.py       # intents, classifier, intent→agent map
+│   │   │   ├── nodes.py         # graph nodes and conditional edges
+│   │   │   ├── checkpointer.py  # persistence seam (returns None)
+│   │   │   └── workflow.py      # build_workflow() factory
+│   │   ├── services/
+│   │   │   └── ollama_provider.py   # ChatOllama construction, errors, health
+│   │   ├── tools/
+│   │   │   └── wardrobe_tools.py    # explicit unavailable wardrobe context
+│   │   ├── vision/
+│   │   │   ├── image_analyzer.py    # not-yet-available analyser
+│   │   │   └── schemas.py
+│   │   ├── policies/
+│   │   │   └── access_control.py    # trusted context / dev injection
+│   │   └── schemas/
+│   │       ├── requests.py
+│   │       └── responses.py
+│   ├── src/
+│   │   └── wardro_ai/
+│   │       └── __init__.py      # `wardro-ai` console entry point
+│   ├── tests/
+│   ├── pyproject.toml
+│   ├── uv.lock
+│   ├── Dockerfile
+│   ├── .env.example
+│   └── README.md
+└── mobile-agent-ui/             # Expo/React Native Web test client
+    ├── App.tsx
+    ├── src/
+    │   ├── api.ts               # typed fetch client and error parsing
+    │   ├── config.ts            # EXPO_PUBLIC_* defaults
+    │   └── types.ts
+    └── README.md
+```
+
+## Current limitations
+
+- **No authentication.** Identity is trusted from the request body only in development;
+  production rejects it. Auth middleware is the next security milestone.
+- **No conversation persistence.** `thread_id` is plumbing only until a checkpointer is
+  configured. Conversations do not survive between requests.
+- **No real wardrobe inventory.** `get_wardrobe_context` explicitly returns unavailable
+  context, and prompts forbid agents from inventing garments. Outfit suggestions are
+  labelled as illustrative when no wardrobe data exists.
+- **Vision is a placeholder.** The vision agent explains that image analysis arrives
+  next milestone; it never claims to have seen an image.
+- **No tool execution, RAG, embeddings, or multi-agent supervision.** The classifier
+  only returns an intent and never executes tools.
+- **Wardrobe/images routers, the backend client, and outfit/history tools are deferred.**
+  They are added together with the features they serve rather than shipped as empty
+  endpoints or disguised placeholders.
+- **Single-turn agents.** Without a checkpointer, each request carries only its own
+  message (plus any history explicitly supplied in state).
+- **The Expo client is a development test harness.** It has no authentication or
+  secure token storage, uses request-body identity, and does not stream tokens. It is
+  intended for local browser testing only.
+- **Thinking models can emit reasoning text** and run slowly on CPU-only machines.
+  `OLLAMA_DISABLE_THINKING=true` sends `think: false`; if a model ignores that flag,
+  set it to `false` and reasoning stays in the model's separate thinking channel.
+  Adjust `OLLAMA_TEMPERATURE`, `OLLAMA_NUM_PREDICT`, or choose a smaller model as needed.
+
+## Next milestones
+
+1. **Authentication and authorization** — verified identity middleware, household
+   membership checks, removal of development identity injection.
+2. **Wardrobe backend integration** — `BackendClient`, real inventory retrieval, and
+   wardrobe tools used by the analyst and stylist agents.
+3. **Vision pipeline** — image upload/URL handling with `qwen3-vl` and structured
+   garment extraction.
+4. **Persistence** — PostgreSQL checkpointer, conversation history per thread,
+   retention policy.
+5. **Retrieval and richer styling** — wardrobe embeddings/RAG, deterministic outfit
+   composition, and only then multi-agent collaboration.
