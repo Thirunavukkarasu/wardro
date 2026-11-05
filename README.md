@@ -40,7 +40,10 @@ cd website && npm install && npm run dev -- -p 3001
 The API talks to Postgres through Drizzle, so local development only needs a
 `DATABASE_URL` (any Postgres). The React Native app reads its Firebase and API
 configuration from `mobile-rn/.env` (see `mobile-rn/.env.example`); see
-`mobile-rn/README.md` for the app architecture and `backend/README.md` for
+`mobile-rn/README.md` for the app architecture,
+`mobile-rn/docs/screen-architecture.md` for the agreed navigation/screen
+structure and phasing, and `mobile-rn/docs/design/` for screen blueprints,
+component specs, and design references. `backend/README.md` covers
 build/deploy details.
 
 ## Deployment

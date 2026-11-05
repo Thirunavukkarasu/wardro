@@ -85,10 +85,19 @@ message instead of prompting.
 | `app/(root)/wardrobe/[id].tsx` | One wardrobe's photo grid |
 | `app/(root)/item/[id].tsx` | Item hero, details and delete |
 
-Navigation is four bottom tabs — **Home / Wardrobes / Items / Profile** — with
-the camera FAB as the global add-item action. There is deliberately no
-hamburger drawer: primary destinations stay visible and thumb-reachable.
-`app/(root)/(tabs)/_layout.tsx` owns the tab bar and FAB.
+Navigation currently uses four bottom tabs — **Home / Wardrobes / Items /
+Profile** — with the camera FAB as the global add-item action. There is
+deliberately no hamburger drawer: primary destinations stay visible and
+thumb-reachable. `app/(root)/(tabs)/_layout.tsx` owns the tab bar and FAB.
+
+The agreed target structure consolidates this into **Today / Closet /
+Profile**, then adds **Create** and **Calendar** as those features ship. See
+[`docs/screen-architecture.md`](docs/screen-architecture.md) for the full
+screen inventory, principles, migration plan, and rationale.
+
+Visual direction, per-screen blueprints, reusable component specs, and the
+reference images that informed them are in
+[`docs/design/README.md`](docs/design/README.md).
 
 Every pushed screen uses the shared `components/AppHeader.tsx` (44px back
 target, title, optional right action). Add forms use
@@ -99,15 +108,24 @@ Flutter `MobileFrame`.
 
 ## Roadmap
 
-Chosen priorities, in implementation order:
+The agreed target IA, screen inventory, and migration steps live in
+[`docs/screen-architecture.md`](docs/screen-architecture.md). In execution
+order:
 
-1. **Navigation shell** — 4 tabs, shared headers/back buttons, sticky form footers. ✅
+1. **Navigation shell** — current 4 tabs, shared headers/back buttons, sticky
+   form footers. ✅
 2. **Search & filters** — text search plus wardrobe chips on Items. ✅
-3. **Edit items & wardrobes** — update details and replace photos (needs
+3. **Closet consolidation** — rename Home → Today; merge Wardrobes + Items
+   into one Closet tab with wardrobe filters. Next.
+4. **Edit items & wardrobes** — update details and replace photos (needs
    `PATCH` routes and a pre-filled form mode).
-4. **Favorites & wear tracking** — favourite flags and wear logs, then
-   cost-per-wear/Insights.
-5. **Outfits & calendar** — compose outfits and plan them by date.
+5. **Favorites & wear tracking** — favourite flags and wear logs; the data
+   foundation for analytics and suggestions.
+6. **Outfits** — builder + saved library; becomes the 4th tab when real.
+   Planner starts as a Library/Planner segment inside Outfits.
+7. **Planner** — promote the calendar to a 5th tab only if usage justifies it.
+8. **Weather, suggestions & analytics** — Today cards plus a full analytics
+   screen, backed by wear data and an opt-in weather location.
 
 ## Backend endpoints used
 
