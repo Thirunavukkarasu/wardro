@@ -2,6 +2,8 @@
 
 Wardro is a wardrobe management app that helps users to keep track of their clothes and outfits. Users can add, edit, and delete clothes, create outfits, and view their clothes and outfits in a calendar view. Wardro also provides a weather forecast for the next 7 days to help users plan their outfits.
 
+New contributors and AI agents should start at [`AGENTS.md`](AGENTS.md), which maps every area of the repository to its documentation and records the architectural invariants.
+
 ## Features
 
 - Add, edit, and delete clothes
