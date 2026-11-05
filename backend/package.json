@@ -14,8 +14,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
-    "seed:demo": "bun run scripts/seed-demo.mjs",
-    "seed:demo:dry": "bun run scripts/seed-demo.mjs --dry-run"
+    "seed:demo": "bun run ../scripts/seed-demo.mjs",
+    "seed:demo:dry": "bun run ../scripts/seed-demo.mjs --dry-run"
   },
   "dependencies": {
     "@google-cloud/cloud-sql-connector": "^1.12.1",

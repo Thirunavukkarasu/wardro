@@ -262,5 +262,5 @@ Two more corrections that matter in practice:
    exercise the same tables and constraints without model latency.
 
 See [`data-model-assessment.md`](./data-model-assessment.md) for the concrete
-schema plan and [`../../datasets/wardrobe-simulation/`](../../datasets/wardrobe-simulation/)
+schema plan and [`../../scripts/datasets/wardrobe-simulation/`](../../scripts/datasets/wardrobe-simulation/)
 for the dataset used to test it.

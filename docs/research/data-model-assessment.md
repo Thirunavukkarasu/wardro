@@ -10,7 +10,7 @@ tables**, not a broken core. Extend the schema additively; do not rename tables
 or rewrite the profile relationship.
 
 This assessment uses the 24-item, 4-profile dataset in
-[`datasets/wardrobe-simulation/`](../../datasets/wardrobe-simulation/). The
+[`scripts/datasets/wardrobe-simulation/`](../../scripts/datasets/wardrobe-simulation/). The
 seed imports only columns that exist today; the rest of the manifest is the
 evidence for the proposals below.
 
@@ -528,6 +528,6 @@ core ownership model. This is an additive evolution, not a rebuild.
 ## Related
 
 - [Notion research synthesis](./notion-synthesis.md)
-- [Simulation dataset README](../../datasets/wardrobe-simulation/README.md)
+- [Simulation dataset README](../../scripts/datasets/wardrobe-simulation/README.md)
 - [Multi-profile implementation notes](../../mobile-rn/docs/multi-profile.md)
 - [Screen architecture](../../mobile-rn/docs/screen-architecture.md)

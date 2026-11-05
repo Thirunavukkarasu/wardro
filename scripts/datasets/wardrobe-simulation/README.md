@@ -24,7 +24,7 @@ data-model experiments — not production content.
 ## Layout
 
 ```
-datasets/wardrobe-simulation/
+scripts/datasets/wardrobe-simulation/
 ├── manifest.json          # profiles → wardrobes → items + source metadata
 ├── ATTRIBUTIONS.md        # per-image creator, license and source page
 ├── README.md
@@ -137,11 +137,11 @@ DEMO_BASE_URL=http://localhost:3000/demo npm run seed:demo
 
 The current schema is intentionally lean: items know a name, category, colour,
 size, brand, price, state and photo. The AI research in
-[`docs/research/`](../../docs/research/) argues for structured attributes so the
+[`docs/research/`](../../../docs/research/) argues for structured attributes so the
 recommendation engine can reason about formality, season, material and fit
 without re-parsing free text. The manifest includes those fields to make that
 discussion concrete and to test whether they belong on `wardrobe_item` or in a
 separate `wardrobe_item_analysis` row.
 
-See [`docs/research/data-model-assessment.md`](../../docs/research/data-model-assessment.md)
+See [`docs/research/data-model-assessment.md`](../../../docs/research/data-model-assessment.md)
 for the schema recommendations derived from this dataset.

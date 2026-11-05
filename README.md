@@ -16,10 +16,13 @@ New contributors and AI agents should start at [`AGENTS.md`](AGENTS.md), which m
 | Directory | Stack | Status |
 | --- | --- | --- |
 | `mobile-rn/` | Expo SDK 51 / React Native | Primary app — Firebase auth (email/password + Google), per-user data, photo-first UI |
-| `mobile/` | Flutter 3.47 | Port kept for reference — same Firebase auth and API, no longer the target app |
 | `backend/` | Bun + Hono + Drizzle, built to Node | API with Firebase ID-token verification; deployed to App Hosting |
+| `backend/api-tests/` | Bruno collections | Manual API testing |
+| `scripts/` | Bun/Node tooling + fixtures | Seed script and four-profile simulation dataset |
+| `wardro-agent/` | Python 3.12 + FastAPI + LangGraph + Ollama | Agent service (Milestone 1; not yet wired to live wardrobe data) |
+| `mobile-agent-ui/` | Expo web | Agent-service test console |
 | `website/` | Next.js 14 + Tailwind | Marketing site |
-| `api-tests/` | Bruno collections | Manual API testing |
+| `mobile/` | Flutter 3.47 | Port kept for reference — same Firebase auth and API, no longer the target app |
 
 ## Running
 
@@ -35,6 +38,13 @@ cd mobile-rn && npm install && npm run web
 # React Native app (iOS / Android dev build)
 cd mobile-rn && npm start
 
+# LangChain agent service → http://localhost:8000 (requires Ollama)
+cd wardro-agent && uv sync
+uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+
+# Agent test console → http://localhost:8082 (use a free port if 8081 is taken)
+cd mobile-agent-ui && npm install && npm run web -- --port 8082
+
 # Marketing site → http://localhost:3001
 cd website && npm install && npm run dev -- -p 3001
 ```
@@ -49,8 +59,10 @@ component specs, and design references. The shared visual language (Warm
 Neutral + Muted Olive) is documented in [`docs/design-system/`](docs/design-system/README.md).
 Research notes and the Notion synthesis live in [`docs/research/`](docs/research/README.md);
 the four-profile simulation dataset is in
-[`datasets/wardrobe-simulation/`](datasets/wardrobe-simulation/README.md).
-`backend/README.md` covers build/deploy details.
+[`scripts/datasets/wardrobe-simulation/`](scripts/datasets/wardrobe-simulation/README.md).
+`backend/README.md` covers build/deploy details, and
+`wardro-agent/README.md` covers the LangChain agent service and its current
+integration status.
 
 ## Deployment
 
@@ -71,6 +83,7 @@ the four-profile simulation dataset is in
 - React Native (Expo Router) + Firebase Authentication + Firebase Storage
 - Bun + Hono API (bundled to a Node server)
 - Drizzle ORM + Postgres (provider-agnostic)
+- Python 3.12 + FastAPI + LangGraph agent service (local Ollama inference)
 - Firebase Storage
 - Firebase App Hosting
 - Next.js + Tailwind CSS

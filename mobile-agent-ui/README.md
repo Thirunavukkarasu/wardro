@@ -31,9 +31,11 @@ nvm use                 # Node 26 LTS (pinned in .nvmrc)
 npm install
 cp .env.example .env.local   # optional; defaults match the backend
 npm run web
+# If the main mobile-rn app is already using 8081:
+# npm run web -- --port 8082
 ```
 
-Open <http://localhost:8081>. The header should show **API online · Ollama ready**.
+Open <http://localhost:8081> (or 8082). The header should show **API online · Ollama ready**.
 
 The backend's development CORS defaults already allow any `localhost` or
 `127.0.0.1` port. If you serve the client from another origin, add it to

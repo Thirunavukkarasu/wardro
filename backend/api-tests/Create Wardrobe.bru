@@ -1,0 +1,26 @@
+meta {
+  name: Create Wardrobe
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{BASE_API_URL}}/wardrobes
+  body: json
+  auth: bearer
+}
+
+headers {
+  X-Profile-Id: {{PROFILE_ID}}
+}
+
+body:json {
+  {
+    "name": "School",
+    "description": "School-day kit"
+  }
+}
+
+auth:bearer {
+  token: {{FIREBASE_ID_TOKEN}}
+}

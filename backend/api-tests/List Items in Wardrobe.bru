@@ -1,0 +1,19 @@
+meta {
+  name: List Items in Wardrobe
+  type: http
+  seq: 8
+}
+
+get {
+  url: {{BASE_API_URL}}/wardrobeItems/{{WARDROBE_ID}}
+  body: none
+  auth: bearer
+}
+
+headers {
+  X-Profile-Id: {{PROFILE_ID}}
+}
+
+auth:bearer {
+  token: {{FIREBASE_ID_TOKEN}}
+}

@@ -33,4 +33,4 @@ These are internal product-design notes, not third-party open-source
 documentation. Do not republish them outside the project without checking with
 the owner. The image sources used by the simulation dataset are documented
 separately in
-[`../../../datasets/wardrobe-simulation/ATTRIBUTIONS.md`](../../../datasets/wardrobe-simulation/ATTRIBUTIONS.md).
+[`../../../scripts/datasets/wardrobe-simulation/ATTRIBUTIONS.md`](../../../scripts/datasets/wardrobe-simulation/ATTRIBUTIONS.md).

@@ -1,0 +1,22 @@
+meta {
+  name: Create Profile
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{BASE_API_URL}}/profiles
+  body: json
+  auth: bearer
+}
+
+body:json {
+  {
+    "name": "Arush",
+    "color": "#66846B"
+  }
+}
+
+auth:bearer {
+  token: {{FIREBASE_ID_TOKEN}}
+}

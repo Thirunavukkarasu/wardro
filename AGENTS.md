@@ -21,7 +21,11 @@ Do not merge the two trees. Link across them instead.
 | Notion synthesis: AI architecture, taxonomy, corrections | [`docs/research/notion-synthesis.md`](docs/research/notion-synthesis.md) |
 | Schema review and phased migration plan | [`docs/research/data-model-assessment.md`](docs/research/data-model-assessment.md) |
 | Original Notion exports (reference only) | [`docs/research/sources/README.md`](docs/research/sources/README.md) |
-| Four-profile simulation dataset and seed workflow | [`datasets/wardrobe-simulation/README.md`](datasets/wardrobe-simulation/README.md) |
+| Four-profile simulation dataset and seed workflow | [`scripts/datasets/wardrobe-simulation/README.md`](scripts/datasets/wardrobe-simulation/README.md) |
+| Repo-level tooling and fixtures | [`scripts/README.md`](scripts/README.md) |
+| LangChain agent service: status, run, integration gaps | [`wardro-agent/README.md`](wardro-agent/README.md) |
+| Agent test client (Expo web) | [`mobile-agent-ui/README.md`](mobile-agent-ui/README.md) |
+| Manual API requests (Bruno, token setup) | [`backend/api-tests/README.md`](backend/api-tests/README.md) |
 | Mobile app setup and architecture | [`mobile-rn/README.md`](mobile-rn/README.md) |
 | Screen/navigation plan and phasing | [`mobile-rn/docs/screen-architecture.md`](mobile-rn/docs/screen-architecture.md) |
 | Household profiles: schema, API, UI, migration | [`mobile-rn/docs/multi-profile.md`](mobile-rn/docs/multi-profile.md) |
@@ -39,10 +43,13 @@ blueprints and references; the tokens and shared component rules live in
 | --- | --- | --- |
 | `mobile-rn/` | Expo SDK 51 / React Native | Primary app |
 | `backend/` | Bun + Hono + Drizzle, bundled to Node | API and system of record |
-| `datasets/wardrobe-simulation/` | JSON + JPEG fixtures | Demo/test dataset |
+| `backend/api-tests/` | Bruno collections | Manual API tests |
+| `scripts/` | Node/Bun tooling + fixtures | Seed script and simulation dataset |
+| `scripts/datasets/wardrobe-simulation/` | JSON + JPEG fixtures | Demo/test dataset |
+| `wardro-agent/` | FastAPI + LangGraph + Ollama | Agent service, Milestone 1 (not yet wired to live data) |
+| `mobile-agent-ui/` | Expo web test client | Agent-service console |
 | `docs/` | Markdown | Shared design and research |
 | `website/` | Next.js 14 | Marketing site |
-| `api-tests/` | Bruno collections | Manual API tests |
 | `mobile/` | Flutter 3.47 | Reference port only; do not extend |
 
 ## Commands
@@ -57,9 +64,17 @@ cd mobile-rn && npm install && npm run web
 # Native dev build
 cd mobile-rn && npm start
 
+# Agent service → http://localhost:8000 (requires Ollama)
+cd wardro-agent && uv sync
+uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+
+# Agent test client (use 8082 when mobile-rn is already on 8081)
+cd mobile-agent-ui && npm install && npm run web -- --port 8082
+
 # Typecheck
 cd mobile-rn && npm run typecheck
 cd backend && bunx tsc --noEmit
+cd wardro-agent && uv run ruff check . && uv run pytest
 ```
 
 The backend has one known, unrelated type error in `src/db.ts`
@@ -89,7 +104,7 @@ DEMO_BASE_URL=http://localhost:3000/demo bun run seed:demo
 The seeder is additive and idempotent: it reuses/renames the default profile
 as **Tiru**, moves the old “Swati’s” wardrobe to **Swati**, and never deletes
 rows. The dataset's images are licensed individually; keep
-[`datasets/wardrobe-simulation/ATTRIBUTIONS.md`](datasets/wardrobe-simulation/ATTRIBUTIONS.md)
+[`scripts/datasets/wardrobe-simulation/ATTRIBUTIONS.md`](scripts/datasets/wardrobe-simulation/ATTRIBUTIONS.md)
 with any redistributed copy.
 
 ## Architecture invariants

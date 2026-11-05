@@ -1,0 +1,19 @@
+meta {
+  name: Wardrobe Summary
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{BASE_API_URL}}/wardrobes/summary
+  body: none
+  auth: bearer
+}
+
+headers {
+  X-Profile-Id: {{PROFILE_ID}}
+}
+
+auth:bearer {
+  token: {{FIREBASE_ID_TOKEN}}
+}

@@ -1,0 +1,26 @@
+meta {
+  name: Update Item
+  type: http
+  seq: 10
+}
+
+patch {
+  url: {{BASE_API_URL}}/wardrobeItems/{{ITEM_ID}}
+  body: json
+  auth: bearer
+}
+
+headers {
+  X-Profile-Id: {{PROFILE_ID}}
+}
+
+body:json {
+  {
+    "color": "Navy",
+    "size": "9Y"
+  }
+}
+
+auth:bearer {
+  token: {{FIREBASE_ID_TOKEN}}
+}

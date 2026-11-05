@@ -1,0 +1,32 @@
+meta {
+  name: Create Item
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{BASE_API_URL}}/wardrobeItems
+  body: json
+  auth: bearer
+}
+
+headers {
+  X-Profile-Id: {{PROFILE_ID}}
+}
+
+body:json {
+  {
+    "wardrobeId": {{WARDROBE_ID}},
+    "itemName": "Blue Cotton T-Shirt",
+    "photoUri": "http://localhost:3000/demo/images/arush-blue-tee.jpg",
+    "price": 700,
+    "brand": "Playhouse",
+    "category": "Tops",
+    "color": "Blue",
+    "size": "8Y"
+  }
+}
+
+auth:bearer {
+  token: {{FIREBASE_ID_TOKEN}}
+}

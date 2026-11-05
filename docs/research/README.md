@@ -11,7 +11,7 @@ material, separate it from decisions, and make the reasoning auditable.
 | [`notion-synthesis.md`](./notion-synthesis.md) | Distilled architecture, data-model and AI ideas from two Notion exports, with corrections against the shipped code | Reference |
 | [`data-model-assessment.md`](./data-model-assessment.md) | Concrete schema review prompted by the simulation dataset; phased, additive migrations | Recommendation |
 | [`sources/`](./sources/) | Verbatim Notion exports, kept for provenance | Reference only |
-| [`../../datasets/wardrobe-simulation/`](../../datasets/wardrobe-simulation/) | Four-profile, 24-item image dataset with rich metadata | Test fixture |
+| [`../../scripts/datasets/wardrobe-simulation/`](../../scripts/datasets/wardrobe-simulation/) | Four-profile, 24-item image dataset with rich metadata | Test fixture |
 
 ## The short version
 
@@ -53,7 +53,7 @@ cd backend
 DEMO_BASE_URL=http://localhost:3000/demo npm run seed:demo
 ```
 
-See the [dataset README](../../datasets/wardrobe-simulation/README.md) for the
+See the [dataset README](../../scripts/datasets/wardrobe-simulation/README.md) for the
 manifest shape, licensing and seeding details.
 
 ## Related documentation

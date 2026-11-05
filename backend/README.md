@@ -33,16 +33,25 @@ container, or Cloud SQL through the proxy/connector. There is no database
 provider SDK in the application path; switching providers is a connection
 string change.
 
+### Bruno API collection
+
+Manual API requests live in [`api-tests/`](api-tests/). Open that folder as a
+Bruno collection; the `Local` environment points at
+`http://localhost:3000/api`. The collection covers the current user, profiles,
+wardrobes and wardrobe items, with bearer-token auth and `X-Profile-Id` headers.
+See [`api-tests/README.md`](api-tests/README.md) for getting a Firebase test
+token and the recommended request order.
+
 ### Simulation dataset
 
 The checked-in dataset at
-[`datasets/wardrobe-simulation/`](../datasets/wardrobe-simulation/README.md)
+[`scripts/datasets/wardrobe-simulation/`](../scripts/datasets/wardrobe-simulation/README.md)
 is served read-only under `http://localhost:3000/demo/...`:
 
 - Images: `/demo/images/<item-key>.jpg`
 - Manifest: `/demo/manifest.json`
-- Source root: the repository's dataset directory, or `DEMO_IMAGES_DIR` if set.
-  Deployment images that do not include the dataset simply return 404s.
+- Source root: `scripts/datasets/wardrobe-simulation`, or `DEMO_IMAGES_DIR` if
+  set. Deployment images that do not include the dataset simply return 404s.
 
 Seed the four demo profiles (Tiru, Swati, Arush, Adiran) with the current
 owner account:

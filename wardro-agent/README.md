@@ -6,6 +6,31 @@ LangGraph workflow to specialised agents backed by local Ollama models.
 
 **No cloud LLM providers are used.** All inference runs against a local Ollama server.
 
+## Where this fits
+
+This is the LangChain service in the architecture described in
+[`docs/research/notion-synthesis.md`](../docs/research/notion-synthesis.md): a
+separate Python process for intent routing, styling and vision, called by Bun
+after Firebase authentication. Bun remains the system of record. This service
+must not write wardrobe data; it reads through authorized backend APIs and
+returns drafts that the user confirms.
+
+| Capability | Milestone 1 status |
+| --- | --- |
+| FastAPI API, LangGraph workflow, four agents, Ollama provider | Implemented |
+| Intent classification, deterministic routing, structured errors | Implemented |
+| Health, model availability, 59 tests, Ruff checks | Implemented |
+| Firebase auth / internal JWT from Bun | Not wired — development-only body identity |
+| Real wardrobe inventory | Not wired — `get_wardrobe_context` returns unavailable |
+| Conversation persistence | Not wired — checkpointer returns `None` |
+| Vision/image upload | Placeholder — no image is sent to a model |
+| Bun proxy at `/api/ai/*` | Not implemented |
+
+The fixture for the first real inventory retrieval is the four-profile
+[simulation dataset](../scripts/datasets/wardrobe-simulation/README.md). The
+schema attributes it exposes are analysed in
+[`docs/research/data-model-assessment.md`](../docs/research/data-model-assessment.md).
+
 ## Milestone 1 status
 
 Implemented:
@@ -23,9 +48,10 @@ Implemented:
 - A minimal Expo/React Native test client in the sibling `../mobile-agent-ui/`
   directory that runs in a browser via React Native Web and calls the chat API.
 
-Not implemented in this milestone (see [Limitations](#current-limitations)): real
-wardrobe data, authentication middleware, conversation persistence, image analysis,
-tool execution, and RAG.
+Not implemented in this milestone (see [Limitations](#current-limitations)): the
+Bun→Python authentication proxy, real wardrobe data, conversation persistence,
+image analysis, tool execution, and RAG. The intended integration order is in
+[Next milestones](#next-milestones).
 
 ## Architecture
 
@@ -256,9 +282,11 @@ nvm use                 # Node 26 LTS (pinned in .nvmrc)
 npm install
 cp .env.example .env.local   # optional
 npm run web
+# If mobile-rn is already using 8081:
+# npm run web -- --port 8082
 ```
 
-Open <http://localhost:8081>. The client checks `/health` and `/health/ollama`, sends
+Open <http://localhost:8081> (or 8082). The client checks `/health` and `/health/ollama`, sends
 messages to `/api/v1/chat`, and displays the returned intent, agent, and model. The
 **Dev context** panel lets you change the API base URL and the development identity
 fields at runtime.
@@ -414,10 +442,12 @@ wardro/                          # repository root
 
 ## Next milestones
 
-1. **Authentication and authorization** — verified identity middleware, household
-   membership checks, removal of development identity injection.
-2. **Wardrobe backend integration** — `BackendClient`, real inventory retrieval, and
-   wardrobe tools used by the analyst and stylist agents.
+1. **Bun proxy and internal JWT** — Bun verifies the Firebase token and profile
+   ownership, signs a short-lived internal JWT, and calls this service. Python verifies
+   the JWT and the development-only body identity path is removed. See
+   [`docs/research/notion-synthesis.md`](../docs/research/notion-synthesis.md).
+2. **Wardrobe backend integration** — `BackendClient`, real inventory retrieval for the
+   selected profile, and wardrobe tools used by the analyst and stylist agents.
 3. **Vision pipeline** — image upload/URL handling with `qwen3-vl` and structured
    garment extraction.
 4. **Persistence** — PostgreSQL checkpointer, conversation history per thread,

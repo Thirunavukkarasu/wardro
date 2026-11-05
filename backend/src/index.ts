@@ -44,7 +44,7 @@ app.use(
 const demoRoot = process.env.DEMO_IMAGES_DIR
     ? path.resolve(process.env.DEMO_IMAGES_DIR)
     : fileURLToPath(
-          new URL('../../datasets/wardrobe-simulation', import.meta.url)
+          new URL('../../scripts/datasets/wardrobe-simulation', import.meta.url)
       )
 
 app.use(

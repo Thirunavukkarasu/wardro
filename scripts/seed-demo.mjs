@@ -19,7 +19,7 @@ import { Pool } from 'pg'
 const here = path.dirname(fileURLToPath(import.meta.url))
 const manifestPath = path.resolve(
     here,
-    '../../datasets/wardrobe-simulation/manifest.json'
+    'datasets/wardrobe-simulation/manifest.json'
 )
 const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'))
 
