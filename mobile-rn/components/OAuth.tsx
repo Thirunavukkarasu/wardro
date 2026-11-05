@@ -1,49 +1,45 @@
-import { useOAuth } from "@clerk/clerk-expo";
 import { router } from "expo-router";
-import { Alert, Image, Text, View } from "react-native";
+import { Image, Text, View } from "react-native";
 
 import CustomButton from "~/components/CustomButton";
 import { icons } from "~/constants";
-import { googleOAuth } from "~/lib/auth";
+import { useAuth } from "~/lib/auth-context";
 
-const OAuth = () => {
-  const { startOAuthFlow } = useOAuth({ strategy: "oauth_google" });
+/** "Log In with Google" block on both auth screens. */
+export default function OAuth() {
+  const { signInWithGoogle, busy } = useAuth();
 
   const handleGoogleSignIn = async () => {
-    const result = await googleOAuth(startOAuthFlow);
-
-    if (result.code === "session_exists") {
-      Alert.alert("Success", "Session exists. Redirecting to home screen.");
+    const signedIn = await signInWithGoogle();
+    if (signedIn) {
       router.replace("/(root)/(tabs)/home");
     }
-
-    Alert.alert(result.success ? "Success" : "Error", result.message);
   };
 
   return (
     <View>
-      <View className="flex flex-row justify-center items-center mt-4 gap-x-3">
-        <View className="flex-1 h-[1px] bg-general-100" />
-        <Text className="text-lg">Or</Text>
-        <View className="flex-1 h-[1px] bg-general-100" />
+      <View className="mt-4 flex-row items-center">
+        <View className="h-px flex-1 bg-line" />
+        <Text className="px-3 text-[15px] font-semibold text-ink-secondary">
+          Or
+        </Text>
+        <View className="h-px flex-1 bg-line" />
       </View>
 
       <CustomButton
         title="Log In with Google"
-        className="mt-5 w-full shadow-none"
-        IconLeft={() => (
+        variant="outline"
+        isLoading={busy}
+        onPress={handleGoogleSignIn}
+        className="mt-5"
+        iconLeft={
           <Image
             source={icons.google}
             resizeMode="contain"
-            className="w-5 h-5 mx-2"
+            style={{ width: 20, height: 20 }}
           />
-        )}
-        bgVariant="outline"
-        textVariant="primary"
-        onPress={handleGoogleSignIn}
+        }
       />
     </View>
   );
-};
-
-export default OAuth;
+}

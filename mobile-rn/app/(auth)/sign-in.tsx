@@ -1,101 +1,122 @@
-import { useSignIn, useUser } from "@clerk/clerk-expo";
-import { Link, router } from "expo-router";
-import { useCallback, useState } from "react";
-import { Alert, Image, ScrollView, Text, View } from "react-native";
+import { router } from "expo-router";
+import { Lock, Mail } from "lucide-react-native";
+import { useState } from "react";
+import {
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
+import AuthFooterLink from "~/components/AuthFooterLink";
 import CustomButton from "~/components/CustomButton";
 import InputField from "~/components/InputField";
 import OAuth from "~/components/OAuth";
-import { icons, images } from "~/constants";
-import { fetchAPI } from "~/lib/fetch";
+import ScreenHero from "~/components/ScreenHero";
+import { useAuth } from "~/lib/auth-context";
 
-const SignIn = () => {
-  const { signIn, setActive, isLoaded } = useSignIn();
-  const { user } = useUser();
+export default function SignInScreen() {
+  const { signIn, busy, error, clearError } = useAuth();
 
-  const [form, setForm] = useState({
-    email: "",
-    password: "",
-  });
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [formError, setFormError] = useState<string | null>(null);
 
-  const onSignInPress = useCallback(async () => {
-    if (!isLoaded) return;
+  const submit = async () => {
+    setFormError(null);
 
-    try {
-      const signInAttempt: any = await signIn.create({
-        identifier: form.email,
-        password: form.password,
-      });
-
-      console.log(JSON.stringify(signInAttempt, null, 2));
-      if (signInAttempt.status === "complete") {
-        const clerkId = signInAttempt.createdUserId;
-        const userProfile = await fetchAPI(`/user/${clerkId}`, {
-          method: "GET",
-        });
-
-        await setActive({ session: signInAttempt.createdSessionId });
-        router.replace("/(root)/(tabs)/home");
-      } else {
-        // See https://clerk.com/docs/custom-flows/error-handling for more info on error handling
-        console.log(JSON.stringify(signInAttempt, null, 2));
-        Alert.alert("Error", "Log in failed. Please try again.");
-      }
-    } catch (err: any) {
-      console.log(JSON.stringify(err, null, 2));
-      Alert.alert("Error", err.errors[0].longMessage);
+    if (!email.trim()) {
+      setFormError("Email is required.");
+      return;
     }
-  }, [isLoaded, form]);
+    if (!email.includes("@")) {
+      setFormError("Enter a valid email.");
+      return;
+    }
+    if (!password) {
+      setFormError("Password is required.");
+      return;
+    }
+
+    const signedIn = await signIn(email, password);
+    if (signedIn) {
+      router.replace("/(root)/(tabs)/home");
+    }
+  };
+
+  const message = formError ?? error;
 
   return (
-    <ScrollView className="flex-1 bg-white">
-      <View className="flex-1 bg-white">
-        <View className="relative w-full h-[250px]">
-          <Image source={images.signUpImg} className="z-0 w-full h-[250px]" />
-          <Text className="text-2xl text-black font-JakartaSemiBold absolute bottom-5 left-5">
-            Welcome 👋
-          </Text>
-        </View>
-
-        <View className="p-5">
-          <InputField
-            label="Email"
-            placeholder="Enter email"
-            icon={icons.email}
-            textContentType="emailAddress"
-            value={form.email}
-            onChangeText={(value) => setForm({ ...form, email: value })}
+    <SafeAreaView className="flex-1 bg-white">
+      <KeyboardAvoidingView
+        className="flex-1"
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{ paddingBottom: 32 }}
+        >
+          <ScreenHero
+            title="Welcome 👋"
+            onBack={() => router.replace("/(auth)/welcome")}
           />
 
-          <InputField
-            label="Password"
-            placeholder="Enter password"
-            icon={icons.lock}
-            secureTextEntry={true}
-            textContentType="password"
-            value={form.password}
-            onChangeText={(value) => setForm({ ...form, password: value })}
-          />
+          <View className="px-5 pt-4">
+            <InputField
+              label="Email"
+              placeholder="Enter email"
+              icon={<Mail size={20} color="#94A3B8" />}
+              autoCapitalize="none"
+              autoComplete="email"
+              keyboardType="email-address"
+              value={email}
+              onChangeText={(value) => {
+                setEmail(value);
+                clearError();
+                setFormError(null);
+              }}
+            />
 
-          <CustomButton
-            title="Sign In"
-            onPress={onSignInPress}
-            className="mt-6"
-          />
+            <InputField
+              label="Password"
+              placeholder="Enter password"
+              icon={<Lock size={20} color="#94A3B8" />}
+              secureTextEntry
+              autoComplete="password"
+              value={password}
+              onChangeText={(value) => {
+                setPassword(value);
+                clearError();
+                setFormError(null);
+              }}
+              onSubmitEditing={submit}
+            />
 
-          <OAuth />
+            {message ? (
+              <Text className="mt-1 text-sm font-medium text-danger">
+                {message}
+              </Text>
+            ) : null}
 
-          <Link
-            href="/sign-up"
-            className="text-lg text-center text-general-200 mt-10"
-          >
-            Don't have an account?{" "}
-            <Text className="text-primary-500">Sign Up</Text>
-          </Link>
-        </View>
-      </View>
-    </ScrollView>
+            <CustomButton
+              title="Sign In"
+              isLoading={busy}
+              onPress={submit}
+              className="mt-4"
+            />
+
+            <OAuth />
+
+            <AuthFooterLink
+              prompt="Don't have an account?"
+              actionLabel="Sign Up"
+              onPress={() => router.replace("/(auth)/sign-up")}
+            />
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
-};
-
-export default SignIn;
+}

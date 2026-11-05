@@ -1,62 +1,85 @@
-import { TouchableOpacity, Text } from "react-native";
+import { ActivityIndicator, Pressable, Text } from "react-native";
+import type { ReactNode } from "react";
 
-import { ButtonProps } from "~/types/type";
+export type ButtonVariant =
+  | "primary"
+  | "secondary"
+  | "danger"
+  | "success"
+  | "outline";
 
-const getBgVariantStyle = (variant: ButtonProps["bgVariant"]) => {
-  switch (variant) {
-    case "secondary":
-      return "bg-gray-500";
-    case "danger":
-      return "bg-red-500";
-    case "success":
-      return "bg-green-500";
-    case "outline":
-      return "bg-transparent border-neutral-300 border-[0.5px]";
-    default:
-      return "bg-[#0286FF]";
-  }
+interface CustomButtonProps {
+  title: string;
+  onPress?: () => void;
+  variant?: ButtonVariant;
+  isLoading?: boolean;
+  disabled?: boolean;
+  iconLeft?: ReactNode;
+  iconRight?: ReactNode;
+  className?: string;
+}
+
+const backgrounds: Record<ButtonVariant, string> = {
+  primary: "bg-brand border border-brand",
+  secondary: "bg-[#6B7280] border border-[#6B7280]",
+  danger: "bg-danger border border-danger",
+  success: "bg-success border border-success",
+  outline: "bg-transparent border border-line",
 };
 
-const getTextVariantStyle = (variant: ButtonProps["textVariant"]) => {
-  switch (variant) {
-    case "primary":
-      return "text-black";
-    case "secondary":
-      return "text-gray-100";
-    case "danger":
-      return "text-red-100";
-    case "success":
-      return "text-green-100";
-    default:
-      return "text-white";
-  }
+const textColors: Record<ButtonVariant, string> = {
+  primary: "text-white",
+  secondary: "text-gray-100",
+  danger: "text-red-100",
+  success: "text-green-100",
+  outline: "text-ink",
 };
 
-const CustomButton = ({
-  onPress,
+const spinnerColors: Record<ButtonVariant, string> = {
+  primary: "#FFFFFF",
+  secondary: "#F3F4F6",
+  danger: "#FEE2E2",
+  success: "#DCFCE7",
+  outline: "#0F172A",
+};
+
+export default function CustomButton({
   title,
-  bgVariant = "primary",
-  textVariant = "default",
-  IconLeft,
-  IconRight,
-  className,
-  ...props
-}: ButtonProps) => {
-  return (
-    <TouchableOpacity
-      onPress={onPress}
-      className={`w-full rounded-full p-3 flex flex-row justify-center items-center shadow-md shadow-neutral-400/70 ${getBgVariantStyle(
-        bgVariant
-      )} ${className}`}
-      {...props}
-    >
-      {IconLeft && <IconLeft />}
-      <Text className={`text-lg font-bold ${getTextVariantStyle(textVariant)}`}>
-        {title}
-      </Text>
-      {IconRight && <IconRight />}
-    </TouchableOpacity>
-  );
-};
+  onPress,
+  variant = "primary",
+  isLoading = false,
+  disabled = false,
+  iconLeft,
+  iconRight,
+  className = "",
+}: CustomButtonProps) {
+  const isDisabled = disabled || isLoading;
 
-export default CustomButton;
+  return (
+    <Pressable
+      accessibilityRole="button"
+      onPress={isDisabled ? undefined : onPress}
+      disabled={isDisabled}
+      className={`w-full flex-row items-center justify-center rounded-[14px] px-4 py-3.5 active:opacity-80 ${
+        backgrounds[variant]
+      } ${isDisabled && !isLoading ? "opacity-60" : "opacity-100"} ${className}`}
+    >
+      {isLoading ? (
+        <ActivityIndicator size="small" color={spinnerColors[variant]} />
+      ) : (
+        <>
+          {iconLeft ? <>{iconLeft}</> : null}
+          <Text
+            numberOfLines={1}
+            className={`text-center text-[15.5px] font-bold ${textColors[variant]} ${
+              iconLeft ? "ml-2" : ""
+            }`}
+          >
+            {title}
+          </Text>
+          {iconRight ? <>{iconRight}</> : null}
+        </>
+      )}
+    </Pressable>
+  );
+}

@@ -1,8 +1,8 @@
 # Wardro — Flutter app
 
-Flutter port of the Wardro wardrobe-management app. This project lives next to
-the original React Native app (`../mobile-rn`) so both can be run and
-compared; nothing in `../mobile-rn` was modified.
+Flutter port of the Wardro wardrobe-management app, kept for reference. The
+primary app is now the Expo / React Native client in `../mobile-rn`, which was
+ported forward from this implementation (including Firebase auth).
 
 ## Status
 
@@ -24,7 +24,8 @@ Screens ported from the Expo app, plus a few additions:
 | `components/DatePicker.tsx` | `lib/shared/widgets/app_date_field.dart` |
 | `app/(root)/(tabs)/_layout.tsx` | `lib/shared/widgets/main_shell.dart` |
 
-Additions not in the React Native app:
+Screens and shared widgets added in this port (now also implemented in the
+React Native app):
 
 | Screen | File |
 | --- | --- |

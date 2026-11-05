@@ -1,94 +1,137 @@
-# Wardro
+# Wardro — React Native app
 
-# SQL Scripts
+The primary Wardro client: Expo (SDK 51) + Expo Router, Firebase
+Authentication, Firebase Storage, and the Hono backend. It replaces Clerk and
+the old `userId`-in-the-body API with the same Firebase-ID-token model the
+Flutter port (`../mobile`) used.
 
-1. Users
+## Running
 
-```
-CREATE TABLE users (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    email VARCHAR(100) UNIQUE NOT NULL,
-    clerk_id VARCHAR(50) UNIQUE NOT NULL
-);
-```
-
-2. Wardrobes
-
-```
-CREATE TABLE wardrobes (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    description TEXT,
-    user_id INT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_user
-        FOREIGN KEY (user_id)
-        REFERENCES users(id)
-        ON DELETE CASCADE
-);
+```bash
+npm install
+npm run web          # http://localhost:8081
+npm start            # dev build (iOS / Android)
+npm run ios
+npm run android
+npx tsc --noEmit     # typecheck
+npx expo export --platform web   # bundle check
 ```
 
-3. Wardrobe Items
+The app defaults to the deployed backend. For local development create
+`.env` from `.env.example` and point `EXPO_PUBLIC_API_URL` at
+`http://localhost:3000/api` (use `http://10.0.2.2:3000/api` on an Android
+emulator).
 
-```
-CREATE TABLE wardrobe_items (
-    id SERIAL PRIMARY KEY,
-    photo_uri TEXT,
-    item_name VARCHAR(255) NOT NULL,
-    purchase_date DATE,
-    expiry_date DATE,
-    price NUMERIC(10, 2),
-    brand VARCHAR(255),
-    category VARCHAR(255),
-    color VARCHAR(100),
-    size VARCHAR(50),
-    wardrobe_id INT,
-    user_id INT,
-    state VARCHAR(50) DEFAULT 'newly_purchased', -- e.g., 'newly_purchased', 'in_use', 'faded', 'expired', 'archived'
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_wardrobe
-        FOREIGN KEY (wardrobe_id)
-        REFERENCES wardrobes(id)
-        ON DELETE CASCADE,
-    CONSTRAINT fk_user
-        FOREIGN KEY (user_id)
-        REFERENCES users(id)
-        ON DELETE CASCADE
-);
-```
+## Configuration
 
-4. Item Usage
+Every value is public client configuration and is embedded in the bundle.
 
-```
-CREATE TABLE items_usage (
-    id SERIAL PRIMARY KEY,
-    wardrobe_item_id INT NOT NULL,
-    usage_date DATE NOT NULL,
-    photo_uri TEXT,
-    occasion VARCHAR(255),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_wardrobe_item
-        FOREIGN KEY (wardrobe_item_id)
-        REFERENCES wardrobe_items(id)
-        ON DELETE CASCADE
-);
-```
+| Variable | Purpose |
+| --- | --- |
+| `EXPO_PUBLIC_API_URL` | Hono backend base URL, including `/api` |
+| `EXPO_PUBLIC_FIREBASE_*` | Firebase web app config for project `wardo-ce8d5` |
+| `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` | OAuth web client used by web popup sign-in |
+| `EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID` | OAuth client for native Google sign-in on Android |
+| `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID` | OAuth client for iOS (not registered yet) |
 
-5. Item Activity
+Defaults live in `lib/firebase-config.ts`, so the app runs without a `.env`
+against project `wardo-ce8d5`.
 
-```
-CREATE TABLE item_activity (
-    id SERIAL PRIMARY KEY,
-    wardrobe_item_id INT NOT NULL,
-    activity_type VARCHAR(100) NOT NULL, -- e.g., "used", "cleaned", "updated"
-    activity_date DATE NOT NULL,
-    description TEXT, -- Optional field to describe details about the activity
-    photo_uri TEXT, -- Optional: used for tracking if an activity is associated with a photo
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_wardrobe_item
-        FOREIGN KEY (wardrobe_item_id)
-        REFERENCES wardrobe_items(id)
-        ON DELETE CASCADE
-);
-```
+## Authentication
+
+Identity is owned by Firebase; the app never sends a user id.
+
+- **Email / password** — `lib/auth-context.tsx` wraps
+  `signInWithEmailAndPassword` / `createUserWithEmailAndPassword`. Sign-up
+  sets the display name and sends a verification **link** (not a 6-digit
+  code). The dialog offers Resend / Continue, and verification never blocks
+  use of the app.
+- **Google on web** — `signInWithPopup(GoogleAuthProvider())`.
+- **Google on native** — `expo-auth-session` requests a Google ID token, then
+  exchanges it with `signInWithCredential`. The redirect scheme is
+  `myapp://oauthredirect` (declared as `scheme` in `app.json`).
+- **Session restore** — native persists the session in AsyncStorage
+  (`initializeAuth` + `getReactNativePersistence`); web uses the SDK's
+  IndexedDB/localStorage persistence. The root layout shows a splash until
+  `onAuthStateChanged` settles.
+
+Every API request attaches `Authorization: Bearer <Firebase ID token>`; the
+backend verifies it against Google's JWKS (`backend/src/auth.ts`).
+
+### Native Google sign-in setup
+
+The web client ID works for web. For Android, register an **Android OAuth
+client** in the Firebase project with this app's package name
+(`com.thirunavukkarasu.mycloset`) and the debug/release SHA-1, then put its ID
+in `EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID` and rebuild the dev client. The
+current default Android client belongs to the Flutter app (`com.om.wardo`),
+so native Google sign-in will report `invalid_client` until a client for this
+package exists. iOS has no registered client yet; the app shows a clear
+message instead of prompting.
+
+## Screens
+
+| Route | Purpose |
+| --- | --- |
+| `app/(auth)/welcome.tsx` | Onboarding pager |
+| `app/(auth)/sign-in.tsx` | Email/password + Google |
+| `app/(auth)/sign-up.tsx` | Account creation + verification-link dialog |
+| `app/(root)/(tabs)/home.tsx` | Dashboard: greeting, summary, quick actions, recent items, wardrobe preview |
+| `app/(root)/(tabs)/wardrobes.tsx` | All collections with summary and add action |
+| `app/(root)/(tabs)/items.tsx` | Searchable, wardrobe-filterable item grid |
+| `app/(root)/(tabs)/profile.tsx` | Account details and sign-out |
+| `app/(root)/add-wardrobe.tsx` | Create a wardrobe |
+| `app/(root)/add-wardrobe-items.tsx` | Photo-first garment capture |
+| `app/(root)/wardrobe/[id].tsx` | One wardrobe's photo grid |
+| `app/(root)/item/[id].tsx` | Item hero, details and delete |
+
+Navigation is four bottom tabs — **Home / Wardrobes / Items / Profile** — with
+the camera FAB as the global add-item action. There is deliberately no
+hamburger drawer: primary destinations stay visible and thumb-reachable.
+`app/(root)/(tabs)/_layout.tsx` owns the tab bar and FAB.
+
+Every pushed screen uses the shared `components/AppHeader.tsx` (44px back
+target, title, optional right action). Add forms use
+`components/FormScreen.tsx` for a fixed header, scrollable content and a sticky
+action footer that lifts with the keyboard. On web,
+`components/PhoneFrame.tsx` confines the app to a 430px column, matching the
+Flutter `MobileFrame`.
+
+## Roadmap
+
+Chosen priorities, in implementation order:
+
+1. **Navigation shell** — 4 tabs, shared headers/back buttons, sticky form footers. ✅
+2. **Search & filters** — text search plus wardrobe chips on Items. ✅
+3. **Edit items & wardrobes** — update details and replace photos (needs
+   `PATCH` routes and a pre-filled form mode).
+4. **Favorites & wear tracking** — favourite flags and wear logs, then
+   cost-per-wear/Insights.
+5. **Outfits & calendar** — compose outfits and plan them by date.
+
+## Backend endpoints used
+
+Every request carries the Firebase ID token.
+
+| Endpoint | Used by |
+| --- | --- |
+| `GET /wardrobes/summary` | Home stats + covers |
+| `GET /wardrobes` | Add-item wardrobe picker |
+| `POST /wardrobes` | Add wardrobe |
+| `DELETE /wardrobes/:id` | Delete wardrobe (cascades items + photos) |
+| `GET /wardrobeItems` | All Items tab / item-detail fallback |
+| `GET /wardrobeItems/:wardrobeId` | Wardrobe detail |
+| `POST /wardrobeItems` | Add item |
+| `DELETE /wardrobeItems/:id` | Delete item + its photo |
+
+Photos are uploaded directly from the app to Firebase Storage under
+`users/{uid}/items/...` (`lib/api.ts`), and the returned download URL is stored
+as `photoUri`. Storage rules live in `../storage.rules`.
+
+## Design tokens
+
+Indigo `#4F46E5`, pink accent `#EC4899`, canvas `#F7F7FB`, surface `#F1F2F7`,
+border `#E7E8EF`; text `#0F172A` / `#64748B` / `#94A3B8`; status
+`#16A34A` / `#D97706` / `#DC2626`. They are registered in
+`tailwind.config.js` as `brand`, `pink`, `canvas`, `surface`, `line`, `ink`,
+`success`, `warning`, and `danger`.

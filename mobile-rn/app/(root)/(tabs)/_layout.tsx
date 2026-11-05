@@ -1,89 +1,82 @@
-import { Tabs } from "expo-router";
-import { Image, ImageSourcePropType, View } from "react-native";
+import { Tabs, router, useSegments } from "expo-router";
+import { Camera, Home, LayoutGrid, Shirt, User } from "lucide-react-native";
+import { Pressable, View } from "react-native";
 
-import { icons } from "~/constants";
+export default function TabsLayout() {
+  const segments = useSegments();
+  const onProfile = segments[segments.length - 1] === "profile";
 
-const TabIcon = ({
-  source,
-  focused,
-}: {
-  source: ImageSourcePropType;
-  focused: boolean;
-}) => (
-  <View
-    className={`flex flex-row justify-center items-center rounded-full ${
-      focused ? "bg-pink-300" : ""
-    }`}
-  >
-    <View
-      className={`rounded-full w-12 h-12 items-center justify-center ${
-        focused ? "bg-pink-400" : ""
-      }`}
-    >
-      <Image
-        source={source}
-        tintColor="white"
-        resizeMode="contain"
-        className="w-7 h-7"
-      />
-    </View>
-  </View>
-);
-
-export default function Layout() {
   return (
-    <Tabs
-      initialRouteName="index"
-      screenOptions={{
-        tabBarActiveTintColor: "white",
-        tabBarInactiveTintColor: "white",
-        tabBarShowLabel: false,
-        tabBarStyle: {
-          backgroundColor: "#333333",
-          borderRadius: 50,
-          paddingBottom: 0, // ios only
-          overflow: "hidden",
-          marginHorizontal: 20,
-          marginBottom: 20,
-          height: 78,
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexDirection: "row",
-          position: "absolute",
-        },
-      }}
-    >
-      <Tabs.Screen
-        name="home"
-        options={{
-          title: "Home",
+    <View className="flex-1">
+      <Tabs
+        screenOptions={{
           headerShown: false,
-          tabBarIcon: ({ focused }) => (
-            <TabIcon source={icons.home} focused={focused} />
-          ),
+          tabBarActiveTintColor: "#4F46E5",
+          tabBarInactiveTintColor: "#94A3B8",
+          tabBarLabelStyle: {
+            fontSize: 11,
+            fontWeight: "700",
+            marginTop: 2,
+          },
+          tabBarStyle: {
+            height: 66,
+            paddingTop: 6,
+            paddingBottom: 6,
+            backgroundColor: "#FFFFFF",
+            borderTopColor: "#E7E8EF",
+            borderTopWidth: 1,
+          },
         }}
-      />
-      <Tabs.Screen
-        name="wardrobes"
-        options={{
-          title: "Wardrobes",
-          headerShown: false,
-          tabBarIcon: ({ focused }) => (
-            <TabIcon source={icons.dollar} focused={focused} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: "Profile",
-          headerShown: false,
-          tabBarIcon: ({ focused }) => (
-            <TabIcon source={icons.profile} focused={focused} />
-          ),
-        }}
-      />
-    </Tabs>
+      >
+        <Tabs.Screen
+          name="home"
+          options={{
+            title: "Home",
+            tabBarIcon: ({ color }) => <Home size={22} color={color} />,
+          }}
+        />
+        <Tabs.Screen
+          name="wardrobes"
+          options={{
+            title: "Wardrobes",
+            tabBarIcon: ({ color }) => (
+              <LayoutGrid size={22} color={color} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="items"
+          options={{
+            title: "Items",
+            tabBarIcon: ({ color }) => <Shirt size={22} color={color} />,
+          }}
+        />
+        <Tabs.Screen
+          name="profile"
+          options={{
+            title: "Profile",
+            tabBarIcon: ({ color }) => <User size={22} color={color} />,
+          }}
+        />
+      </Tabs>
+
+      {!onProfile ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Add item"
+          onPress={() => router.push("/(root)/add-wardrobe-items")}
+          className="absolute bottom-[88px] right-5 h-14 w-14 items-center justify-center rounded-full bg-brand active:opacity-80"
+          style={{
+            shadowColor: "#4F46E5",
+            shadowOpacity: 0.35,
+            shadowRadius: 12,
+            shadowOffset: { width: 0, height: 6 },
+            elevation: 4,
+          }}
+        >
+          <Camera size={24} color="#FFFFFF" />
+        </Pressable>
+      ) : null}
+    </View>
   );
 }

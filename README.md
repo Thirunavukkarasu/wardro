@@ -13,8 +13,8 @@ Wardro is a wardrobe management app that helps users to keep track of their clot
 
 | Directory | Stack | Status |
 | --- | --- | --- |
-| `mobile/` | Flutter 3.47 | Primary app — Firebase auth, per-user data, photo-first UI |
-| `mobile-rn/` | Expo SDK 51 / React Native | Legacy original app, kept for reference |
+| `mobile-rn/` | Expo SDK 51 / React Native | Primary app — Firebase auth (email/password + Google), per-user data, photo-first UI |
+| `mobile/` | Flutter 3.47 | Port kept for reference — same Firebase auth and API, no longer the target app |
 | `backend/` | Bun + Hono + Drizzle, built to Node | API with Firebase ID-token verification; deployed to App Hosting |
 | `website/` | Next.js 14 + Tailwind | Marketing site |
 | `api-tests/` | Bruno collections | Manual API testing |
@@ -27,17 +27,21 @@ Each package runs independently:
 # API → http://localhost:3000
 cd backend && bun install && bun run dev
 
-# Flutter app (web) → http://localhost:8080
-cd mobile && flutter pub get && flutter run -d chrome \
-  --dart-define=API_BASE_URL=http://localhost:3000/api
+# React Native app (web) → http://localhost:8081
+cd mobile-rn && npm install && npm run web
+
+# React Native app (iOS / Android dev build)
+cd mobile-rn && npm start
 
 # Marketing site → http://localhost:3001
 cd website && npm install && npm run dev -- -p 3001
 ```
 
 The API talks to Postgres through Drizzle, so local development only needs a
-`DATABASE_URL` (any Postgres). See `mobile/README.md` for the app architecture
-and `backend/README.md` for build/deploy details.
+`DATABASE_URL` (any Postgres). The React Native app reads its Firebase and API
+configuration from `mobile-rn/.env` (see `mobile-rn/.env.example`); see
+`mobile-rn/README.md` for the app architecture and `backend/README.md` for
+build/deploy details.
 
 ## Deployment
 
@@ -55,7 +59,7 @@ and `backend/README.md` for build/deploy details.
 
 ## Technologies
 
-- Flutter + Firebase Authentication
+- React Native (Expo Router) + Firebase Authentication + Firebase Storage
 - Bun + Hono API (bundled to a Node server)
 - Drizzle ORM + Postgres (provider-agnostic)
 - Firebase Storage

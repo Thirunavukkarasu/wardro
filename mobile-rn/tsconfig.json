@@ -16,5 +16,6 @@
     "**/*.js",
     "nativewind-env.d.ts",
     ".eslintrc.js"
-  ]
+  ],
+  "exclude": ["node_modules", "android", "ios", "dist", "web-build"]
 }

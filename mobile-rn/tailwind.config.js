@@ -8,6 +8,23 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        brand: {
+          DEFAULT: "#4F46E5",
+          deep: "#4338CA",
+          soft: "#EEF0FF",
+        },
+        pink: "#EC4899",
+        canvas: "#F7F7FB",
+        surface: "#F1F2F7",
+        line: "#E7E8EF",
+        ink: {
+          DEFAULT: "#0F172A",
+          secondary: "#64748B",
+          muted: "#94A3B8",
+        },
+        success: "#16A34A",
+        warning: "#D97706",
+        danger: "#DC2626",
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",

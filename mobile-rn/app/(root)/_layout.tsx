@@ -1,10 +1,13 @@
 import { Stack } from "expo-router";
-import React from "react";
 
-export default function TabLayout() {
+export default function RootGroupLayout() {
   return (
-    <Stack>
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="add-wardrobe" />
+      <Stack.Screen name="add-wardrobe-items" />
+      <Stack.Screen name="wardrobe/[id]" />
+      <Stack.Screen name="item/[id]" />
     </Stack>
   );
 }

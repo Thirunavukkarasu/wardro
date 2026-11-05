@@ -8,11 +8,13 @@ import apiRoutes from './routes'
 const app = new Hono()
 const PORT = Number(process.env.PORT) || 3000
 
-// Origins allowed to call the API from a browser (Flutter web). Native
-// clients ignore CORS entirely.
+// Origins allowed to call the API from a browser (Expo web on 8081, Flutter
+// web on 8080). Native clients ignore CORS entirely.
 const browserOrigins = [
     'http://localhost:8080',
     'http://127.0.0.1:8080',
+    'http://localhost:8081',
+    'http://127.0.0.1:8081',
     'https://wardro--wardo-ce8d5.us-east4.hosted.app',
     ...(process.env.CORS_ORIGINS?.split(',')
         .map((origin) => origin.trim())

@@ -1,72 +1,102 @@
 import { router } from "expo-router";
 import { useRef, useState } from "react";
-import { Image, Text, TouchableOpacity, View } from "react-native";
+import {
+  Image,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  useWindowDimensions,
+  View,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Swiper from "react-native-swiper";
 
 import CustomButton from "~/components/CustomButton";
 import { onboarding } from "~/constants";
 
-const Home = () => {
-  const swiperRef = useRef<Swiper>(null);
+/** Landing/onboarding screen shown to signed-out users. */
+export default function WelcomeScreen() {
+  const { width: windowWidth } = useWindowDimensions();
+  // On web the app is confined to a 430px phone column (see PhoneFrame).
+  const width = Platform.OS === "web" ? Math.min(windowWidth, 430) : windowWidth;
+  const scrollRef = useRef<ScrollView>(null);
   const [activeIndex, setActiveIndex] = useState(0);
 
-  // const isLastSlide = activeIndex === onboarding.length - 1;
-  const isLastSlide = true;
-  const item = onboarding[activeIndex];
+  const isLastSlide = activeIndex === onboarding.length - 1;
+
+  const onScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const index = Math.round(event.nativeEvent.contentOffset.x / width);
+    if (index !== activeIndex) setActiveIndex(index);
+  };
+
+  const goToSignUp = () => router.replace("/(auth)/sign-up");
 
   return (
-    <SafeAreaView className="flex h-full items-center justify-between bg-white">
-      <TouchableOpacity
-        onPress={() => {
-          router.replace("/(auth)/sign-up");
-        }}
-        className="w-full flex justify-end items-end p-5"
-      >
-        <Text className="text-black text-md font-JakartaBold">Skip</Text>
-      </TouchableOpacity>
-
-      {/* <Swiper
-        ref={swiperRef}
-        loop={false}
-        dot={
-          <View className="w-[32px] h-[4px] mx-1 bg-[#E2E8F0] rounded-full" />
-        }
-        activeDot={
-          <View className="w-[32px] h-[4px] mx-1 bg-[#0286FF] rounded-full" />
-        }
-        onIndexChanged={(index) => setActiveIndex(index)}
-      >
-        {onboarding.map((item) => ( */}
-      <View key={item.id} className="flex items-center justify-center p-5">
-        <Image
-          source={item.image}
-          className="w-full h-[300px]"
-          resizeMode="contain"
-        />
-        <View className="flex flex-row items-center justify-center w-full mt-10">
-          <Text className="text-black text-3xl font-bold mx-10 text-center">
-            {item.title}
-          </Text>
-        </View>
-        <Text className="text-md font-JakartaSemiBold text-center text-[#858585] mx-10 mt-3">
-          {item.description}
-        </Text>
+    <SafeAreaView className="flex-1 bg-canvas">
+      <View className="flex-row justify-end p-5">
+        <Pressable onPress={goToSignUp} hitSlop={10}>
+          <Text className="text-sm font-bold text-ink">Skip</Text>
+        </Pressable>
       </View>
-      {/* ))}
-      </Swiper> */}
 
-      <CustomButton
-        title={isLastSlide ? "Get Started" : "Next"}
-        onPress={() =>
-          isLastSlide
-            ? router.replace("/(auth)/sign-up")
-            : swiperRef.current?.scrollBy(1)
-        }
-        className="w-11/12 mt-10 mb-5"
-      />
+      <ScrollView
+        ref={scrollRef}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
+        className="flex-1"
+      >
+        {onboarding.map((slide) => (
+          <View
+            key={slide.id}
+            style={{ width }}
+            className="items-center justify-center px-8"
+          >
+            <Image
+              source={slide.image}
+              resizeMode="contain"
+              style={{ width: "100%", height: 260 }}
+            />
+            <Text className="mt-10 text-center text-[26px] font-bold text-ink">
+              {slide.title}
+            </Text>
+            <Text className="mt-3 text-center text-sm font-semibold text-ink-secondary">
+              {slide.description}
+            </Text>
+          </View>
+        ))}
+      </ScrollView>
+
+      <View className="flex-row items-center justify-center">
+        {onboarding.map((slide, index) => (
+          <View
+            key={slide.id}
+            className={`mx-1 h-1 w-8 rounded-full ${
+              index === activeIndex ? "bg-brand" : "bg-[#E2E8F0]"
+            }`}
+          />
+        ))}
+      </View>
+
+      <View className="px-5 pb-6 pt-6">
+        <CustomButton
+          title={isLastSlide ? "Get Started" : "Next"}
+          onPress={() => {
+            if (isLastSlide) {
+              goToSignUp();
+            } else {
+              scrollRef.current?.scrollTo({
+                x: width * (activeIndex + 1),
+                animated: true,
+              });
+            }
+          }}
+        />
+      </View>
     </SafeAreaView>
   );
-};
-
-export default Home;
+}

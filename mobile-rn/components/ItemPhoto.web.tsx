@@ -1,0 +1,46 @@
+import { Image, View } from "react-native";
+
+import ItemPhotoPlaceholder from "~/components/ItemPhotoPlaceholder";
+import { photoUrl, type WardrobeItem } from "~/lib/types";
+
+interface ItemPhotoProps {
+  item: WardrobeItem;
+  resizeMode?: "cover" | "contain";
+  large?: boolean;
+}
+
+/**
+ * Web photo renderer.
+ *
+ * Uses the same `Image` configuration as the wardrobe cards (which render
+ * these Firebase Storage URLs correctly) and keeps the placeholder behind the
+ * image instead of toggling on `onError`. That avoids the react-native-web
+ * image-loader effect loop that could leave a valid photo on the fallback.
+ */
+export default function ItemPhoto({
+  item,
+  resizeMode = "cover",
+  large = false,
+}: ItemPhotoProps) {
+  const url = photoUrl(item.photoUri);
+
+  if (!url) {
+    return <ItemPhotoPlaceholder item={item} large={large} />;
+  }
+
+  return (
+    <View className="h-full w-full bg-[#E9EFF7]">
+      {!large ? (
+        <View className="absolute inset-0">
+          <ItemPhotoPlaceholder item={item} />
+        </View>
+      ) : null}
+
+      <Image
+        source={{ uri: url }}
+        resizeMode={resizeMode}
+        style={{ width: "100%", height: "100%" }}
+      />
+    </View>
+  );
+}
