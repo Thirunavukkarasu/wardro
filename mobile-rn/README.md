@@ -1,6 +1,6 @@
 # Wardro — React Native app
 
-The primary Wardro client: Expo (SDK 51) + Expo Router, Firebase
+The primary Wardro client: Expo (SDK 54) + Expo Router, Firebase
 Authentication, Firebase Storage, and the Hono backend. It replaces Clerk and
 the old `userId`-in-the-body API with the same Firebase-ID-token model the
 Flutter port (`../mobile`) used.

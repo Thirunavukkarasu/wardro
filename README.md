@@ -16,7 +16,7 @@ New contributors and AI agents should start at [`AGENTS.md`](AGENTS.md), which m
 
 | Directory | Stack | Status |
 | --- | --- | --- |
-| `mobile-rn/` | Expo SDK 51 / React Native | Primary app — Firebase auth (email/password + Google), per-user data, photo-first UI |
+| `mobile-rn/` | Expo SDK 54 / React Native | Primary app — Firebase auth (email/password + Google), per-user data, photo-first UI |
 | `backend/` | Bun + Hono + Drizzle, built to Node | API with Firebase ID-token verification; deployed to App Hosting |
 | `backend/api-tests/` | Bruno collections | Manual API testing |
 | `scripts/` | Bun/Node tooling + fixtures | Seed script and four-profile simulation dataset |

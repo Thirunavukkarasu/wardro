@@ -41,7 +41,7 @@ blueprints and references; the tokens and shared component rules live in
 
 | Directory | Stack | Status |
 | --- | --- | --- |
-| `mobile-rn/` | Expo SDK 51 / React Native | Primary app |
+| `mobile-rn/` | Expo SDK 54 / React Native | Primary app |
 | `backend/` | Bun + Hono + Drizzle, bundled to Node | API and system of record |
 | `backend/api-tests/` | Bruno collections | Manual API tests |
 | `scripts/` | Node/Bun tooling + fixtures | Seed script and simulation dataset |

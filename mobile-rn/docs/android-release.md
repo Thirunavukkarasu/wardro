@@ -4,6 +4,10 @@ The app is built for Google Play as a signed **Android App Bundle (AAB)**.
 There are two viable paths; this repository is set up for **GitHub Actions**,
 because the CI runner already has JDK 17 and the Android SDK.
 
+The app now uses **Expo SDK 54 / React Native 0.81**, targets **API 36** and
+requires `minSdkVersion 24`. Increment `android.versionCode` for every Play
+upload; the current upload is version code **2**.
+
 ## Why GitHub Actions
 
 A local build needs:

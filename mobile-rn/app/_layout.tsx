@@ -43,6 +43,7 @@ function RootNavigator() {
     if (status === "restoring") return;
 
     const inAuthGroup = segments[0] === "(auth)";
+    const inSignUp = (segments as readonly string[]).includes("sign-up");
 
     if (status === "signedOut" && !inAuthGroup) {
       router.replace("/(auth)/welcome");
@@ -54,7 +55,7 @@ function RootNavigator() {
     if (
       status === "signedIn" &&
       inAuthGroup &&
-      segments[1] !== "sign-up"
+      !inSignUp
     ) {
       router.replace("/(root)/(tabs)/today");
     }
