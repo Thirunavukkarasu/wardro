@@ -52,10 +52,25 @@ The site mirrors `mobile-rn/src/theme/tokens.json`:
 Use the `wardro-*` Tailwind classes and the `.editorial` serif utility in new
 sections. Do not add a separate palette.
 
-## Deployment note
+## Deployment
 
-Google Play requires a **public** privacy policy URL. Deploy this site (or at
-least `/privacy` and `/account-deletion`) before submitting the app, then put the
-deployed URL into the Play Console. The current policy references the developer
-contact email shown on the Play listing; replace that wording with a dedicated
-privacy email if one is created.
+The site can be exported as static files and served by Firebase Hosting from
+the repository's existing `wardo-ce8d5` project:
+
+```bash
+npm run build:static
+cd ..
+firebase deploy --only hosting --project wardo-ce8d5
+```
+
+Expected URLs:
+
+- <https://wardo-ce8d5.web.app>
+- <https://wardo-ce8d5.web.app/privacy>
+- <https://wardo-ce8d5.web.app/account-deletion>
+
+`firebase.json` serves `website/out` and rewrites unknown routes to the home
+page. Google Play requires a **public** privacy policy URL, so deploy before
+submitting the app and put the deployed privacy URL into the Play Console. The
+current policy references the developer contact email shown on the Play
+listing; replace that wording with a dedicated privacy email if one is created.

@@ -2,6 +2,17 @@
   "storage": {
     "rules": "storage.rules"
   },
+  "hosting": {
+    "public": "website/out",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "cleanUrls": true,
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  },
   "apphosting": {
     "backendId": "wardro",
     "rootDir": "/backend"
