@@ -20,7 +20,7 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.thirunavukkarasu.mycloset",
-      "versionCode": 2
+      "versionCode": 3
     },
     "web": {
       "bundler": "metro",
