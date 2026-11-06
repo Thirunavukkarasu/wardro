@@ -19,6 +19,24 @@ const config = {
     },
     extend: {
       colors: {
+        wardro: {
+          background: "#F8F6F1",
+          surface: "#FFFFFF",
+          "surface-secondary": "#F0EDE5",
+          primary: "#858B68",
+          "primary-dark": "#62694B",
+          "primary-light": "#E9EBDD",
+          accent: "#B8A58A",
+          text: {
+            primary: "#252525",
+            secondary: "#77766F",
+            disabled: "#AAA79F",
+          },
+          border: "#E7E2D8",
+          danger: "#B85C50",
+          success: "#66846B",
+          warning: "#C18A48",
+        },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -53,10 +71,19 @@ const config = {
           foreground: "hsl(var(--card-foreground))",
         },
       },
+      fontFamily: {
+        sans: ["var(--font-sans)", "Inter", "system-ui", "sans-serif"],
+        serif: ["var(--font-serif)", "Georgia", "serif"],
+      },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+      },
+      boxShadow: {
+        card: "0 6px 16px rgba(37, 37, 37, 0.04)",
+        modal: "0 16px 40px rgba(37, 37, 37, 0.12)",
+        phone: "0 30px 80px rgba(37, 37, 37, 0.16)",
       },
       keyframes: {
         "accordion-down": {
