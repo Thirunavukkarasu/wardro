@@ -142,6 +142,13 @@ action footer that lifts with the keyboard. On web,
 `components/PhoneFrame.tsx` confines the app to a 430px column, matching the
 Flutter `MobileFrame`.
 
+## Android release builds
+
+Play-ready signed AABs are built by the manual GitHub Actions workflow
+`.github/workflows/android-release.yml`. See
+[`docs/android-release.md`](docs/android-release.md) for the required secrets,
+keystore backup and local-build alternative.
+
 ## Roadmap
 
 The agreed target IA, screen inventory, and migration steps live in

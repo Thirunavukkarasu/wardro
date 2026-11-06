@@ -22,7 +22,8 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.thirunavukkarasu.mycloset"
+      "package": "com.thirunavukkarasu.mycloset",
+      "versionCode": 1
     },
     "web": {
       "bundler": "metro",
