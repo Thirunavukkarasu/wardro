@@ -17,6 +17,7 @@ from app.logging_config import configure_logging
 from app.schemas.responses import HealthResponse, OllamaHealthResponse
 from app.services.ollama_provider import OllamaProvider
 from app.services.wardrobe_backend import WardrobeBackendClient
+from app.vision.image_analyzer import ImageAnalyzer
 
 logger = logging.getLogger(__name__)
 
@@ -53,6 +54,10 @@ def create_app(
         application.state.ollama_provider = ollama_provider
         application.state.wardrobe_graph = workflow
         application.state.wardrobe_backend = WardrobeBackendClient(app_settings)
+        application.state.image_analyzer = ImageAnalyzer(
+            ollama_provider,
+            model=app_settings.ollama_vision_model,
+        )
 
         if app_settings.is_development:
             logger.warning(

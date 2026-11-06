@@ -187,9 +187,11 @@ As of 2026-11-05:
 - Multi-profile is implemented (household account, cascade delete) and the
   backend schema has been migrated.
 - A **Chat** tab is wired to the local FastAPI/LangGraph agent. It sends the
-  active profile and conversation thread; the agent now reads that profile's
-  inventory and can answer inventory questions and suggest outfits from real
-  items. Rich item cards, streaming, image analysis and write actions are next.
+  active profile and conversation thread; the agent reads that profile's
+  inventory, answers inventory questions and suggests outfits from real items.
+  The composer can attach a garment photo; the vision model returns structured
+  attributes but does not save the item. Rich item cards, saving/confirming an
+  analyzed item, streaming and write actions are next.
 - The Today greeting uses the account's default profile name (Tiru) rather
   than the active profile, so switching to Swati/Arush/Adiran does not change
   the account greeting.

@@ -87,7 +87,7 @@ async def test_vision_analyst_reports_next_milestone(fake_provider: FakeProvider
     assert "Vision Analyst" in _system_prompt(fake_provider)
     human = _human_prompt(fake_provider)
     assert "not_available" in human
-    assert "next milestone" in human
+    assert "OLLAMA_VISION_MODEL" in human
 
 
 async def test_agents_forward_conversation_history(fake_provider: FakeProvider) -> None:

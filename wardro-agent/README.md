@@ -19,12 +19,13 @@ returns drafts that the user confirms.
 | --- | --- |
 | FastAPI API, LangGraph workflow, four agents, Ollama provider | Implemented |
 | Intent classification, deterministic routing, structured errors | Implemented |
-| Health, model availability, 64 tests, Ruff checks | Implemented |
+| Health, model availability, 68 tests, Ruff checks | Implemented |
 | Firebase auth / internal JWT from Bun | Not wired — development-only body identity |
 | Profile-scoped inventory read | Implemented for development via the Firebase token passthrough |
 | Inventory-aware styling | Implemented in text (agents receive the profile inventory) |
+| Single-image garment analysis | Implemented — attach a photo in chat; the vision model returns structured attributes |
+| Saving an analyzed garment | Not implemented — the analysis is returned to chat, not written to the wardrobe |
 | Conversation persistence | Not wired — checkpointer returns `None` |
-| Vision/image upload | Placeholder — no image is sent to a model |
 | Bun proxy at `/api/ai/*` | Not implemented |
 
 The fixture for the first real inventory retrieval is the four-profile
@@ -45,7 +46,7 @@ Implemented:
 - Intent classifier: keyword rules for common requests, LLM structured classification
   for ambiguous messages, safe `general_advice` fallback.
 - Conversation `thread_id` accepted end-to-end and passed to the graph.
-- 64 tests that run without an Ollama server, plus Ruff lint/format checks.
+- 68 tests that run without an Ollama server, plus Ruff lint/format checks.
 - A minimal Expo/React Native test client in the sibling `../mobile-agent-ui/`
   directory that runs in a browser via React Native Web and calls the chat API.
 
@@ -55,9 +56,9 @@ development-only Firebase token and passes the snapshot to the analyst and
 stylist agents. The token is never logged, stored in graph state, or checkpointed.
 
 Not implemented yet (see [Limitations](#current-limitations)): the Bun→Python
-authentication proxy, inventory write/action tools, conversation persistence,
-image analysis, and RAG. The intended integration order is in
-[Next milestones](#next-milestones).
+authentication proxy, saving the analyzed garment, queued multi-photo analysis,
+inventory write/action tools, conversation persistence, and RAG. The intended
+integration order is in [Next milestones](#next-milestones).
 
 ## Architecture
 
@@ -450,8 +451,9 @@ wardro/                          # repository root
   reason over the active profile's items, but it cannot create, edit, mark worn, or
   save outfits. The Bun proxy and internal JWT are still pending, and prompts forbid
   inventing garments when a snapshot is unavailable.
-- **Vision is a placeholder.** The vision agent explains that image analysis arrives
-  next milestone; it never claims to have seen an image.
+- **Vision is single-image and synchronous.** A photo attached in chat is classified
+  into structured attributes, but the analysis is not yet saved to the wardrobe, queued
+  for multi-photo processing, deduplicated, or linked to an existing item.
 - **No LLM-directed tool loop, RAG, embeddings, or multi-agent supervision.** Inventory
   retrieval is deterministic pre-graph work, not a model-selected tool call. The
   classifier only returns an intent.
@@ -477,8 +479,8 @@ wardro/                          # repository root
 2. **Wardrobe tools** — build on the read-only inventory bridge with filtered search,
    item detail, outfit composition, wear logging, saved outfits, and confirmation-gated
    write actions.
-3. **Vision pipeline** — image upload/URL handling with `qwen3-vl` and structured
-   garment extraction.
+3. **Vision pipeline** — save/confirm the structured analysis, support queued
+   multi-photo ingestion, URL images, duplicate detection and background retries.
 4. **Persistence** — PostgreSQL checkpointer, conversation history per thread,
    retention policy.
 5. **Retrieval and richer styling** — wardrobe embeddings/RAG, deterministic outfit

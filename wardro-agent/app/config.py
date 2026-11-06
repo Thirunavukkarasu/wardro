@@ -28,6 +28,9 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
 
     ollama_base_url: str = "http://localhost:11434"
+    # Optional bearer token for an authenticated/cloud Ollama endpoint. The
+    # local daemon accepts cloud model tags without it; deployments may not.
+    ollama_api_key: str | None = None
     ollama_chat_model: str = "qwen3"
     ollama_vision_model: str = "qwen3-vl"
     ollama_temperature: float = Field(default=0.2, ge=0.0, le=2.0)

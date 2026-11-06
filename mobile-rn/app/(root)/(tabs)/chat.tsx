@@ -1,7 +1,9 @@
-import { AlertCircle, Send, Sparkles } from "lucide-react-native";
+import * as ImagePicker from "expo-image-picker";
+import { AlertCircle, ImagePlus, Send, Sparkles, X } from "lucide-react-native";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -23,8 +25,15 @@ interface ChatMessage {
   id: string;
   role: MessageRole;
   text: string;
+  imageUri?: string;
   intent?: string;
   agent?: string;
+}
+
+interface PendingImage {
+  uri: string;
+  base64: string;
+  mediaType: string;
 }
 
 const SUGGESTIONS = [
@@ -49,7 +58,7 @@ function welcomeText(profileName: string | null): string {
   }
   return `Ask me what ${firstName(
     profileName,
-  )} owns, which pieces fit an occasion, or what to pack. I can search the active profile's inventory and suggest combinations from it; image analysis and editing tools are next.`;
+  )} owns, which pieces fit an occasion, or what to pack. Attach a garment photo and I'll classify it; search and styling use the active profile's real items.`;
 }
 
 export default function ChatScreen() {
@@ -63,15 +72,19 @@ export default function ChatScreen() {
   );
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [pendingImage, setPendingImage] = useState<PendingImage | null>(null);
+  const [pickingImage, setPickingImage] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
   const lastPromptRef = useRef<string | null>(null);
+  const lastImageRef = useRef<PendingImage | null>(null);
 
   const profileName = activeProfile?.name ?? null;
   const canSend =
-    Boolean(input.trim()) &&
+    (Boolean(input.trim()) || Boolean(pendingImage)) &&
     Boolean(user?.authId) &&
     Boolean(activeProfile) &&
-    !sending;
+    !sending &&
+    !pickingImage;
 
   useEffect(() => {
     setMessages([
@@ -84,7 +97,10 @@ export default function ChatScreen() {
     setThreadId(newThreadId(activeProfile?.id ?? null));
     setError(null);
     setInput("");
+    setPendingImage(null);
+    setPickingImage(false);
     lastPromptRef.current = null;
+    lastImageRef.current = null;
   }, [activeProfile?.id, profileName]);
 
   useEffect(() => {
@@ -95,13 +111,20 @@ export default function ChatScreen() {
   }, [messages, sending]);
 
   const send = useCallback(
-    async (raw: string, appendUser = true) => {
-      const text = raw.trim();
+    async (
+      raw: string,
+      appendUser = true,
+      image: PendingImage | null = pendingImage,
+    ) => {
+      const text =
+        raw.trim() || (image ? "Analyze this garment for my wardrobe." : "");
       if (!text || sending || !user?.authId || !activeProfile) return;
 
       lastPromptRef.current = text;
+      lastImageRef.current = image;
       setError(null);
       setInput("");
+      setPendingImage(null);
 
       if (appendUser) {
         setMessages((current) => [
@@ -110,6 +133,7 @@ export default function ChatScreen() {
             id: `user-${Date.now()}`,
             role: "user",
             text,
+            imageUri: image?.uri,
           },
         ]);
       }
@@ -121,6 +145,8 @@ export default function ChatScreen() {
           threadId,
           userId: user.authId,
           profileId: String(activeProfile.id),
+          imageBase64: image?.base64,
+          imageMediaType: image?.mediaType,
         });
 
         setThreadId(reply.threadId);
@@ -152,7 +178,7 @@ export default function ChatScreen() {
         setSending(false);
       }
     },
-    [activeProfile, sending, threadId, user?.authId],
+    [activeProfile, pendingImage, sending, threadId, user?.authId],
   );
 
   const retry = useCallback(() => {
@@ -161,8 +187,56 @@ export default function ChatScreen() {
     setMessages((current) =>
       current.filter((message) => message.role !== "error"),
     );
-    send(prompt, false);
+    send(prompt, false, lastImageRef.current);
   }, [send]);
+
+  const pickImage = useCallback(async () => {
+    if (pickingImage || sending) return;
+    setPickingImage(true);
+    setError(null);
+
+    try {
+      if (Platform.OS !== "web") {
+        const permission =
+          await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (!permission.granted) {
+          setError("Allow photo access to attach a garment image.");
+          return;
+        }
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        base64: true,
+        quality: 0.6,
+      });
+
+      if (result.canceled) return;
+      const asset = result.assets[0];
+      if (!asset?.base64) {
+        setError("Could not read that photo. Try another image.");
+        return;
+      }
+      if (asset.base64.length > 8_000_000) {
+        setError("That photo is too large. Choose a smaller image.");
+        return;
+      }
+
+      setPendingImage({
+        uri: asset.uri,
+        base64: asset.base64,
+        mediaType: asset.mimeType ?? "image/jpeg",
+      });
+    } catch (pickError) {
+      setError(
+        pickError instanceof Error
+          ? pickError.message
+          : "Could not open the photo library.",
+      );
+    } finally {
+      setPickingImage(false);
+    }
+  }, [pickingImage, sending]);
 
   const showSuggestions = messages.length <= 1 && !sending;
 
@@ -198,17 +272,20 @@ export default function ChatScreen() {
 
         <View className="mx-5 mb-2 rounded-[14px] bg-wardro-primary-light px-3.5 py-2.5">
           <Text className="text-[11.5px] leading-4 text-wardro-primary-dark">
-            Local agent · profile inventory is connected. Search and styling use real items; image
-            analysis and editing tools are next.
+            Local agent · profile inventory and photo analysis are connected. Search and styling use
+            real items; saving the analyzed item is next.
           </Text>
         </View>
 
         <ScrollView
           ref={scrollRef}
           className="flex-1"
-          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 20 }}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32 }}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
+          onContentSizeChange={() =>
+            scrollRef.current?.scrollToEnd({ animated: true })
+          }
         >
           {messages.map((message) => (
             <MessageBubble key={message.id} message={message} />
@@ -258,7 +335,48 @@ export default function ChatScreen() {
         ) : null}
 
         <View className="border-t border-wardro-border bg-wardro-surface px-4 pb-3 pt-3">
+          {pendingImage ? (
+            <View className="mb-2 flex-row items-center rounded-[14px] border border-wardro-border bg-wardro-surface-secondary p-2">
+              <Image
+                source={{ uri: pendingImage.uri }}
+                resizeMode="cover"
+                style={{ width: 44, height: 44, borderRadius: 8 }}
+              />
+              <View className="ml-2.5 flex-1">
+                <Text className="text-[12px] font-bold text-wardro-text-primary">
+                  Garment photo attached
+                </Text>
+                <Text className="mt-0.5 text-[10.5px] text-wardro-text-secondary">
+                  It will be analyzed, not uploaded to your wardrobe.
+                </Text>
+              </View>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Remove attached photo"
+                hitSlop={8}
+                onPress={() => setPendingImage(null)}
+                className="h-8 w-8 items-center justify-center rounded-full active:bg-wardro-border"
+              >
+                <X size={16} color={wardroColors.text.secondary} />
+              </Pressable>
+            </View>
+          ) : null}
+
           <View className="flex-row items-end rounded-[22px] border border-wardro-border bg-wardro-surface-secondary px-3 py-2">
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Attach a garment photo"
+              disabled={sending || pickingImage}
+              onPress={pickImage}
+              className="mb-0.5 mr-1 h-9 w-9 items-center justify-center rounded-full active:bg-wardro-border"
+            >
+              {pickingImage ? (
+                <ActivityIndicator size="small" color={wardroColors.primaryDark} />
+              ) : (
+                <ImagePlus size={18} color={wardroColors.primaryDark} />
+              )}
+            </Pressable>
+
             <TextInput
               value={input}
               onChangeText={setInput}
@@ -272,7 +390,7 @@ export default function ChatScreen() {
               placeholderTextColor={wardroColors.text.disabled}
               className="max-h-28 flex-1 px-1 py-2 text-[14px] font-medium text-wardro-text-primary outline-none"
               style={{ textAlignVertical: "top" }}
-              editable={!sending}
+              editable={!sending && !pickingImage}
             />
             <Pressable
               accessibilityRole="button"
@@ -301,6 +419,18 @@ function MessageBubble({ message }: { message: ChatMessage }) {
   if (message.role === "user") {
     return (
       <View className="mb-3 max-w-[88%] self-end rounded-[18px] rounded-br-[6px] bg-wardro-primary-dark px-4 py-3">
+        {message.imageUri ? (
+          <Image
+            source={{ uri: message.imageUri }}
+            resizeMode="cover"
+            style={{
+              width: 190,
+              height: 190,
+              borderRadius: 12,
+              marginBottom: message.text ? 8 : 0,
+            }}
+          />
+        ) : null}
         <Text className="text-[14px] leading-5 text-white">{message.text}</Text>
       </View>
     );

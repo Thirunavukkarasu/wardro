@@ -9,7 +9,8 @@ import { auth } from "~/lib/firebase";
  * traffic will go through the Bun `/api/ai/*` proxy with Firebase auth and a
  * short-lived internal JWT.
  */
-const AGENT_TIMEOUT_MS = 150_000;
+// Vision requests can take longer than text on a cloud Ollama model.
+const AGENT_TIMEOUT_MS = 300_000;
 
 export class AgentException extends Error {
   readonly statusCode?: number;
@@ -38,6 +39,8 @@ interface SendAgentMessageInput {
   threadId: string;
   userId: string;
   profileId: string;
+  imageBase64?: string;
+  imageMediaType?: string;
   signal?: AbortSignal;
 }
 
@@ -64,6 +67,8 @@ export async function sendAgentMessage({
   threadId,
   userId,
   profileId,
+  imageBase64,
+  imageMediaType,
   signal,
 }: SendAgentMessageInput): Promise<AgentReply> {
   const controller = new AbortController();
@@ -100,6 +105,12 @@ export async function sendAgentMessage({
         user_id: userId,
         profile_id: profileId,
         ...(firebaseToken ? { firebase_token: firebaseToken } : {}),
+        ...(imageBase64
+          ? {
+              image_base64: imageBase64,
+              image_media_type: imageMediaType ?? "image/jpeg",
+            }
+          : {}),
       }),
       signal: controller.signal,
     });

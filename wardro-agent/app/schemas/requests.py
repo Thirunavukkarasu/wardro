@@ -47,6 +47,18 @@ class ChatRequest(BaseModel):
             "Replaced by the Bun internal-JWT proxy in the next milestone."
         ),
     )
+    image_base64: str | None = Field(
+        default=None,
+        description=(
+            "Base64 image data for a single-image analysis request. When present, "
+            "the request is routed to the vision analyzer instead of the graph."
+        ),
+    )
+    image_media_type: str = Field(
+        default="image/jpeg",
+        max_length=64,
+        description="MIME type for image_base64.",
+    )
 
     @field_validator("message")
     @classmethod

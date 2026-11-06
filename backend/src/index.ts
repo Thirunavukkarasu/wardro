@@ -49,6 +49,11 @@ const demoRoot = process.env.DEMO_IMAGES_DIR
 
 app.use(
     '/demo/*',
+    cors({
+        origin: (origin) => (browserOrigins.includes(origin) ? origin : undefined),
+        allowMethods: ['GET', 'OPTIONS'],
+        maxAge: 86400,
+    }),
     serveStatic({
         root: demoRoot,
         rewriteRequestPath: (requestPath) =>

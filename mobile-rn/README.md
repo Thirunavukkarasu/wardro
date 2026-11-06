@@ -95,11 +95,12 @@ visible and thumb-reachable. `app/(root)/(tabs)/_layout.tsx` owns the tab bar
 and FAB.
 
 Chat is a **local-agent pilot**: it calls the FastAPI `wardro-agent` service in
-development and uses the active profile for context. The agent can now read the
-profile's inventory and build text suggestions from real items. Inventory cards,
-image analysis, editing actions and streaming are next. The longer-term
-navigation still plans for **Create** and **Calendar**; their relationship to
-Chat is an open product decision. See
+development and uses the active profile for context. The agent can read the
+profile's inventory and build text suggestions from real items. The composer's
+image button attaches a garment photo; the vision model classifies it and returns
+structured attributes. Inventory cards, saving an analyzed item, editing actions
+and streaming are next. The longer-term navigation still plans for **Create** and
+**Calendar**; their relationship to Chat is an open product decision. See
 [`docs/screen-architecture.md`](docs/screen-architecture.md) for the full
 screen inventory, principles, migration plan, and rationale.
 
@@ -198,13 +199,15 @@ Chat calls the FastAPI service directly in development:
 
 | Endpoint | Used by |
 | --- | --- |
-| `POST {EXPO_PUBLIC_AGENT_URL}/api/v1/chat` | Chat tab: `{ message, thread_id, user_id, profile_id, firebase_token }` |
+| `POST {EXPO_PUBLIC_AGENT_URL}/api/v1/chat` | Chat tab: `{ message, thread_id, user_id, profile_id, firebase_token?, image_base64?, image_media_type? }` |
 
 The response is `{ thread_id, intent, agent, message, metadata }`. The agent
 uses `firebase_token` only to read the active profile's inventory from the Bun
-API; it is development-only and is not stored in graph state. Production chat
-will go through the Hono `/api/ai/*` proxy with Firebase auth and a short-lived
-internal JWT.
+API; it is development-only and is not stored in graph state. When
+`image_base64` is present, the request is routed to the vision model and the
+response metadata contains the structured `analysis`; the image is not saved.
+Production chat will go through the Hono `/api/ai/*` proxy with Firebase auth
+and a short-lived internal JWT.
 
 ## Design tokens
 

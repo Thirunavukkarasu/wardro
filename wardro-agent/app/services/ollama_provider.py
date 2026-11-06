@@ -218,6 +218,10 @@ class OllamaProvider:
 
     def _build_chat_model(self, model_name: str) -> BaseChatModel:
         """Construct a ChatOllama client without performing a network call."""
+        client_kwargs: dict[str, object] = {"timeout": self._settings.ollama_request_timeout}
+        if self._settings.ollama_api_key:
+            client_kwargs["headers"] = {"Authorization": f"Bearer {self._settings.ollama_api_key}"}
+
         return ChatOllama(
             model=model_name,
             base_url=self._settings.ollama_base_url,
@@ -225,7 +229,8 @@ class OllamaProvider:
             num_predict=self._settings.ollama_num_predict,
             reasoning=False if self._settings.ollama_disable_thinking else None,
             validate_model_on_init=False,
-            client_kwargs={"timeout": self._settings.ollama_request_timeout},
+            client_kwargs=client_kwargs,
+            async_client_kwargs=client_kwargs,
         )
 
     def _model_for(self, model_name: str) -> BaseChatModel:

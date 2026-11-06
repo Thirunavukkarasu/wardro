@@ -53,17 +53,15 @@ Rules:
 VISION_ANALYST_SYSTEM_PROMPT = """You are the Vision Analyst for Wardro AI.
 Wardro AI is a family wardrobe assistant.
 
-Your job is to handle clothing-image analysis requests.
-
-Milestone status: image understanding is NOT implemented yet. It is the next milestone.
-You cannot see, download, or analyse images in this version.
+Your job is to handle clothing-image requests. Attached photos are analyzed by a
+separate vision model; this text-only path does not receive the image bytes.
 
 Rules:
-- Never claim to have seen or analysed an image, and never invent detected garments.
-- Explain clearly that vision integration is coming in the next milestone.
-- Invite the user to keep the image ready and describe what they want to identify.
-- If useful, offer general criteria to look at when identifying a garment (fabric,
-  care label, cut), clearly framed as general guidance.
+- If no image is attached, ask the user to attach the garment photo using the
+  image button in the chat composer. Do not claim to have seen an image.
+- Never invent detected garments, colours, materials or brands.
+- If the supplied context says the vision subsystem is unavailable, explain that
+  the configured vision model could not be used and suggest retrying with a photo.
 - Be brief and honest."""
 
 WARDROBE_ADVISOR_SYSTEM_PROMPT = """You are the Wardrobe Advisor for Wardro AI.

@@ -6,12 +6,13 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.config import Settings
-from app.dependencies import get_wardrobe_backend
+from app.dependencies import get_image_analyzer, get_wardrobe_backend
 from app.graph.routing import Intent, IntentClassification
 from app.main import create_app
 from app.schemas.responses import ChatResponse
 from app.services.ollama_provider import OllamaHealth, OllamaUnavailableError
 from app.services.wardrobe_backend import BackendWardrobeItem
+from app.vision.schemas import DetectedGarment, ImageAnalysisResult
 from tests.conftest import TEST_CHAT_MODEL, TEST_VISION_MODEL, FakeProvider
 
 
@@ -149,6 +150,51 @@ def test_chat_uses_profile_inventory_when_development_token_is_supplied(
     assert body["metadata"]["wardrobe_item_count"] == 1
     assert fake_provider.chat_calls
     assert "Grey Pullover Hoodie" in str(fake_provider.chat_calls[-1][-1].content)
+
+
+def test_chat_routes_an_image_to_the_vision_analyzer(
+    settings: Settings,
+    fake_provider: FakeProvider,
+) -> None:
+    class FakeImageAnalyzer:
+        async def analyze(self, request):
+            assert request.image_base64 == "ZmFrZQ=="
+            return ImageAnalysisResult(
+                status="completed",
+                items=[
+                    DetectedGarment(
+                        garment_type="t-shirt",
+                        category="Tops",
+                        primary_color="black",
+                        pattern="solid",
+                        material="cotton",
+                        confidence=0.95,
+                    )
+                ],
+                detail="A black cotton t-shirt.",
+                model="vision-test",
+            )
+
+    application = create_app(settings=settings, provider=fake_provider)
+    application.dependency_overrides[get_image_analyzer] = lambda: FakeImageAnalyzer()
+
+    with TestClient(application) as test_client:
+        response = test_client.post(
+            "/api/v1/chat",
+            json={
+                "message": "What is this?",
+                "user_id": "user-123",
+                "image_base64": "ZmFrZQ==",
+            },
+        )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["intent"] == "image_analysis"
+    assert body["agent"] == "vision_analyst"
+    assert "black t-shirt" in body["message"].lower()
+    assert body["metadata"]["image_analysis"] == "completed"
+    assert body["metadata"]["analysis"]["items"][0]["garment_type"] == "t-shirt"
 
 
 def test_chat_generates_thread_id_when_omitted(client: TestClient) -> None:

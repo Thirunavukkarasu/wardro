@@ -12,6 +12,7 @@ from langgraph.graph.state import CompiledStateGraph
 from app.config import Settings, get_settings
 from app.services.ollama_provider import OllamaProvider
 from app.services.wardrobe_backend import WardrobeBackendClient
+from app.vision.image_analyzer import ImageAnalyzer
 
 
 def get_app_settings(request: Request) -> Settings:
@@ -53,7 +54,19 @@ def get_wardrobe_backend(request: Request) -> WardrobeBackendClient:
     return backend
 
 
+def get_image_analyzer(request: Request) -> ImageAnalyzer:
+    """Return the configured clothing-image analyzer."""
+    analyzer = getattr(request.app.state, "image_analyzer", None)
+    if analyzer is None:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Image analyzer is not initialised.",
+        )
+    return analyzer
+
+
 SettingsDep = Annotated[Settings, Depends(get_app_settings)]
 OllamaProviderDep = Annotated[OllamaProvider, Depends(get_ollama_provider)]
 WorkflowDep = Annotated[CompiledStateGraph, Depends(get_wardrobe_graph)]
 WardrobeBackendDep = Annotated[WardrobeBackendClient, Depends(get_wardrobe_backend)]
+ImageAnalyzerDep = Annotated[ImageAnalyzer, Depends(get_image_analyzer)]
