@@ -17,7 +17,7 @@ New contributors and AI agents should start at [`AGENTS.md`](AGENTS.md), which m
 | Directory | Stack | Status |
 | --- | --- | --- |
 | `mobile-rn/` | Expo SDK 54 / React Native | Primary app — Firebase auth (email/password + Google), per-user data, photo-first UI |
-| `backend/` | Bun + Hono + Drizzle, built to Node | API with Firebase ID-token verification; deployed to App Hosting |
+| `backend/` | Bun + Hono + Drizzle | API with Firebase ID-token verification; runs on Bun in Cloud Run |
 | `backend/api-tests/` | Bruno collections | Manual API testing |
 | `scripts/` | Bun/Node tooling + fixtures | Seed script and four-profile simulation dataset |
 | `wardro-agent/` | Python 3.12 + FastAPI + LangGraph + Ollama | Agent service (Milestone 1; not yet wired to live wardrobe data) |
@@ -69,22 +69,26 @@ integration status.
 
 - **Database** — Drizzle ORM on plain Postgres. The runtime only needs
   `DATABASE_URL`, so Neon, Supabase, RDS, local Postgres, or Cloud SQL all work
-  without code changes. App Hosting uses a Neon Postgres via the `DATABASE_URL`
-  Secret Manager secret; the Cloud SQL connector remains as a fallback
+  without code changes. Cloud Run reads `DATABASE_URL` from the Secret Manager
+  secret of the same name; the Cloud SQL connector remains as a fallback
   (`CLOUD_SQL_CONNECTION_NAME` + DB credentials).
 - **Storage** — item photos are uploaded by the app to
   `users/{uid}/items/...`; rules live in `storage.rules`. Deploy with
   `firebase deploy --only storage`.
-- **App Hosting** — the `wardro` backend builds `backend/` from GitHub on every
-  push to `main` and serves the API at
-  `https://wardro--wardo-ce8d5.us-east4.hosted.app`.
+- **API** — the `wardro-api` service runs on Google Cloud Run in
+  `wardo-ce8d5` on the Bun runtime. Pushes to `main` under `backend/` build a
+  Bun container image, push it to Artifact Registry and deploy a new revision
+  through [`.github/workflows/deploy-api.yml`](.github/workflows/deploy-api.yml).
+  See [`backend/README.md`](backend/README.md#build-and-deploy) for the one-time
+  GCP and GitHub setup.
+- **Website** — Next.js on Vercel at `https://wardro-lake.vercel.app`.
 
 ## Technologies
 
 - React Native (Expo Router) + Firebase Authentication + Firebase Storage
-- Bun + Hono API (bundled to a Node server)
+- Bun + Hono API (runs on Bun in Cloud Run)
 - Drizzle ORM + Postgres (provider-agnostic)
 - Python 3.12 + FastAPI + LangGraph agent service (local Ollama inference)
 - Firebase Storage
-- Firebase App Hosting
+- Google Cloud Run + Artifact Registry
 - Next.js + Tailwind CSS

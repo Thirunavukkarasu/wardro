@@ -1,0 +1,11 @@
+node_modules
+dist
+
+# Never bake local secrets or tooling output into the image.
+.env
+.env.*
+.DS_Store
+*.log
+
+api-tests
+drizzle

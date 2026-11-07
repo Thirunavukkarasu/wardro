@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -39,27 +40,30 @@ app.use(
 )
 // Serve the checked-in simulation images for local development. This route is
 // intentionally unauthenticated: the dataset is demo content, and the app only
-// needs read access to render item photos. In deployments that do not include
-// the repository's dataset directory, set DEMO_IMAGES_DIR or ignore the 404s.
+// needs read access to render item photos. Production images do not ship the
+// repository's dataset directory, so the route is skipped when it is absent.
 const demoRoot = process.env.DEMO_IMAGES_DIR
     ? path.resolve(process.env.DEMO_IMAGES_DIR)
     : fileURLToPath(
           new URL('../../scripts/datasets/wardrobe-simulation', import.meta.url)
       )
 
-app.use(
-    '/demo/*',
-    cors({
-        origin: (origin) => (browserOrigins.includes(origin) ? origin : undefined),
-        allowMethods: ['GET', 'OPTIONS'],
-        maxAge: 86400,
-    }),
-    serveStatic({
-        root: demoRoot,
-        rewriteRequestPath: (requestPath) =>
-            requestPath.replace(/^\/demo/, '') || '/',
-    })
-)
+if (existsSync(demoRoot)) {
+    app.use(
+        '/demo/*',
+        cors({
+            origin: (origin) =>
+                browserOrigins.includes(origin) ? origin : undefined,
+            allowMethods: ['GET', 'OPTIONS'],
+            maxAge: 86400,
+        }),
+        serveStatic({
+            root: demoRoot,
+            rewriteRequestPath: (requestPath) =>
+                requestPath.replace(/^\/demo/, '') || '/',
+        })
+    )
+}
 
 app.route('/api', apiRoutes)
 

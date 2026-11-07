@@ -45,10 +45,16 @@ export const googleClientIds = {
   ios: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
 };
 
-/** Hono backend base URL, including the `/api` prefix. */
+/**
+ * Hono backend base URL, including the `/api` prefix.
+ *
+ * The default targets the Cloud Run service created by
+ * `.github/workflows/deploy-api.yml` (`wardro-api` in `asia-south1`). Override
+ * it with `EXPO_PUBLIC_API_URL` for local development or another environment.
+ */
 export const apiBaseUrl =
   process.env.EXPO_PUBLIC_API_URL ||
-  "https://wardro--wardo-ce8d5.us-east4.hosted.app/api";
+  "https://wardro-api-251900114942.asia-south1.run.app/api";
 
 /**
  * Local FastAPI agent base URL (wardro-agent). Use the LAN IP instead of

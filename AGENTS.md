@@ -42,7 +42,7 @@ blueprints and references; the tokens and shared component rules live in
 | Directory | Stack | Status |
 | --- | --- | --- |
 | `mobile-rn/` | Expo SDK 54 / React Native | Primary app |
-| `backend/` | Bun + Hono + Drizzle, bundled to Node | API and system of record |
+| `backend/` | Bun + Hono + Drizzle | API and system of record; runs on Bun in Cloud Run |
 | `backend/api-tests/` | Bruno collections | Manual API tests |
 | `scripts/` | Node/Bun tooling + fixtures | Seed script and simulation dataset |
 | `scripts/datasets/wardrobe-simulation/` | JSON + JPEG fixtures | Demo/test dataset |
@@ -75,6 +75,9 @@ cd mobile-agent-ui && npm install && npm run web -- --port 8082
 cd mobile-rn && npm run typecheck
 cd backend && bunx tsc --noEmit
 cd wardro-agent && uv run ruff check . && uv run pytest
+
+# Deploy the API to Cloud Run (also runs on backend/ pushes to main)
+gh workflow run "Deploy API to Cloud Run"
 ```
 
 The backend has one known, unrelated type error in `src/db.ts`

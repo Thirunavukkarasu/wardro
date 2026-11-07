@@ -1,0 +1,113 @@
+name: Deploy API to Cloud Run
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "backend/src/**"
+      - "backend/package.json"
+      - "backend/bun.lockb"
+      - "backend/tsconfig.json"
+      - "backend/Dockerfile"
+      - "backend/.dockerignore"
+      - ".github/workflows/deploy-api.yml"
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: deploy-api
+  cancel-in-progress: false
+
+env:
+  GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID || 'wardo-ce8d5' }}
+  GCP_REGION: ${{ vars.GCP_REGION || 'asia-south1' }}
+  ARTIFACT_REPOSITORY: ${{ vars.ARTIFACT_REGISTRY_REPOSITORY || 'wardro' }}
+  CLOUD_RUN_SERVICE: ${{ vars.CLOUD_RUN_SERVICE || 'wardro-api' }}
+  CLOUD_RUN_SERVICE_ACCOUNT: ${{ vars.CLOUD_RUN_SERVICE_ACCOUNT || format('wardro-api@{0}.iam.gserviceaccount.com', vars.GCP_PROJECT_ID || 'wardo-ce8d5') }}
+  FIREBASE_STORAGE_BUCKET: ${{ vars.FIREBASE_STORAGE_BUCKET || 'wardo-ce8d5.firebasestorage.app' }}
+  CORS_ORIGINS: ${{ vars.CORS_ORIGINS || 'https://wardro-lake.vercel.app' }}
+  DATABASE_URL_SECRET: ${{ vars.DATABASE_URL_SECRET || 'DATABASE_URL' }}
+  IMAGE: ${{ format('{0}-docker.pkg.dev/{1}/{2}/{3}:{4}', vars.GCP_REGION || 'asia-south1', vars.GCP_PROJECT_ID || 'wardo-ce8d5', vars.ARTIFACT_REGISTRY_REPOSITORY || 'wardro', vars.CLOUD_RUN_SERVICE || 'wardro-api', github.sha) }}
+
+jobs:
+  deploy:
+    name: Build and deploy the API
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.4.2"
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: bun install --frozen-lockfile
+
+      # App Hosting still serves the committed bundle, and AGENTS.md asks for it
+      # to be rebuilt with src/. Fail before deploying if it has drifted.
+      - name: Verify the committed bundle is current
+        working-directory: backend
+        run: |
+          bun run bundle
+          git diff --exit-code -- dist
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker "${GCP_REGION}-docker.pkg.dev" --quiet
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: backend
+          file: backend/Dockerfile
+          push: true
+          tags: ${{ env.IMAGE }}
+          labels: org.opencontainers.image.revision=${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Deploy revision to Cloud Run
+        run: |
+          gcloud run deploy "$CLOUD_RUN_SERVICE" \
+            --project "$GCP_PROJECT_ID" \
+            --region "$GCP_REGION" \
+            --platform managed \
+            --image "$IMAGE" \
+            --port 8080 \
+            --allow-unauthenticated \
+            --service-account "$CLOUD_RUN_SERVICE_ACCOUNT" \
+            --memory 512Mi \
+            --cpu 1 \
+            --concurrency 80 \
+            --min-instances 0 \
+            --max-instances 10 \
+            --timeout 60 \
+            --set-env-vars "^@^NODE_ENV=production@FIREBASE_PROJECT_ID=${GCP_PROJECT_ID}@FIREBASE_STORAGE_BUCKET=${FIREBASE_STORAGE_BUCKET}@CORS_ORIGINS=${CORS_ORIGINS}" \
+            --set-secrets "DATABASE_URL=${DATABASE_URL_SECRET}:latest" \
+            --quiet
+
+      - name: Print service URL
+        run: |
+          gcloud run services describe "$CLOUD_RUN_SERVICE" \
+            --project "$GCP_PROJECT_ID" \
+            --region "$GCP_REGION" \
+            --format='value(status.url)'
