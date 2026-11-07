@@ -132,8 +132,7 @@ as repository variables above instead.
 
 Run this once from an account with project Owner (or equivalent). It creates
 the Artifact Registry repository, the deployer and runtime service accounts,
-the Workload Identity Federation pool, and the secret/storage access the
-runtime needs.
+the Workload Identity Federation pool, and the secret access the runtime needs.
 
 ```sh
 PROJECT_ID=wardo-ce8d5
@@ -188,6 +187,8 @@ gcloud secrets add-iam-policy-binding DATABASE_URL \
   --member "serviceAccount:wardro-api@${PROJECT_ID}.iam.gserviceaccount.com" \
   --role roles/secretmanager.secretAccessor
 
+# After Firebase Storage is set up (Firebase console → Storage → Get Started),
+# let the runtime delete the photos it owns.
 gcloud storage buckets add-iam-policy-binding \
   gs://wardo-ce8d5.firebasestorage.app \
   --member "serviceAccount:wardro-api@${PROJECT_ID}.iam.gserviceaccount.com" \
