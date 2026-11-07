@@ -138,7 +138,7 @@ runtime needs.
 ```sh
 PROJECT_ID=wardo-ce8d5
 REGION=asia-south1
-GITHUB_REPO=Thirunavukkarasu/my-closet
+GITHUB_REPO=Thirunavukkarasu/wardro
 PROJECT_NUMBER=$(gcloud projects describe "$PROJECT_ID" --format='value(projectNumber)')
 
 gcloud services enable \
@@ -238,8 +238,8 @@ a fallback: set `CLOUD_SQL_CONNECTION_NAME` plus `DB_USER` / `DB_PASSWORD` /
 ### Deploy
 
 ```sh
-gh workflow run "Deploy API to Cloud Run" -R Thirunavukkarasu/my-closet
-gh run watch -R Thirunavukkarasu/my-closet
+gh workflow run "Deploy API to Cloud Run" -R Thirunavukkarasu/wardro
+gh run watch -R Thirunavukkarasu/wardro
 ```
 
 Or open **Actions → Deploy API to Cloud Run → Run workflow**.
