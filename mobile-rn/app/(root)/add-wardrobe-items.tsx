@@ -19,7 +19,14 @@ import DateField from "~/components/DateField";
 import FormScreen from "~/components/FormScreen";
 import InputField from "~/components/InputField";
 import PhotoCaptureField from "~/components/PhotoCaptureField";
+import SelectField from "~/components/SelectField";
 import { api, ApiException } from "~/lib/api";
+import {
+  DEFAULT_CATEGORIES,
+  DEFAULT_COLORS,
+  DEFAULT_SIZES,
+  mergeOptions,
+} from "~/lib/item-options";
 import { useProfiles } from "~/lib/profiles-context";
 import type { ItemDraft, PickedPhoto, Wardrobe } from "~/lib/types";
 import {
@@ -35,6 +42,12 @@ function pickedPhotoBase64(photo: PickedPhoto): string | null {
     (photo.uri.startsWith("data:") ? photo.uri.split(",")[1] : null);
   if (!value) return null;
   return value.includes(",") ? (value.split(",").pop() ?? null) : value;
+}
+
+function addYears(date: Date, years: number): Date {
+  const next = new Date(date);
+  next.setFullYear(next.getFullYear() + years);
+  return next;
 }
 
 export default function AddItemScreen() {
@@ -57,6 +70,7 @@ export default function AddItemScreen() {
   }, [params.item]);
 
   const isEditing = Boolean(editingItem);
+  const today = useMemo(() => new Date(), []);
 
   const [wardrobes, setWardrobes] = useState<Wardrobe[]>([]);
   const [selectedWardrobeId, setSelectedWardrobeId] = useState<number | null>(
@@ -77,11 +91,16 @@ export default function AddItemScreen() {
   const autoScannedRef = useRef<string | null>(null);
   const [itemName, setItemName] = useState(editingItem?.itemName ?? "");
   const [purchaseDate, setPurchaseDate] = useState<Date | null>(
-    editingItem?.purchaseDate ?? null,
+    editingItem?.purchaseDate ?? (isEditing ? null : today),
   );
   const [expiryDate, setExpiryDate] = useState<Date | null>(
-    editingItem?.expiryDate ?? null,
+    editingItem?.expiryDate ?? (isEditing ? null : addYears(today, 1)),
   );
+  const [metaOptions, setMetaOptions] = useState<{
+    categories: string[];
+    colors: string[];
+    sizes: string[];
+  }>({ categories: [], colors: [], sizes: [] });
   const [price, setPrice] = useState(
     editingItem?.price !== null && editingItem?.price !== undefined
       ? String(editingItem.price)
@@ -92,6 +111,45 @@ export default function AddItemScreen() {
   const [color, setColor] = useState(editingItem?.color ?? "");
   const [size, setSize] = useState(editingItem?.size ?? "");
   const existingPhotoUri = editingItem?.photoUri ?? "";
+
+  const categoryOptions = useMemo(
+    () => mergeOptions(DEFAULT_CATEGORIES, metaOptions.categories, category),
+    [category, metaOptions.categories],
+  );
+  const colorOptions = useMemo(
+    () => mergeOptions(DEFAULT_COLORS, metaOptions.colors, color),
+    [color, metaOptions.colors],
+  );
+  const sizeOptions = useMemo(
+    () => mergeOptions(DEFAULT_SIZES, metaOptions.sizes, size),
+    [size, metaOptions.sizes],
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+
+    api
+      .get<{
+        categories?: string[];
+        colors?: string[];
+        sizes?: string[];
+      }>("/wardrobeItems/options")
+      .then((data) => {
+        if (cancelled) return;
+        setMetaOptions({
+          categories: data?.categories ?? [],
+          colors: data?.colors ?? [],
+          sizes: data?.sizes ?? [],
+        });
+      })
+      .catch(() => {
+        // The fixed option sets still work if this request fails.
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeProfile?.id]);
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -551,28 +609,31 @@ export default function AddItemScreen() {
                 onChangeText={setBrand}
               />
 
-              <InputField
+              <SelectField
                 label="Category"
-                placeholder="Enter category"
+                placeholder="Select category"
                 icon={<Tag size={20} color={wardroColors.text.disabled} />}
                 value={category}
-                onChangeText={setCategory}
+                options={categoryOptions}
+                onChange={setCategory}
               />
 
-              <InputField
+              <SelectField
                 label="Color"
-                placeholder="Enter color"
+                placeholder="Select colour"
                 icon={<Palette size={20} color={wardroColors.text.disabled} />}
                 value={color}
-                onChangeText={setColor}
+                options={colorOptions}
+                onChange={setColor}
               />
 
-              <InputField
+              <SelectField
                 label="Size"
-                placeholder="Enter size"
+                placeholder="Select size"
                 icon={<Ruler size={20} color={wardroColors.text.disabled} />}
                 value={size}
-                onChangeText={setSize}
+                options={sizeOptions}
+                onChange={setSize}
               />
 
             </>

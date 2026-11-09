@@ -131,6 +131,43 @@ routes.get('/', async (c) => {
     )
 })
 
+routes.get('/options', async (c) => {
+    const rows = await db
+        .select({
+            category: wardrobeItems.category,
+            color: wardrobeItems.color,
+            size: wardrobeItems.size,
+        })
+        .from(wardrobeItems)
+        .where(
+            and(
+                eq(wardrobeItems.ownerUid, c.get('uid')),
+                eq(wardrobeItems.profileId, c.get('profileId'))
+            )
+        )
+
+    return Response.json(
+        {
+            data: {
+                categories: distinctValues(rows.map((row) => row.category)),
+                colors: distinctValues(rows.map((row) => row.color)),
+                sizes: distinctValues(rows.map((row) => row.size)),
+            },
+        },
+        { status: 200 }
+    )
+})
+
+function distinctValues(values: (string | null)[]): string[] {
+    return [
+        ...new Set(
+            values
+                .map((value) => value?.trim())
+                .filter((value): value is string => Boolean(value))
+        ),
+    ].sort((a, b) => a.localeCompare(b))
+}
+
 routes.get('/:wardrobeId', async (c) => {
     const wardrobeId = parseInt(c.req.param('wardrobeId') || '0')
     if (!wardrobeId) {
