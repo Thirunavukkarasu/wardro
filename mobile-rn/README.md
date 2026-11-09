@@ -203,12 +203,17 @@ Wardrobe/item requests also send `X-Profile-Id`; `/profiles` is account-level.
 | `POST /wardrobeItems` | Add item |
 | `PATCH /wardrobeItems/:id` | Edit item fields and replace its photo |
 | `DELETE /wardrobeItems/:id` | Delete item + its photo |
-| `POST /photos` | Upload a photo; returns the signed `photoUri` |
+| `POST /photos` | Upload a photo; returns the object path (`photoPath`) |
+| `POST /ai/item-draft` | Auto-fill a draft from a photo or product URL |
 
 Photos are uploaded by the app to the authenticated `POST /photos` endpoint;
 the API writes them to Google Cloud Storage and returns the bucket-relative
 object path stored as `photoUri`. API responses expand that path to a signed
 URL. Firebase is used only for authentication.
+
+The add/edit item screen also offers **Fill details automatically**: it scans
+the selected photo or imports a product URL through `POST /ai/item-draft`. The
+returned draft only fills the form; nothing is written until the user saves.
 
 ## Agent endpoint used
 

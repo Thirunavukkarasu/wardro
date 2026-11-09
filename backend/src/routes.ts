@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
 
+import aiRoutes from '@/modules/ai'
 import photoRoutes from '@/modules/photos'
 import profileRoutes from '@/modules/profiles'
 import userRoutes from '@/modules/users'
@@ -12,6 +13,7 @@ apiRoutes.get('/healthcheck', (c) => {
     return c.text('Server is running!')
 })
 
+apiRoutes.route('/ai', aiRoutes)
 apiRoutes.route('/photos', photoRoutes)
 apiRoutes.route('/profiles', profileRoutes)
 apiRoutes.route('/users', userRoutes)

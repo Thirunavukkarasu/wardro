@@ -92,6 +92,22 @@ export interface PickedPhoto {
   fileName: string | null;
 }
 
+/** Draft details returned by the auto-fill endpoint; never saved directly. */
+export interface ItemDraft {
+  itemName: string;
+  brand: string | null;
+  category: string | null;
+  color: string | null;
+  size: string | null;
+  price: number | null;
+  currency: string | null;
+  purchaseDate: string | null;
+  description: string | null;
+  photoPath: string | null;
+  photoUri: string | null;
+  source: "ai" | "metadata";
+}
+
 export function toAppUser(user: User): AppUser {
   const name = (user.displayName ?? "").trim();
   const parts = name.split(/\s+/).filter(Boolean);

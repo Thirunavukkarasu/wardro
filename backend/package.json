@@ -16,9 +16,11 @@
     "seed:demo:dry": "bun run ../scripts/seed-demo.mjs --dry-run"
   },
   "dependencies": {
+    "@ai-sdk/openai": "^4.0.111",
     "@google-cloud/cloud-sql-connector": "^1.12.1",
     "@google-cloud/storage": "^8.4.0",
     "@hono/node-server": "^1.13.8",
+    "ai": "^7.0.166",
     "drizzle-orm": "^0.45.4",
     "hono": "^4.5.9",
     "jose": "^6.2.15",

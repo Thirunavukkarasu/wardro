@@ -60,6 +60,48 @@ can use `gcloud storage`:
 gcloud storage ls gs://wardo-ce8d5-wardrobe-photos/users/
 ```
 
+### Item auto-fill
+
+`POST /api/ai/item-draft` turns a photo or a product URL into an editable
+draft. It never writes wardrobe rows; the app fills the form and saves through
+`POST`/`PATCH /api/wardrobeItems` after the user reviews it.
+
+```json
+{ "imageBase64": "...", "contentType": "image/jpeg" }
+{ "url": "https://shop.example.com/item" }
+```
+
+The server calls an Ollama OpenAI-compatible endpoint with the Vercel AI SDK.
+Photos need a vision-capable model; product pages can use a text model. If no
+text model is configured, URL imports still fall back to page metadata.
+
+| Variable | Purpose |
+| --- | --- |
+| `OLLAMA_BASE_URL` | OpenAI-compatible endpoint, default `https://ollama.com/v1` |
+| `OLLAMA_API_KEY` | Secret Manager secret; required for Ollama Cloud |
+| `OLLAMA_TEXT_MODEL` | Text model for URL imports (for example a DeepSeek model) |
+| `OLLAMA_VISION_MODEL` | Vision-capable model for photo scanning |
+
+Create the API key secret once, grant the runtime access, and set the GitHub
+variable `OLLAMA_API_KEY_SECRET=OLLAMA_API_KEY` so the deploy workflow maps it:
+
+```sh
+printf '%s' "$OLLAMA_API_KEY" | gcloud secrets create OLLAMA_API_KEY \
+  --project wardo-ce8d5 --data-file=-
+gcloud secrets add-iam-policy-binding OLLAMA_API_KEY \
+  --project wardo-ce8d5 \
+  --member "serviceAccount:wardro-api@wardo-ce8d5.iam.gserviceaccount.com" \
+  --role roles/secretmanager.secretAccessor
+```
+
+Then set `OLLAMA_TEXT_MODEL` and/or `OLLAMA_VISION_MODEL` as GitHub repository
+variables and redeploy. Without a configured model the endpoint returns `503`.
+
+Remote URL fetches are restricted to public http(s) hosts on ports 80/443,
+reject private/reserved addresses, follow at most three redirects, time out
+after 10 seconds, and cap HTML at 1 MB and images at 10 MB. The endpoint is
+rate-limited per account.
+
 ### Bruno API collection
 
 Manual API requests live in [`api-tests/`](api-tests/). Open that folder as a
@@ -136,6 +178,10 @@ the current project, so the first run only needs the two secrets:
 | `CLOUD_RUN_SERVICE_ACCOUNT` | `wardro-api@<project>.iam.gserviceaccount.com` | Runtime identity of the service |
 | `GCS_PHOTOS_BUCKET` | `wardo-ce8d5-wardrobe-photos` | Bucket for item photos |
 | `PUBLIC_API_ORIGIN` | `https://wardro-api-251900114942.asia-south1.run.app` | Public origin used in signed photo URLs |
+| `OLLAMA_BASE_URL` | `https://ollama.com/v1` | Ollama OpenAI-compatible endpoint |
+| `OLLAMA_TEXT_MODEL` | (unset) | Text model for URL item imports |
+| `OLLAMA_VISION_MODEL` | (unset) | Vision model for photo scans |
+| `OLLAMA_API_KEY_SECRET` | (unset) | Repository variable naming the `OLLAMA_API_KEY` secret |
 | `CORS_ORIGINS` | `https://wardro-lake.vercel.app` | Extra browser origins, comma-separated |
 | `DATABASE_URL_SECRET` | `DATABASE_URL` | Secret Manager secret mapped to `DATABASE_URL` |
 

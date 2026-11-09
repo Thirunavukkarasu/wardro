@@ -1,6 +1,6 @@
 import { auth } from "~/lib/firebase";
 import { apiBaseUrl, requestTimeoutMs } from "~/lib/firebase-config";
-import type { PickedPhoto } from "~/lib/types";
+import type { ItemDraft, PickedPhoto } from "~/lib/types";
 
 let activeProfileId: number | null = null;
 
@@ -160,6 +160,19 @@ class ApiClient {
 
   delete<T = void>(path: string): Promise<T> {
     return this.send<T>("DELETE", path);
+  }
+
+  /**
+   * Asks the server to turn a photo or product URL into an editable draft.
+   * The draft is not saved; the caller fills the form and posts it normally.
+   */
+  async draftItem(input: {
+    imageBase64?: string;
+    contentType?: string;
+    url?: string;
+    hint?: string;
+  }): Promise<ItemDraft> {
+    return this.send<ItemDraft>("POST", "/ai/item-draft", input, 120_000);
   }
 
   /**

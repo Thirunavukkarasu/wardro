@@ -29,6 +29,10 @@ env:
   CLOUD_RUN_SERVICE_ACCOUNT: ${{ vars.CLOUD_RUN_SERVICE_ACCOUNT || format('wardro-api@{0}.iam.gserviceaccount.com', vars.GCP_PROJECT_ID || 'wardo-ce8d5') }}
   GCS_PHOTOS_BUCKET: ${{ vars.GCS_PHOTOS_BUCKET || 'wardo-ce8d5-wardrobe-photos' }}
   PUBLIC_API_ORIGIN: ${{ vars.PUBLIC_API_ORIGIN || 'https://wardro-api-251900114942.asia-south1.run.app' }}
+  OLLAMA_BASE_URL: ${{ vars.OLLAMA_BASE_URL || 'https://ollama.com/v1' }}
+  OLLAMA_TEXT_MODEL: ${{ vars.OLLAMA_TEXT_MODEL || '' }}
+  OLLAMA_VISION_MODEL: ${{ vars.OLLAMA_VISION_MODEL || '' }}
+  OLLAMA_API_KEY_SECRET: ${{ vars.OLLAMA_API_KEY_SECRET || '' }}
   CORS_ORIGINS: ${{ vars.CORS_ORIGINS || 'https://wardro-lake.vercel.app' }}
   DATABASE_URL_SECRET: ${{ vars.DATABASE_URL_SECRET || 'DATABASE_URL' }}
   IMAGE: ${{ format('{0}-docker.pkg.dev/{1}/{2}/{3}:{4}', vars.GCP_REGION || 'asia-south1', vars.GCP_PROJECT_ID || 'wardo-ce8d5', vars.ARTIFACT_REGISTRY_REPOSITORY || 'wardro', vars.CLOUD_RUN_SERVICE || 'wardro-api', github.sha) }}
@@ -80,6 +84,11 @@ jobs:
 
       - name: Deploy revision to Cloud Run
         run: |
+          SECRETS="DATABASE_URL=${DATABASE_URL_SECRET}:latest,PHOTO_URL_SECRET=PHOTO_URL_SECRET:latest"
+          if [ -n "${OLLAMA_API_KEY_SECRET}" ]; then
+            SECRETS="${SECRETS},OLLAMA_API_KEY=${OLLAMA_API_KEY_SECRET}:latest"
+          fi
+
           gcloud run deploy "$CLOUD_RUN_SERVICE" \
             --project "$GCP_PROJECT_ID" \
             --region "$GCP_REGION" \
@@ -93,9 +102,9 @@ jobs:
             --concurrency 80 \
             --min-instances 0 \
             --max-instances 10 \
-            --timeout 60 \
-            --set-env-vars "^@^NODE_ENV=production@FIREBASE_PROJECT_ID=${GCP_PROJECT_ID}@GCS_PHOTOS_BUCKET=${GCS_PHOTOS_BUCKET}@PUBLIC_API_ORIGIN=${PUBLIC_API_ORIGIN}@CORS_ORIGINS=${CORS_ORIGINS}" \
-            --set-secrets "DATABASE_URL=${DATABASE_URL_SECRET}:latest,PHOTO_URL_SECRET=PHOTO_URL_SECRET:latest" \
+            --timeout 120 \
+            --set-env-vars "^@^NODE_ENV=production@FIREBASE_PROJECT_ID=${GCP_PROJECT_ID}@GCS_PHOTOS_BUCKET=${GCS_PHOTOS_BUCKET}@PUBLIC_API_ORIGIN=${PUBLIC_API_ORIGIN}@OLLAMA_BASE_URL=${OLLAMA_BASE_URL}@OLLAMA_TEXT_MODEL=${OLLAMA_TEXT_MODEL}@OLLAMA_VISION_MODEL=${OLLAMA_VISION_MODEL}@CORS_ORIGINS=${CORS_ORIGINS}" \
+            --set-secrets "$SECRETS" \
             --quiet
 
       - name: Print service URL

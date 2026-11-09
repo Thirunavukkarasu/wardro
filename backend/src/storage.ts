@@ -124,11 +124,22 @@ export async function uploadStoredPhoto(input: {
     base64: string
     contentType: string
 }): Promise<string> {
-    const buffer = Buffer.from(input.base64, 'base64')
-    if (buffer.length === 0) {
+    return uploadStoredPhotoBuffer({
+        uid: input.uid,
+        buffer: Buffer.from(input.base64, 'base64'),
+        contentType: input.contentType,
+    })
+}
+
+export async function uploadStoredPhotoBuffer(input: {
+    uid: string
+    buffer: Buffer
+    contentType: string
+}): Promise<string> {
+    if (input.buffer.length === 0) {
         throw new Error('The selected photo is empty.')
     }
-    if (buffer.length > MAX_PHOTO_BYTES) {
+    if (input.buffer.length > MAX_PHOTO_BYTES) {
         throw new Error('Photos must be smaller than 10 MB.')
     }
 
@@ -136,7 +147,7 @@ export async function uploadStoredPhoto(input: {
     const name = `${Date.now()}-${randomBytes(6).toString('hex')}.${extension}`
     const path = `users/${input.uid}/items/${name}`
 
-    await storage.bucket(BUCKET).file(path).save(buffer, {
+    await storage.bucket(BUCKET).file(path).save(input.buffer, {
         resumable: false,
         contentType: input.contentType,
         metadata: { cacheControl: 'private, max-age=31536000, immutable' },

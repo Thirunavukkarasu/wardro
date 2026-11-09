@@ -1,15 +1,18 @@
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import {
   ImageIcon,
+  Link2,
   Palette,
   Ruler,
   Shirt,
+  Sparkles,
   Store,
   Tag,
   Wallet,
+  X,
 } from "lucide-react-native";
 import { useCallback, useMemo, useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Image, Pressable, ScrollView, Text, View } from "react-native";
 
 import CustomButton from "~/components/CustomButton";
 import DateField from "~/components/DateField";
@@ -18,13 +21,21 @@ import InputField from "~/components/InputField";
 import PhotoCaptureField from "~/components/PhotoCaptureField";
 import { api, ApiException } from "~/lib/api";
 import { useProfiles } from "~/lib/profiles-context";
-import type { PickedPhoto, Wardrobe } from "~/lib/types";
+import type { ItemDraft, PickedPhoto, Wardrobe } from "~/lib/types";
 import {
   wardrobeFromJson,
   wardrobeItemFromJson,
   type WardrobeItem,
 } from "~/lib/types";
 import { wardroColors } from "~/src/theme/colors";
+
+function pickedPhotoBase64(photo: PickedPhoto): string | null {
+  const value =
+    photo.base64 ??
+    (photo.uri.startsWith("data:") ? photo.uri.split(",")[1] : null);
+  if (!value) return null;
+  return value.includes(",") ? (value.split(",").pop() ?? null) : value;
+}
 
 export default function AddItemScreen() {
   const { activeProfile } = useProfiles();
@@ -55,6 +66,14 @@ export default function AddItemScreen() {
   const [wardrobesError, setWardrobesError] = useState<string | null>(null);
 
   const [photo, setPhoto] = useState<PickedPhoto | null>(null);
+  const [importedPhoto, setImportedPhoto] = useState<{
+    path: string;
+    url: string;
+  } | null>(null);
+  const [sourceUrl, setSourceUrl] = useState("");
+  const [autoFilling, setAutoFilling] = useState<"photo" | "url" | null>(null);
+  const [autoFillError, setAutoFillError] = useState<string | null>(null);
+  const [autoFillNote, setAutoFillNote] = useState<string | null>(null);
   const [itemName, setItemName] = useState(editingItem?.itemName ?? "");
   const [purchaseDate, setPurchaseDate] = useState<Date | null>(
     editingItem?.purchaseDate ?? null,
@@ -154,6 +173,84 @@ export default function AddItemScreen() {
     };
   };
 
+  const applyDraft = (draft: ItemDraft) => {
+    if (draft.itemName.trim()) setItemName(draft.itemName.trim());
+    if (draft.brand) setBrand(draft.brand);
+    if (draft.category) setCategory(draft.category);
+    if (draft.color) setColor(draft.color);
+    if (draft.size) setSize(draft.size);
+    if (draft.price !== null && draft.price !== undefined) {
+      setPrice(String(draft.price));
+    }
+    if (draft.purchaseDate) {
+      const date = new Date(draft.purchaseDate);
+      if (!Number.isNaN(date.getTime())) setPurchaseDate(date);
+    }
+    if (draft.photoPath && draft.photoUri) {
+      setImportedPhoto({ path: draft.photoPath, url: draft.photoUri });
+    }
+    setAutoFillNote(
+      draft.source === "metadata"
+        ? "Filled from the page metadata. Review the details before saving."
+        : "Draft filled. Review the details before saving.",
+    );
+  };
+
+  const autoFillFromPhoto = async () => {
+    if (!photo) {
+      setAutoFillError("Add or take a photo first.");
+      return;
+    }
+    const base64 = pickedPhotoBase64(photo);
+    if (!base64) {
+      setAutoFillError("Could not read the selected photo.");
+      return;
+    }
+
+    setAutoFilling("photo");
+    setAutoFillError(null);
+    setAutoFillNote(null);
+    try {
+      const draft = await api.draftItem({
+        imageBase64: base64,
+        contentType: photo.mimeType,
+      });
+      applyDraft(draft);
+    } catch (fillError) {
+      setAutoFillError(
+        fillError instanceof ApiException
+          ? fillError.message
+          : "Could not scan the photo.",
+      );
+    } finally {
+      setAutoFilling(null);
+    }
+  };
+
+  const autoFillFromUrl = async () => {
+    const url = sourceUrl.trim();
+    if (!url) {
+      setAutoFillError("Paste a product URL first.");
+      return;
+    }
+
+    setAutoFilling("url");
+    setAutoFillError(null);
+    setAutoFillNote(null);
+    try {
+      const draft = await api.draftItem({ url });
+      applyDraft(draft);
+    } catch (fillError) {
+      setAutoFillError(
+        fillError instanceof ApiException
+          ? fillError.message
+          : "Could not import that URL.",
+      );
+    } finally {
+      setAutoFilling(null);
+    }
+  };
+
   const save = async () => {
     setError(null);
 
@@ -169,7 +266,7 @@ export default function AddItemScreen() {
     setSaving(true);
 
     try {
-      let photoUri: string | undefined;
+      let photoUri: string | undefined = importedPhoto?.path;
       if (photo) {
         photoUri = await api.uploadPhoto(photo);
       }
@@ -259,7 +356,98 @@ export default function AddItemScreen() {
             </View>
           ) : null}
 
-          <PhotoCaptureField photo={photo} onChange={setPhoto} />
+          <PhotoCaptureField
+            photo={photo}
+            onChange={(next) => {
+              setPhoto(next);
+              if (next) setImportedPhoto(null);
+            }}
+          />
+
+          {importedPhoto && !photo ? (
+            <View className="mt-3 rounded-[16px] border border-line bg-white p-3">
+              <View className="flex-row items-center">
+                <Image
+                  source={{ uri: importedPhoto.url }}
+                  style={{ width: 56, height: 56, borderRadius: 10 }}
+                  resizeMode="cover"
+                />
+                <View className="ml-3 flex-1">
+                  <Text className="text-[13px] font-semibold text-ink">
+                    Photo imported from URL
+                  </Text>
+                  <Text className="mt-0.5 text-[11px] leading-4 text-ink-secondary">
+                    You can replace it with your own photo.
+                  </Text>
+                </View>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Remove imported photo"
+                  onPress={() => setImportedPhoto(null)}
+                  className="p-2 active:opacity-70"
+                >
+                  <X size={16} color={wardroColors.text.secondary} />
+                </Pressable>
+              </View>
+            </View>
+          ) : null}
+
+          <View className="mt-4 rounded-[18px] border border-line bg-white p-4">
+            <View className="flex-row items-center">
+              <Sparkles size={18} color={wardroColors.primaryDark} />
+              <Text className="ml-2 text-[15px] font-semibold text-ink">
+                Fill details automatically
+              </Text>
+            </View>
+            <Text className="mt-1 text-[12px] leading-5 text-ink-secondary">
+              Scan the selected photo, or paste a product link. Review
+              everything before saving.
+            </Text>
+
+            <View className="mt-3">
+              <CustomButton
+                title={
+                  autoFilling === "photo" ? "Scanning photo…" : "Scan photo"
+                }
+                variant="outline"
+                isLoading={autoFilling === "photo"}
+                disabled={!photo || autoFilling !== null}
+                onPress={autoFillFromPhoto}
+              />
+            </View>
+
+            <InputField
+              label="Product URL"
+              placeholder="https://shop.example.com/item"
+              icon={<Link2 size={20} color={wardroColors.text.disabled} />}
+              value={sourceUrl}
+              onChangeText={(value) => {
+                setSourceUrl(value);
+                setAutoFillError(null);
+              }}
+              autoCapitalize="none"
+              autoCorrect={false}
+              keyboardType="url"
+            />
+            <CustomButton
+              title={autoFilling === "url" ? "Importing…" : "Import from URL"}
+              variant="outline"
+              isLoading={autoFilling === "url"}
+              disabled={!sourceUrl.trim() || autoFilling !== null}
+              onPress={autoFillFromUrl}
+            />
+
+            {autoFillError ? (
+              <Text className="mt-2 text-xs font-medium text-danger">
+                {autoFillError}
+              </Text>
+            ) : null}
+            {autoFillNote ? (
+              <Text className="mt-2 text-[11px] leading-4 text-ink-secondary">
+                {autoFillNote}
+              </Text>
+            ) : null}
+          </View>
 
           <View className="mt-4">
                 <Text className="mb-1.5 text-[13.5px] font-semibold text-ink">
