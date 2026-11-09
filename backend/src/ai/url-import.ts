@@ -6,15 +6,23 @@ const MAX_IMAGE_BYTES = 10 * 1024 * 1024
 const MAX_REDIRECTS = 3
 const FETCH_TIMEOUT_MS = 10_000
 const USER_AGENT =
-    'WardroBot/1.0 (+https://wardro-lake.vercel.app; item import)'
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'
+const BROWSER_HEADERS = {
+    'accept-language': 'en-IN,en-GB;q=0.9,en;q=0.8',
+    'cache-control': 'no-cache',
+}
 
 export type ProductPage = {
     url: string
     title: string | null
+    productName: string | null
     description: string | null
     imageUrl: string | null
     price: number | null
     currency: string | null
+    brand: string | null
+    color: string | null
+    size: string | null
     siteName: string | null
     text: string
 }
@@ -34,7 +42,13 @@ export async function fetchProductPage(input: string): Promise<ProductPage> {
         'text/html,application/xhtml+xml',
         MAX_HTML_BYTES
     )
-    return extractProductPage(new TextDecoder().decode(body), url)
+    const page = extractProductPage(new TextDecoder().decode(body), url)
+    if (isBlockedPage(page)) {
+        throw new Error(
+            'That site returned a maintenance or access-denied page. Try again later, or use a photo instead.'
+        )
+    }
+    return page
 }
 
 /** Download a product image for import, with the same SSRF protections. */
@@ -73,16 +87,18 @@ export function extractProductPage(
         clean(html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1]) ??
         clean(product?.name)
 
+    const productName = clean(product?.name)
+
     const description =
         clean(meta.get('og:description')) ??
         clean(meta.get('description')) ??
         clean(product?.description)
 
     const rawImage =
+        imageFromProduct(product) ??
         meta.get('og:image') ??
         meta.get('og:image:secure_url') ??
-        meta.get('twitter:image') ??
-        imageFromProduct(product)
+        meta.get('twitter:image')
 
     const price =
         numberFrom(productOffer(product)?.price) ??
@@ -97,10 +113,22 @@ export function extractProductPage(
     return {
         url: pageUrl,
         title,
+        productName,
         description,
-        imageUrl: absoluteUrl(rawImage, pageUrl),
+        imageUrl: absoluteUrl(rawImage ?? null, pageUrl),
         price,
         currency,
+        brand:
+            clean(productBrand(product)) ??
+            clean(meta.get('product:brand')) ??
+            clean(meta.get('og:brand')),
+        color:
+            clean(product?.color) ??
+            clean(meta.get('product:color')) ??
+            clean(meta.get('og:color')),
+        size:
+            clean(product?.size) ??
+            clean(meta.get('product:size')),
         siteName: clean(meta.get('og:site_name')),
         text: visibleText(html),
     }
@@ -122,6 +150,7 @@ async function fetchFollowingRedirects(
             headers: {
                 accept,
                 'user-agent': USER_AGENT,
+                ...BROWSER_HEADERS,
             },
         })
 
@@ -347,6 +376,33 @@ function imageFromProduct(product: JsonObject | null): string | null {
         if (typeof url === 'string') return url
     }
     return null
+}
+
+function productBrand(product: JsonObject | null): string | null {
+    if (!product) return null
+    const brand = product.brand
+    if (typeof brand === 'string') return brand
+    if (brand && typeof brand === 'object') {
+        const name = (brand as JsonObject).name
+        return typeof name === 'string' ? name : null
+    }
+    return null
+}
+
+function isBlockedPage(page: ProductPage): boolean {
+    const title = (page.title ?? '').toLowerCase()
+    const blocked =
+        /site maintenance|access denied|just a moment|attention required|are you a robot|request blocked|forbidden|page not found|service unavailable|captcha/i
+    const hasProductSignal =
+        Boolean(page.productName) ||
+        page.price !== null ||
+        Boolean(page.imageUrl)
+
+    if (blocked.test(title) && !hasProductSignal) return true
+    if (!hasProductSignal && !page.description && page.text.length < 200) {
+        return true
+    }
+    return false
 }
 
 function visibleText(html: string): string {

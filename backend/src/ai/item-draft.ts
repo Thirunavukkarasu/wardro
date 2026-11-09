@@ -185,8 +185,12 @@ function pagePrompt(page: ProductPage): string {
     return [
         'Extract wardrobe item details from this product page.',
         `URL: ${page.url}`,
+        `Product name: ${page.productName ?? 'unknown'}`,
         `Title: ${page.title ?? 'unknown'}`,
+        `Brand: ${page.brand ?? 'unknown'}`,
         `Description: ${page.description ?? 'unknown'}`,
+        `Color: ${page.color ?? 'unknown'}`,
+        `Size: ${page.size ?? 'unknown'}`,
         `Site: ${page.siteName ?? 'unknown'}`,
         `Price: ${page.price ?? 'unknown'}`,
         `Currency: ${page.currency ?? 'unknown'}`,
@@ -196,23 +200,34 @@ function pagePrompt(page: ProductPage): string {
 }
 
 function metadataDraft(page: ProductPage): ItemDraft {
-    const title = page.title?.split('|')[0]?.trim()
+    const title = page.productName ?? cleanedTitle(page.title)
     const itemName =
         (title && title.slice(0, 120)) ||
         new URL(page.url).hostname.replace(/^www\./, '')
 
     return {
         itemName,
-        brand: page.siteName ?? null,
+        brand: page.brand ?? page.siteName ?? null,
         category: null,
-        color: null,
-        size: null,
+        color: page.color,
+        size: page.size,
         price: page.price,
         currency: page.currency,
         purchaseDate: null,
         description: page.description ?? null,
         confidence: 0.3,
     }
+}
+
+function cleanedTitle(title: string | null): string | null {
+    if (!title) return null
+    return (
+        title
+            .replace(/^Buy\s+/i, '')
+            .split('|')[0]
+            .replace(/\s+/g, ' ')
+            .trim() || null
+    )
 }
 
 async function importImage(
