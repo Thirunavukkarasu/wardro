@@ -79,3 +79,24 @@ them rather than copying their text.
   fast and calm.
 - Before finishing, check: purpose, duration/easing, reduced motion, mobile
   performance, keyboard/focus, and no layout thrash.
+
+## Official collection
+
+This project skill is a lightweight checklist. The comprehensive, MIT-licensed
+collection is [emilkowal.ski/skill](https://emilkowal.ski/skill), backed by
+[`emilkowalski/skills`](https://github.com/emilkowalski/skills). Install the
+relevant skills project-locally with:
+
+```bash
+npx skills@latest add emilkowalski/skills --skill emil-design-eng --skill animate \
+  --skill animate-expo --skill review-animations --skill animation-performance \
+  -a claude-code
+```
+
+Useful for this repo: `emil-design-eng`, `animate`, `animate-expo`,
+`review-animations`, `improve-animations`, `find-animation-opportunities`,
+`remove-animations`, `choreograph`, `animation-performance`,
+`animation-vocabulary`, `gestures`, `mobile-native`, `break-ui`.
+Not needed here: `write-swift`, `pick-ui-library`, `prototype`, `ask-sonner`.
+`apple-design` is optional if we want more iOS-specific polish.
+
