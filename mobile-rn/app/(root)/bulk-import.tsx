@@ -355,14 +355,27 @@ export default function BulkImportScreen() {
       updateRow(row.key, { status: "saving", error: null });
       try {
         const photoUri = await api.uploadPhoto(row.photo);
-        const purchaseDate = parseDateOr(draft.purchaseDate, new Date());
+        const draftDate = draft.purchaseDate
+          ? parseDateOr(draft.purchaseDate, new Date())
+          : null;
         const payload: Record<string, unknown> = {
           itemName: draft.itemName,
           photoUri,
-          purchaseDate: purchaseDate.toISOString(),
-          expiryDate: addYears(purchaseDate, 1).toISOString(),
         };
         if (!row.updateExisting) payload.wardrobeId = selectedWardrobeId;
+
+        if (row.updateExisting) {
+          // Keep the existing item's dates unless the draft supplied one.
+          if (draftDate) {
+            payload.purchaseDate = draftDate.toISOString();
+            payload.expiryDate = addYears(draftDate, 1).toISOString();
+          }
+        } else {
+          const purchaseDate = draftDate ?? new Date();
+          payload.purchaseDate = purchaseDate.toISOString();
+          payload.expiryDate = addYears(purchaseDate, 1).toISOString();
+        }
+
         if (draft.brand) payload.brand = draft.brand;
         if (draft.category) payload.category = draft.category;
         if (draft.color) payload.color = draft.color;
