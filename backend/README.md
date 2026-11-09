@@ -1,7 +1,7 @@
 # backend
 
-Hono API for Wardro, backed by **Drizzle ORM on plain Postgres** and Firebase
-Storage.
+Hono API for Wardro, backed by **Drizzle ORM on plain Postgres** and Google
+Cloud Storage (the Firebase Storage bucket).
 
 ## Local development
 
@@ -32,6 +32,25 @@ on its own.
 container, or Cloud SQL through the proxy/connector. There is no database
 provider SDK in the application path; switching providers is a connection
 string change.
+
+### Storage
+
+Item photos are uploaded by the app through the Firebase Storage SDK, which
+writes to the project's bucket (`wardo-ce8d5.firebasestorage.app`) under
+`users/{uid}/items/...`; `storage.rules` restricts each user to their own
+folder. The API only deletes objects, and `src/storage.ts` does that through
+`firebase-admin/storage` — a thin wrapper over `@google-cloud/storage`.
+
+That bucket is ordinary Google Cloud Storage, so backend-side access is plain
+IAM and `gcloud storage` works for administration and inspection:
+
+```sh
+gcloud storage ls gs://wardo-ce8d5.firebasestorage.app/users/
+```
+
+Use the Firebase console (or `firebase deploy --only storage`) only for the
+bucket and rules the client SDK depends on; the API needs just
+`roles/storage.objectAdmin` on the bucket.
 
 ### Bruno API collection
 
@@ -115,7 +134,7 @@ the current project, so the first run only needs the two secrets:
 | `CLOUD_RUN_SERVICE` | `wardro-api` | Cloud Run service name |
 | `ARTIFACT_REGISTRY_REPOSITORY` | `wardro` | Docker repository in Artifact Registry |
 | `CLOUD_RUN_SERVICE_ACCOUNT` | `wardro-api@<project>.iam.gserviceaccount.com` | Runtime identity of the service |
-| `FIREBASE_STORAGE_BUCKET` | `wardo-ce8d5.firebasestorage.app` | Bucket used by `removeStoredPhoto` |
+| `FIREBASE_STORAGE_BUCKET` | `wardo-ce8d5.firebasestorage.app` | Bucket used by `removeStoredPhoto` (ordinary GCS) |
 | `CORS_ORIGINS` | `https://wardro-lake.vercel.app` | Extra browser origins, comma-separated |
 | `DATABASE_URL_SECRET` | `DATABASE_URL` | Secret Manager secret mapped to `DATABASE_URL` |
 
@@ -187,8 +206,9 @@ gcloud secrets add-iam-policy-binding DATABASE_URL \
   --member "serviceAccount:wardro-api@${PROJECT_ID}.iam.gserviceaccount.com" \
   --role roles/secretmanager.secretAccessor
 
-# After Firebase Storage is set up (Firebase console → Storage → Get Started),
-# let the runtime delete the photos it owns.
+# The app uploads through the Firebase Storage SDK, so create the
+# Firebase-managed bucket in the console (Storage → Get Started). Deletes from
+# Cloud Run are plain GCS IAM, so only this binding is needed.
 gcloud storage buckets add-iam-policy-binding \
   gs://wardo-ce8d5.firebasestorage.app \
   --member "serviceAccount:wardro-api@${PROJECT_ID}.iam.gserviceaccount.com" \

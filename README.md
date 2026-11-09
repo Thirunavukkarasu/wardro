@@ -74,7 +74,9 @@ integration status.
   (`CLOUD_SQL_CONNECTION_NAME` + DB credentials).
 - **Storage** — item photos are uploaded by the app to
   `users/{uid}/items/...`; rules live in `storage.rules`. Deploy with
-  `firebase deploy --only storage`.
+  `firebase deploy --only storage`. The bucket is ordinary Google Cloud
+  Storage: the API reaches it through GCS IAM (`@google-cloud/storage` via
+  `firebase-admin`), and `gcloud storage` works for admin and inspection.
 - **API** — the `wardro-api` service runs on Google Cloud Run in
   `wardo-ce8d5` on the Bun runtime. Pushes to `main` under `backend/` build a
   Bun container image, push it to Artifact Registry and deploy a new revision
