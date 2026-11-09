@@ -73,9 +73,10 @@ integration status.
   secret of the same name; the Cloud SQL connector remains as a fallback
   (`CLOUD_SQL_CONNECTION_NAME` + DB credentials).
 - **Storage** — item photos live in a private Google Cloud Storage bucket. The
-  app uploads to authenticated `POST /api/photos`; the API returns stable
-  signed `/api/photos/...` URLs and streams the objects back. Firebase is used
-  only for authentication, so there are no Storage rules.
+  app uploads to authenticated `POST /api/photos`; the database stores only the
+  bucket-relative object path, and API responses expose signed
+  `/api/photos/...` URLs. Firebase is used only for authentication, so there
+  are no Storage rules.
 - **API** — the `wardro-api` service runs on Google Cloud Run in
   `wardo-ce8d5` on the Bun runtime. Pushes to `main` under `backend/` build a
   Bun container image, push it to Artifact Registry and deploy a new revision

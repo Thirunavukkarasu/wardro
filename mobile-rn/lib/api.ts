@@ -163,8 +163,9 @@ class ApiClient {
   }
 
   /**
-   * Uploads a picked photo through the authenticated API, which writes it to
-   * Google Cloud Storage and returns the signed URL to store as `photoUri`.
+   * Uploads a picked photo through the authenticated API and returns the
+   * bucket-relative object path to store as `photoUri`. The API expands that
+   * path into a signed URL when it returns items.
    */
   async uploadPhoto(photo: PickedPhoto): Promise<string> {
     if (!auth.currentUser) {
@@ -186,16 +187,15 @@ class ApiClient {
       : "image/jpeg";
 
     try {
-      const uploaded = await this.send<{ photoUri?: string }>(
-        "POST",
-        "/photos",
-        { base64, contentType },
-        60_000,
-      );
-      if (!uploaded?.photoUri) {
+      const uploaded = await this.send<{
+        photoPath?: string;
+        photoUri?: string;
+      }>("POST", "/photos", { base64, contentType }, 60_000);
+      const stored = uploaded?.photoPath ?? uploaded?.photoUri;
+      if (!stored) {
         throw new ApiException("Could not upload the photo.");
       }
-      return uploaded.photoUri;
+      return stored;
     } catch (error) {
       if (error instanceof ApiException) throw error;
       throw new ApiException(

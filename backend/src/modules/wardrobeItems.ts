@@ -67,6 +67,10 @@ routes.post('/', async (c) => {
             )
         }
 
+        const photoUri = item.photoUri
+            ? (photoPathFromUrl(item.photoUri) ?? item.photoUri)
+            : ''
+
         const [created] = await db
             .insert(wardrobeItems)
             .values({
@@ -74,7 +78,7 @@ routes.post('/', async (c) => {
                 profileId: c.get('profileId'),
                 wardrobeId: item.wardrobeId,
                 itemName: item.itemName,
-                photoUri: item.photoUri ?? '',
+                photoUri,
                 purchaseDate: item.purchaseDate
                     ? new Date(item.purchaseDate)
                     : null,
@@ -216,7 +220,10 @@ routes.patch('/:id', async (c) => {
         const updates: Partial<typeof wardrobeItems.$inferInsert> = {}
 
         if (body.itemName !== undefined) updates.itemName = body.itemName
-        if (body.photoUri !== undefined) updates.photoUri = body.photoUri
+        if (body.photoUri !== undefined) {
+            updates.photoUri =
+                photoPathFromUrl(body.photoUri) ?? body.photoUri
+        }
         if (body.purchaseDate !== undefined) {
             updates.purchaseDate = body.purchaseDate
                 ? new Date(body.purchaseDate)

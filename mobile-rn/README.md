@@ -200,8 +200,9 @@ Wardrobe/item requests also send `X-Profile-Id`; `/profiles` is account-level.
 | `POST /photos` | Upload a photo; returns the signed `photoUri` |
 
 Photos are uploaded by the app to the authenticated `POST /photos` endpoint;
-the API writes them to Google Cloud Storage and returns the signed URL stored
-as `photoUri`. Firebase is used only for authentication.
+the API writes them to Google Cloud Storage and returns the bucket-relative
+object path stored as `photoUri`. API responses expand that path to a signed
+URL. Firebase is used only for authentication.
 
 ## Agent endpoint used
 

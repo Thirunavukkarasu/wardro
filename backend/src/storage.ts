@@ -61,6 +61,9 @@ export function photoPathFromUrl(value?: string | null): string | null {
     const trimmed = value?.trim()
     if (!trimmed) return null
 
+    // New rows store only the bucket-relative object path.
+    if (PHOTO_PATH_PATTERN.test(trimmed)) return trimmed
+
     if (trimmed.startsWith('gs://')) {
         const rest = trimmed.slice('gs://'.length)
         const slash = rest.indexOf('/')

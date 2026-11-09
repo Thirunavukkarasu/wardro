@@ -37,9 +37,10 @@ string change.
 
 Item photos live in Google Cloud Storage; Firebase is used only for
 authentication. The app uploads to authenticated `POST /api/photos`, the API
-writes the object to `GCS_PHOTOS_BUCKET` under `users/{uid}/items/...`, and the
-response is a stable `/api/photos/users/{uid}/items/{file}?sig=...` URL stored
-as `photoUri`.
+writes the object to `GCS_PHOTOS_BUCKET` and stores only the bucket-relative
+path (`users/{uid}/items/...`) in `photoUri`. API responses expand that path to
+a stable `/api/photos/users/{uid}/items/{file}?sig=...` URL, so moving the
+bucket or changing the API origin does not require touching stored rows.
 
 `GET /api/photos/*` verifies the HMAC signature (the Secret Manager secret
 `PHOTO_URL_SECRET`) and streams the object, so the bucket stays private and

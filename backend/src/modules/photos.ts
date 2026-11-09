@@ -67,7 +67,13 @@ routes.post('/', requireUser, async (c) => {
         const origin = new URL(c.req.url).origin
 
         return Response.json(
-            { data: { photoUri: photoUrl(path, origin) } },
+            {
+                data: {
+                    // Store only this path; responses expand it to a signed URL.
+                    photoPath: path,
+                    photoUri: photoUrl(path, origin),
+                },
+            },
             { status: 201 }
         )
     } catch (error) {
