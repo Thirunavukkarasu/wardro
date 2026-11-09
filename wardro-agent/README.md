@@ -47,8 +47,6 @@ Implemented:
   for ambiguous messages, safe `general_advice` fallback.
 - Conversation `thread_id` accepted end-to-end and passed to the graph.
 - 68 tests that run without an Ollama server, plus Ruff lint/format checks.
-- A minimal Expo/React Native test client in the sibling `../mobile-agent-ui/`
-  directory that runs in a browser via React Native Web and calls the chat API.
 
 Implemented in this milestone: a read-only, profile-scoped inventory bridge. The
 FastAPI layer fetches the active profile's items from the Bun API using a
@@ -272,36 +270,6 @@ If `thread_id` is omitted, the API generates one (`thread-<uuid>`). If Ollama is
 the API returns `503` with a structured `ErrorResponse`; the workflow never crashes the
 process.
 
-## Expo web test client
-
-`../mobile-agent-ui/` contains a small Expo/React Native client that runs in the browser
-via React Native Web. It is a development harness for exercising the API, not the
-production mobile app.
-
-```bash
-# Terminal 1 — from the repository root
-cd wardro-agent
-uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
-
-# Terminal 2 — from the repository root
-cd mobile-agent-ui
-nvm use                 # Node 26 LTS (pinned in .nvmrc)
-npm install
-cp .env.example .env.local   # optional
-npm run web
-# If mobile-rn is already using 8081:
-# npm run web -- --port 8082
-```
-
-Open <http://localhost:8081> (or 8082). The client checks `/health` and `/health/ollama`, sends
-messages to `/api/v1/chat`, and displays the returned intent, agent, and model. The
-**Dev context** panel lets you change the API base URL and the development identity
-fields at runtime.
-
-The client does not fake token streaming; it shows a thinking indicator until the
-request completes. See [`../mobile-agent-ui/README.md`](../mobile-agent-ui/README.md) for
-configuration and limitations.
-
 ## Development inventory bridge
 
 The analyst and stylist agents receive a real, profile-scoped inventory snapshot:
@@ -389,55 +357,48 @@ or a host network/gateway on Linux).
 
 ```text
 wardro/                          # repository root
-├── wardro-agent/                # this service
-│   ├── app/
-│   │   ├── main.py              # create_app(), lifespan, health endpoints
-│   │   ├── config.py            # Pydantic Settings
-│   │   ├── logging_config.py    # JSON structured logging
-│   │   ├── dependencies.py      # FastAPI dependency providers
-│   │   ├── api/
-│   │   │   └── chat.py          # POST /api/v1/chat
-│   │   ├── agents/
-│   │   │   ├── base.py          # shared agent invocation
-│   │   │   ├── prompts.py       # centralised prompts
-│   │   │   ├── wardrobe_analyst.py
-│   │   │   ├── outfit_stylist.py
-│   │   │   ├── vision_analyst.py
-│   │   │   └── wardrobe_advisor.py
-│   │   ├── graph/
-│   │   │   ├── state.py         # typed WardroState
-│   │   │   ├── routing.py       # intents, classifier, intent→agent map
-│   │   │   ├── nodes.py         # graph nodes and conditional edges
-│   │   │   ├── checkpointer.py  # persistence seam (returns None)
-│   │   │   └── workflow.py      # build_workflow() factory
-│   │   ├── services/
-│   │   │   ├── ollama_provider.py   # ChatOllama construction, errors, health
-│   │   │   └── wardrobe_backend.py  # read-only profile inventory client
-│   │   ├── tools/
-│   │   │   └── wardrobe_tools.py    # inventory snapshot → prompt context
-│   │   ├── vision/
-│   │   │   ├── image_analyzer.py    # not-yet-available analyser
-│   │   │   └── schemas.py
-│   │   ├── policies/
-│   │   │   └── access_control.py    # trusted context / dev injection
-│   │   └── schemas/
-│   │       ├── requests.py
-│   │       └── responses.py
-│   ├── src/
-│   │   └── wardro_ai/
-│   │       └── __init__.py      # `wardro-ai` console entry point
-│   ├── tests/
-│   ├── pyproject.toml
-│   ├── uv.lock
-│   ├── Dockerfile
-│   ├── .env.example
-│   └── README.md
-└── mobile-agent-ui/             # Expo/React Native Web test client
-    ├── App.tsx
+└── wardro-agent/                # this service
+    ├── app/
+    │   ├── main.py              # create_app(), lifespan, health endpoints
+    │   ├── config.py            # Pydantic Settings
+    │   ├── logging_config.py    # JSON structured logging
+    │   ├── dependencies.py      # FastAPI dependency providers
+    │   ├── api/
+    │   │   └── chat.py          # POST /api/v1/chat
+    │   ├── agents/
+    │   │   ├── base.py          # shared agent invocation
+    │   │   ├── prompts.py       # centralised prompts
+    │   │   ├── wardrobe_analyst.py
+    │   │   ├── outfit_stylist.py
+    │   │   ├── vision_analyst.py
+    │   │   └── wardrobe_advisor.py
+    │   ├── graph/
+    │   │   ├── state.py         # typed WardroState
+    │   │   ├── routing.py       # intents, classifier, intent→agent map
+    │   │   ├── nodes.py         # graph nodes and conditional edges
+    │   │   ├── checkpointer.py  # persistence seam (returns None)
+    │   │   └── workflow.py      # build_workflow() factory
+    │   ├── services/
+    │   │   ├── ollama_provider.py   # ChatOllama construction, errors, health
+    │   │   └── wardrobe_backend.py  # read-only profile inventory client
+    │   ├── tools/
+    │   │   └── wardrobe_tools.py    # inventory snapshot → prompt context
+    │   ├── vision/
+    │   │   ├── image_analyzer.py    # not-yet-available analyser
+    │   │   └── schemas.py
+    │   ├── policies/
+    │   │   └── access_control.py    # trusted context / dev injection
+    │   └── schemas/
+    │       ├── requests.py
+    │       └── responses.py
     ├── src/
-    │   ├── api.ts               # typed fetch client and error parsing
-    │   ├── config.ts            # EXPO_PUBLIC_* defaults
-    │   └── types.ts
+    │   └── wardro_ai/
+    │       └── __init__.py      # `wardro-ai` console entry point
+    ├── tests/
+    ├── pyproject.toml
+    ├── uv.lock
+    ├── Dockerfile
+    ├── .env.example
     └── README.md
 ```
 

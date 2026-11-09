@@ -2,8 +2,7 @@
 
 # Cloud Run runs the API directly on Bun. Bun executes TypeScript and resolves
 # the `@/*` path aliases from tsconfig.json, so the image does not need a
-# separate bundle step. The committed `dist/` remains only for the legacy App
-# Hosting deployment.
+# separate bundle step.
 FROM oven/bun:1.4.2-slim AS deps
 WORKDIR /app
 

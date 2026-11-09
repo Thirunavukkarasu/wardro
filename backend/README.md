@@ -114,14 +114,6 @@ image. On every push to `main` that touches backend code, the workflow builds
 the image, pushes it to Artifact Registry, and deploys a new Cloud Run revision.
 It can also be run manually.
 
-The Node bundle is still committed because App Hosting needs it, and the
-repository's change checklist expects it:
-
-```sh
-# after changing src/
-bun run bundle
-```
-
 ### Workflow configuration
 
 Repository secrets (**Settings → Secrets and variables → Actions → Secrets**):
@@ -293,13 +285,6 @@ region it is `https://wardro-api-e3qjdiglha-el.a.run.app`; the new-style alias
 Set the URL (with `/api`) as `EXPO_PUBLIC_API_URL` in `mobile-rn/.env`; the app
 has no built-in backend URL. If you change `GCP_REGION`, `CLOUD_RUN_SERVICE` or
 `GCP_PROJECT_ID`, update `mobile-rn/.env.example` to match.
-
-### App Hosting (legacy)
-
-`apphosting.yaml` and the committed `dist/` remain for the old App Hosting
-backend. Cloud Run does not use them; the Dockerfile runs `src/index.ts`
-directly with Bun. Delete the App Hosting backend once Cloud Run is the only
-API.
 
 ## Database schema
 

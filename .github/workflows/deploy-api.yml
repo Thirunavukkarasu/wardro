@@ -51,14 +51,6 @@ jobs:
         working-directory: backend
         run: bun install --frozen-lockfile
 
-      # App Hosting still serves the committed bundle, and AGENTS.md asks for it
-      # to be rebuilt with src/. Fail before deploying if it has drifted.
-      - name: Verify the committed bundle is current
-        working-directory: backend
-        run: |
-          bun run bundle
-          git diff --exit-code -- dist
-
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:

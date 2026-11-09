@@ -176,8 +176,3 @@ dist
 
 # Uploaded garment photos (local image store)
 uploads/
-
-# App Hosting builds from GitHub without Bun, so the prebuilt bundle is committed.
-!dist/
-!dist/index.js
-!dist/index.js.map

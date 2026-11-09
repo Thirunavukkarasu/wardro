@@ -54,23 +54,14 @@ sections. Do not add a separate palette.
 
 ## Deployment
 
-The site can be exported as static files and served by Firebase Hosting from
-the repository's existing `wardo-ce8d5` project:
+The site is deployed to Vercel at <https://wardro-lake.vercel.app>. Build the
+static export with:
 
 ```bash
 npm run build:static
-cd ..
-firebase deploy --only hosting --project wardo-ce8d5
 ```
 
-Expected URLs:
-
-- <https://wardo-ce8d5.web.app>
-- <https://wardo-ce8d5.web.app/privacy>
-- <https://wardo-ce8d5.web.app/account-deletion>
-
-`firebase.json` serves `website/out` and rewrites unknown routes to the home
-page. Google Play requires a **public** privacy policy URL, so deploy before
-submitting the app and put the deployed privacy URL into the Play Console. The
-current policy references the developer contact email shown on the Play
-listing; replace that wording with a dedicated privacy email if one is created.
+Google Play requires a **public** privacy policy URL, so keep the deployed
+`/privacy` route live and put it in the Play Console. The current policy
+references the developer contact email shown on the Play listing; replace that
+wording with a dedicated privacy email if one is created.

@@ -3,7 +3,8 @@
 The primary Wardro client: Expo (SDK 54) + Expo Router, Firebase
 Authentication, Google Cloud Storage (through the API), and the Hono backend.
 It replaces Clerk and the old `userId`-in-the-body API with the same
-Firebase-ID-token model the Flutter port (`../mobile`) used.
+Firebase-ID-token model the earlier Flutter port used (kept on the
+`flutter-reference` branch).
 
 ## Running
 

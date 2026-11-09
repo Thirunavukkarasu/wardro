@@ -123,4 +123,5 @@ Screen blueprints and navigation rationale live in
 - Screen-level inline icon colors that still use hexadecimal values should be
   migrated to `wardroColors` as each screen is touched. Do not add new raw hex
   values.
-- Do not modify the Flutter app (`mobile/`) as part of this design system.
+- Do not extend the Flutter reference port on the `flutter-reference` branch as
+  part of this design system.

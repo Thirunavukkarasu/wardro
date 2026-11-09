@@ -24,7 +24,6 @@ Do not merge the two trees. Link across them instead.
 | Four-profile simulation dataset and seed workflow | [`scripts/datasets/wardrobe-simulation/README.md`](scripts/datasets/wardrobe-simulation/README.md) |
 | Repo-level tooling and fixtures | [`scripts/README.md`](scripts/README.md) |
 | LangChain agent service: status, run, integration gaps | [`wardro-agent/README.md`](wardro-agent/README.md) |
-| Agent test client (Expo web) | [`mobile-agent-ui/README.md`](mobile-agent-ui/README.md) |
 | Manual API requests (Bruno, token setup) | [`backend/api-tests/README.md`](backend/api-tests/README.md) |
 | Mobile app setup and architecture | [`mobile-rn/README.md`](mobile-rn/README.md) |
 | Screen/navigation plan and phasing | [`mobile-rn/docs/screen-architecture.md`](mobile-rn/docs/screen-architecture.md) |
@@ -47,10 +46,11 @@ blueprints and references; the tokens and shared component rules live in
 | `scripts/` | Node/Bun tooling + fixtures | Seed script and simulation dataset |
 | `scripts/datasets/wardrobe-simulation/` | JSON + JPEG fixtures | Demo/test dataset |
 | `wardro-agent/` | FastAPI + LangGraph + Ollama | Agent service, Milestone 1 (not yet wired to live data) |
-| `mobile-agent-ui/` | Expo web test client | Agent-service console |
 | `docs/` | Markdown | Shared design and research |
 | `website/` | Next.js 14 | Marketing site |
-| `mobile/` | Flutter 3.47 | Reference port only; do not extend |
+
+The Flutter reference port lives on the `flutter-reference` branch, not on
+`main`. Do not add it back; the React Native app is the target.
 
 ## Commands
 
@@ -68,9 +68,6 @@ cd mobile-rn && npm start
 cd wardro-agent && uv sync
 uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
-# Agent test client (use 8082 when mobile-rn is already on 8081)
-cd mobile-agent-ui && npm install && npm run web -- --port 8082
-
 # Typecheck
 cd mobile-rn && npm run typecheck
 cd backend && bunx tsc --noEmit
@@ -81,13 +78,10 @@ gh workflow run "Deploy API to Cloud Run"
 ```
 
 The backend has one known, unrelated type error in `src/db.ts`
-(`"PUBLIC"` is not assignable to `IpAddressOptions`). The bundle still builds;
-do not "fix" it as part of an unrelated change.
+(`"PUBLIC"` is not assignable to `IpAddressOptions`); do not "fix" it as part
+of an unrelated change.
 
 ```bash
-# Rebuild the committed Node bundle after changing backend/src/
-cd backend && bun run bundle
-
 # Reviewed SQL migrations
 cd backend && bunx drizzle-kit generate
 ```
@@ -133,8 +127,8 @@ with any redistributed copy.
    Keep the `user → profile → wardrobe → wardrobe_item` hierarchy.
 6. **Use design tokens.** No raw hex outside `mobile-rn/src/theme/`; prefer the
    semantic `wardro-*` Tailwind classes.
-7. **Do not extend the Flutter app.** `mobile/` is kept for reference; the
-   React Native app is the target.
+7. **Do not extend the Flutter app.** The reference port lives on the
+   `flutter-reference` branch; the React Native app is the target.
 8. **Keep the docs split.** Shared material goes in root `docs/`; app-specific
    material goes in `mobile-rn/docs/`; link, do not duplicate.
 
@@ -142,7 +136,7 @@ with any redistributed copy.
 
 1. Read the relevant doc from the map above.
 2. Make the smallest coherent change; preserve unrelated formatting.
-3. Run the relevant typecheck and, for backend changes, `bun run bundle`.
+3. Run the relevant typecheck.
 4. Update the matching doc when behaviour, routes or schema change.
 5. Verify the flow (API response, app screen, or seed output) before claiming
    it works.

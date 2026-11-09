@@ -21,9 +21,10 @@ New contributors and AI agents should start at [`AGENTS.md`](AGENTS.md), which m
 | `backend/api-tests/` | Bruno collections | Manual API testing |
 | `scripts/` | Bun/Node tooling + fixtures | Seed script and four-profile simulation dataset |
 | `wardro-agent/` | Python 3.12 + FastAPI + LangGraph + Ollama | Agent service (Milestone 1; not yet wired to live wardrobe data) |
-| `mobile-agent-ui/` | Expo web | Agent-service test console |
 | `website/` | Next.js 14 + Tailwind | Marketing site |
-| `mobile/` | Flutter 3.47 | Port kept for reference — same Firebase auth and API, no longer the target app |
+
+The Flutter reference port lives on the `flutter-reference` branch, not on
+`main`.
 
 ## Running
 
@@ -42,9 +43,6 @@ cd mobile-rn && npm start
 # LangChain agent service → http://localhost:8000 (requires Ollama)
 cd wardro-agent && uv sync
 uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
-
-# Agent test console → http://localhost:8082 (use a free port if 8081 is taken)
-cd mobile-agent-ui && npm install && npm run web -- --port 8082
 
 # Marketing site → http://localhost:3001
 cd website && npm install && npm run dev -- -p 3001
