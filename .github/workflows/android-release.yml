@@ -50,6 +50,12 @@ jobs:
         working-directory: mobile-rn
         run: npm ci
 
+      - name: Record build metadata
+        run: |
+          echo "EXPO_PUBLIC_BUILD_PROFILE=github-aab" >> "$GITHUB_ENV"
+          echo "EXPO_PUBLIC_GIT_SHA=${GITHUB_SHA:0:7}" >> "$GITHUB_ENV"
+          echo "EXPO_PUBLIC_BUILD_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_ENV"
+
       - name: Generate native Android project
         working-directory: mobile-rn
         env:

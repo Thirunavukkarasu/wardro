@@ -38,8 +38,13 @@ Every value is public client configuration and is embedded in the bundle.
 | `EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID` | OAuth client for native Google sign-in on Android |
 | `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID` | OAuth client for iOS (not registered yet) |
 
-Defaults live in `lib/firebase-config.ts`, so the app runs without a `.env`
-against project `wardo-ce8d5`.
+The Profile tab includes an **About this build** card showing the version and
+version code, build profile, build time, Git commit, API base URL and package
+name. Compare the version there with the release in Play Console to confirm
+which build is installed.
+
+Firebase client defaults live in `lib/firebase-config.ts`;
+`EXPO_PUBLIC_API_URL` is required and has no built-in fallback.
 
 ## Authentication
 

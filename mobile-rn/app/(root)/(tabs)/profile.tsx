@@ -13,17 +13,26 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import CustomButton from "~/components/CustomButton";
 import ProfileAvatar from "~/components/ProfileAvatar";
 import { useAuth } from "~/lib/auth-context";
+import { buildInfo } from "~/lib/build-info";
 import { useProfiles } from "~/lib/profiles-context";
 import { fullName, userInitials } from "~/lib/types";
 import { wardroColors } from "~/src/theme/colors";
 
-function InfoRow({ label, value }: { label: string; value?: string | null }) {
+function InfoRow({
+  label,
+  value,
+  multiline = false,
+}: {
+  label: string;
+  value?: string | null;
+  multiline?: boolean;
+}) {
   return (
     <View className="flex-row items-center py-[11px]">
       <Text className="text-[13px] text-ink-secondary">{label}</Text>
       <View className="flex-1" />
       <Text
-        numberOfLines={1}
+        numberOfLines={multiline ? 3 : 1}
         className="ml-4 max-w-[65%] text-right text-[13.5px] font-semibold text-ink"
       >
         {value && value.trim() ? value : "Not set"}
@@ -197,6 +206,29 @@ export default function ProfileScreen() {
           <View className="h-px bg-line" />
           <InfoRow label="Phone" value={user?.phone} />
         </View>
+
+        <Text className="mb-2 mt-5 text-[15px] font-semibold text-ink">
+          About this build
+        </Text>
+        <View className="rounded-[18px] border border-line bg-white px-4">
+          <InfoRow label="Version" value={buildInfo.versionLabel} />
+          <View className="h-px bg-line" />
+          <InfoRow label="Build" value={buildInfo.profile} />
+          <View className="h-px bg-line" />
+          <InfoRow label="Built" value={buildInfo.builtAt} />
+          <View className="h-px bg-line" />
+          <InfoRow label="Commit" value={buildInfo.gitSha} />
+          <View className="h-px bg-line" />
+          <InfoRow label="API" value={buildInfo.apiBaseUrl} multiline />
+          <View className="h-px bg-line" />
+          <InfoRow label="Package" value={buildInfo.packageId} />
+          <View className="h-px bg-line" />
+          <InfoRow label="Runtime" value={buildInfo.runtime} />
+        </View>
+        <Text className="mt-2 text-[11px] leading-4 text-ink-secondary">
+          Compare this version with the release in Play Console. If they
+          differ, the update has not installed yet.
+        </Text>
 
         <View className="mt-4">
           <CustomButton

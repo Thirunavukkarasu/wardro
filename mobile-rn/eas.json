@@ -7,7 +7,8 @@
       "developmentClient": true,
       "distribution": "internal",
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://wardro-api-251900114942.asia-south1.run.app/api"
+        "EXPO_PUBLIC_API_URL": "https://wardro-api-251900114942.asia-south1.run.app/api",
+        "EXPO_PUBLIC_BUILD_PROFILE": "eas-development"
       }
     },
     "development-simulator": {
@@ -17,18 +18,21 @@
         "simulator": true
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://wardro-api-251900114942.asia-south1.run.app/api"
+        "EXPO_PUBLIC_API_URL": "https://wardro-api-251900114942.asia-south1.run.app/api",
+        "EXPO_PUBLIC_BUILD_PROFILE": "eas-development-simulator"
       }
     },
     "preview": {
       "distribution": "internal",
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://wardro-api-251900114942.asia-south1.run.app/api"
+        "EXPO_PUBLIC_API_URL": "https://wardro-api-251900114942.asia-south1.run.app/api",
+        "EXPO_PUBLIC_BUILD_PROFILE": "eas-preview"
       }
     },
     "production": {
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://wardro-api-251900114942.asia-south1.run.app/api"
+        "EXPO_PUBLIC_API_URL": "https://wardro-api-251900114942.asia-south1.run.app/api",
+        "EXPO_PUBLIC_BUILD_PROFILE": "eas-production"
       }
     }
   },
