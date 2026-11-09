@@ -12,7 +12,7 @@ env:
       - BUILD
       - RUNTIME
   - variable: GCS_PHOTOS_BUCKET
-    value: wardo-ce8d5.firebasestorage.app
+    value: wardo-ce8d5-wardrobe-photos
     availability:
       - RUNTIME
   - variable: PHOTO_URL_SECRET

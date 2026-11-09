@@ -27,7 +27,7 @@ env:
   ARTIFACT_REPOSITORY: ${{ vars.ARTIFACT_REGISTRY_REPOSITORY || 'wardro' }}
   CLOUD_RUN_SERVICE: ${{ vars.CLOUD_RUN_SERVICE || 'wardro-api' }}
   CLOUD_RUN_SERVICE_ACCOUNT: ${{ vars.CLOUD_RUN_SERVICE_ACCOUNT || format('wardro-api@{0}.iam.gserviceaccount.com', vars.GCP_PROJECT_ID || 'wardo-ce8d5') }}
-  GCS_PHOTOS_BUCKET: ${{ vars.GCS_PHOTOS_BUCKET || 'wardo-ce8d5.firebasestorage.app' }}
+  GCS_PHOTOS_BUCKET: ${{ vars.GCS_PHOTOS_BUCKET || 'wardo-ce8d5-wardrobe-photos' }}
   CORS_ORIGINS: ${{ vars.CORS_ORIGINS || 'https://wardro-lake.vercel.app' }}
   DATABASE_URL_SECRET: ${{ vars.DATABASE_URL_SECRET || 'DATABASE_URL' }}
   IMAGE: ${{ format('{0}-docker.pkg.dev/{1}/{2}/{3}:{4}', vars.GCP_REGION || 'asia-south1', vars.GCP_PROJECT_ID || 'wardo-ce8d5', vars.ARTIFACT_REGISTRY_REPOSITORY || 'wardro', vars.CLOUD_RUN_SERVICE || 'wardro-api', github.sha) }}

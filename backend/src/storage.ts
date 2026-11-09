@@ -11,7 +11,7 @@ import { Storage } from '@google-cloud/storage'
  * and is reached with the Cloud Run runtime service account's IAM role.
  */
 const BUCKET =
-    process.env.GCS_PHOTOS_BUCKET || 'wardo-ce8d5.firebasestorage.app'
+    process.env.GCS_PHOTOS_BUCKET || 'wardo-ce8d5-wardrobe-photos'
 
 const PHOTO_SECRET =
     process.env.PHOTO_URL_SECRET ||

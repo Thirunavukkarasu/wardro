@@ -55,7 +55,7 @@ uploads and deletes, authenticate the API with Application Default Credentials
 can use `gcloud storage`:
 
 ```sh
-gcloud storage ls gs://wardo-ce8d5.firebasestorage.app/users/
+gcloud storage ls gs://wardo-ce8d5-wardrobe-photos/users/
 ```
 
 ### Bruno API collection
@@ -140,7 +140,7 @@ the current project, so the first run only needs the two secrets:
 | `CLOUD_RUN_SERVICE` | `wardro-api` | Cloud Run service name |
 | `ARTIFACT_REGISTRY_REPOSITORY` | `wardro` | Docker repository in Artifact Registry |
 | `CLOUD_RUN_SERVICE_ACCOUNT` | `wardro-api@<project>.iam.gserviceaccount.com` | Runtime identity of the service |
-| `GCS_PHOTOS_BUCKET` | `wardo-ce8d5.firebasestorage.app` | Bucket for item photos |
+| `GCS_PHOTOS_BUCKET` | `wardo-ce8d5-wardrobe-photos` | Bucket for item photos |
 | `CORS_ORIGINS` | `https://wardro-lake.vercel.app` | Extra browser origins, comma-separated |
 | `DATABASE_URL_SECRET` | `DATABASE_URL` | Secret Manager secret mapped to `DATABASE_URL` |
 
@@ -227,11 +227,11 @@ gcloud secrets add-iam-policy-binding PHOTO_URL_SECRET \
 # The bucket holds item photos. The API owns all access, so no Firebase
 # Storage rules or client SDK are involved. Create the bucket first if it does
 # not exist yet:
-#   gcloud storage buckets create gs://wardo-ce8d5.firebasestorage.app \
+#   gcloud storage buckets create gs://wardo-ce8d5-wardrobe-photos \
 #     --project "$PROJECT_ID" --location "$REGION" \
 #     --uniform-bucket-level-access
 gcloud storage buckets add-iam-policy-binding \
-  gs://wardo-ce8d5.firebasestorage.app \
+  gs://wardo-ce8d5-wardrobe-photos \
   --member "serviceAccount:wardro-api@${PROJECT_ID}.iam.gserviceaccount.com" \
   --role roles/storage.objectAdmin
 
