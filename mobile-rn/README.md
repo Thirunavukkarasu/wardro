@@ -92,6 +92,7 @@ message instead of prompting.
 | `app/(root)/wardrobes.tsx` | Manage collections (pushed screen) |
 | `app/(root)/add-wardrobe.tsx` | Create or edit a wardrobe |
 | `app/(root)/add-wardrobe-items.tsx` | Photo-first garment create/edit |
+| `app/(root)/bulk-import.tsx` | Multi-photo import with AI drafts and duplicate prompts |
 | `app/(root)/add-profile.tsx` | Create or edit a profile |
 | `app/(root)/wardrobe/[id].tsx` | One wardrobe's photo grid, edit and delete |
 | `app/(root)/item/[id].tsx` | Item hero, details, edit and delete |
@@ -214,6 +215,11 @@ URL. Firebase is used only for authentication.
 The add/edit item screen also offers **Fill details automatically**: it scans
 the selected photo or imports a product URL through `POST /ai/item-draft`. The
 returned draft only fills the form; nothing is written until the user saves.
+
+**Bulk Import** (linked from Add Item) selects up to 10 photos, drafts two at a
+time, and reviews each card before saving. Duplicate checks compare normalized
+name/brand/category/colour/size against the active profile and let the user
+choose Skip, Add anyway, or Update existing.
 
 ## Agent endpoint used
 

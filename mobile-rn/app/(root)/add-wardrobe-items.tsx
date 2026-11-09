@@ -1,6 +1,7 @@
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import {
   ImageIcon,
+  Images,
   Link2,
   Palette,
   Ruler,
@@ -21,12 +22,14 @@ import InputField from "~/components/InputField";
 import PhotoCaptureField from "~/components/PhotoCaptureField";
 import SelectField from "~/components/SelectField";
 import { api, ApiException } from "~/lib/api";
+import { addYears } from "~/lib/dates";
 import {
   DEFAULT_CATEGORIES,
   DEFAULT_COLORS,
   DEFAULT_SIZES,
   mergeOptions,
 } from "~/lib/item-options";
+import { pickedPhotoBase64 } from "~/lib/photos";
 import { useProfiles } from "~/lib/profiles-context";
 import type { ItemDraft, PickedPhoto, Wardrobe } from "~/lib/types";
 import {
@@ -35,20 +38,6 @@ import {
   type WardrobeItem,
 } from "~/lib/types";
 import { wardroColors } from "~/src/theme/colors";
-
-function pickedPhotoBase64(photo: PickedPhoto): string | null {
-  const value =
-    photo.base64 ??
-    (photo.uri.startsWith("data:") ? photo.uri.split(",")[1] : null);
-  if (!value) return null;
-  return value.includes(",") ? (value.split(",").pop() ?? null) : value;
-}
-
-function addYears(date: Date, years: number): Date {
-  const next = new Date(date);
-  next.setFullYear(next.getFullYear() + years);
-  return next;
-}
 
 export default function AddItemScreen() {
   const { activeProfile } = useProfiles();
@@ -509,6 +498,18 @@ export default function AddItemScreen() {
               disabled={!sourceUrl.trim() || autoFilling !== null}
               onPress={autoFillFromUrl}
             />
+
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Bulk import up to 10 photos"
+              onPress={() => router.push("/(root)/bulk-import")}
+              className="mt-3 flex-row items-center justify-center rounded-[14px] border border-line bg-surface py-2.5 active:opacity-80"
+            >
+              <Images size={16} color={wardroColors.primaryDark} />
+              <Text className="ml-2 text-[12.5px] font-semibold text-brand">
+                Bulk import up to 10 photos
+              </Text>
+            </Pressable>
 
             {autoFillError ? (
               <Text className="mt-2 text-xs font-medium text-danger">

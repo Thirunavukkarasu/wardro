@@ -23,8 +23,29 @@ Status values: **Done**, **In progress**, **Proposed**, **Later**.
   year.
 - **Bulk draft allowance** — `POST /api/ai/item-draft` allows 30 requests per
   minute, enough for a 10-photo batch plus retries.
+- **Minimal bulk import** — select up to 10 photos, draft two at a time,
+  review cards with include/skip, detect duplicates against the active profile
+  using normalized attributes, and choose Skip / Add anyway / Update existing.
+  Saves are per item and default dates to today / today + 1 year.
 
-## Proposed: Bulk photo import (up to 10)
+## Bulk photo import (up to 10) — minimal version shipped
+
+The first version ships the smallest useful flow:
+
+- `expo-image-picker` multi-select, limited to 10 photos.
+- Two draft requests in flight; the existing `POST /api/ai/item-draft` is used
+  one photo at a time.
+- Review cards show the generated name/details, status and a duplicate prompt.
+- Duplicate choices: **Skip**, **Add anyway**, **Update existing**.
+- Duplicate matching uses normalized attributes (`itemName`, brand, category,
+  colour, size) against the active profile and against earlier drafts in the
+  same batch.
+- Per-item save with a success/error result; purchase date defaults to today
+  and expiry to today + 1 year.
+- Entry point: Add Item → “Bulk import up to 10 photos”.
+
+Not included yet: photo hashes, embeddings, backfill, inline field editing in
+the review screen, server-side batch processing, and hash-based dedupe.
 
 **Goal:** select 4–10 photos in one action, draft each item, review them, and
 save the selected ones without touching the single-item flow.
@@ -102,7 +123,11 @@ If a server-side batch is added later, send 2–3 images per request with an
 - Raise the draft endpoint limit to 30 requests/minute (done) to allow 10
   photos plus retries.
 
-## Proposed: Duplicate detection
+## Duplicate detection
+
+**Implemented in the minimal bulk flow:** normalized attribute matching against
+the active profile, with Skip / Add anyway / Update existing. The photo-hash
+and embedding layers below are the next slice.
 
 **Goal:** avoid adding the same garment repeatedly under the same profile.
 
@@ -203,5 +228,5 @@ matching still works; exact-photo matching applies to new imports.
 3. Add the duplicate-check endpoint and tests for hash and attribute matches.
 4. Add the backfill script for existing photos.
 5. Add the bulk-import screen with multi-select, concurrency 2, review and
-   per-item save.
+   per-item save. **(done — attribute-only duplicate check)**
 6. Raise the AI draft rate limit for bulk batches. **(done — 30/minute)**
