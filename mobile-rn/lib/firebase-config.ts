@@ -26,9 +26,10 @@ export const firebaseConfig = {
  *
  * - `web` is the OAuth web client used by signInWithPopup and as the Firebase
  *   server client.
- * - `android` is registered for the Flutter app (`com.om.wardo`). Register a
- *   new Android OAuth client for this app's package name before using native
- *   Google sign-in on Android.
+ * - `android` is registered for this app's package
+ *   (`com.thirunavukkarasu.mycloset`) and the Play App Signing certificate.
+ *   Add the SHA-1 of any local/EAS build key in Firebase and use that
+ *   build's Android client ID if Google sign-in is needed there.
  * - `ios` has no client registered yet; native Google sign-in is unsupported
  *   on iOS until an iOS app/client is added to the Firebase project.
  */
@@ -38,7 +39,7 @@ export const googleClientIds = {
     "251900114942-ntfihbiuu1b7og3t79r79oln1tv4rbgb.apps.googleusercontent.com",
   android:
     process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID ||
-    "251900114942-r6m4shpo2bat27382vnaaatb2agvm3d5.apps.googleusercontent.com",
+    "251900114942-1tubst5oq37561ha1nc302fltm51h0cl.apps.googleusercontent.com",
   ios: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
 };
 

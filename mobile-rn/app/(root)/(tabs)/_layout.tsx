@@ -1,6 +1,7 @@
 import { Tabs, router, useSegments } from "expo-router";
 import { Camera, MessageCircle, Shirt, Sun, User } from "lucide-react-native";
 import { Pressable, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
   wardroColors,
@@ -9,8 +10,10 @@ import {
 
 export default function TabsLayout() {
   const segments = useSegments();
+  const insets = useSafeAreaInsets();
   const lastSegment = segments[segments.length - 1];
   const hideFab = lastSegment === "profile" || lastSegment === "chat";
+  const tabBarHeight = wardroSizes.tabBar + insets.bottom;
 
   return (
     <View className="flex-1">
@@ -25,9 +28,9 @@ export default function TabsLayout() {
             marginTop: 2,
           },
           tabBarStyle: {
-            height: wardroSizes.tabBar,
+            height: tabBarHeight,
             paddingTop: 6,
-            paddingBottom: 6,
+            paddingBottom: 6 + insets.bottom,
             backgroundColor: wardroColors.surface,
             borderTopColor: wardroColors.border,
             borderTopWidth: 1,
@@ -71,8 +74,9 @@ export default function TabsLayout() {
           accessibilityRole="button"
           accessibilityLabel="Add item"
           onPress={() => router.push("/(root)/add-wardrobe-items")}
-          className="absolute bottom-[88px] right-5 h-14 w-14 items-center justify-center rounded-full bg-wardro-primary-dark active:opacity-80"
+          className="absolute right-5 h-14 w-14 items-center justify-center rounded-full bg-wardro-primary-dark active:opacity-80"
           style={{
+            bottom: 88 + insets.bottom,
             shadowColor: wardroColors.primaryDark,
             shadowOpacity: 0.35,
             shadowRadius: 12,

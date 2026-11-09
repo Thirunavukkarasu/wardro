@@ -73,10 +73,11 @@ The web client ID works for web. For Android, register an **Android OAuth
 client** in the Firebase project with this app's package name
 (`com.thirunavukkarasu.mycloset`) and the debug/release SHA-1, then put its ID
 in `EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID` and rebuild the dev client. The
-current default Android client belongs to the Flutter app (`com.om.wardo`),
-so native Google sign-in will report `invalid_client` until a client for this
-package exists. iOS has no registered client yet; the app shows a clear
-message instead of prompting.
+current default Android client is registered for `com.thirunavukkarasu.mycloset`
+with the Play App Signing certificate. Local and EAS builds need their own
+keystore SHA-1 added in Firebase and the matching client ID configured. iOS
+has no registered client yet; the app shows a clear message instead of
+prompting.
 
 ## Screens
 
