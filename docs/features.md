@@ -21,6 +21,8 @@ Status values: **Done**, **In progress**, **Proposed**, **Later**.
   values with values already used in the active profile; custom values are
   allowed. New items default to purchase date = today and expiry = today + 1
   year.
+- **Bulk draft allowance** — `POST /api/ai/item-draft` allows 30 requests per
+  minute, enough for a 10-photo batch plus retries.
 
 ## Proposed: Bulk photo import (up to 10)
 
@@ -64,6 +66,41 @@ single-item path harder to use.
 - Ten vision calls per batch; show progress and allow partial failure.
 - Base64 images are memory-heavy on mobile; process a few at a time.
 - The app must not silently drop photos if one draft fails.
+
+### Processing strategy
+
+**Recommended for v1: one request per photo, with 2–3 calls in flight.**
+
+Sending all 10 images in one model call is technically possible — the AI SDK
+supports multiple file parts, and the configured model has vision and a 1M
+context — but it is a worse fit for this flow:
+
+- **Association:** the model must return exactly 10 drafts in image order. A
+  single merge, skip or reorder corrupts the batch.
+- **Isolation:** one bad image or one malformed draft fails the whole call.
+  Per-photo calls can retry only the failure.
+- **Progress:** the UI can show each photo becoming ready. One call gives one
+  long wait.
+- **Prompt caching:** the shared system prompt is cacheable across the
+  per-photo calls, so the repeated prompt is cheap.
+- **Cost:** image tokens dominate; 10 separate calls are not meaningfully more
+  expensive than one batch call.
+
+If a server-side batch is added later, send 2–3 images per request with an
+`imageIndex` in each draft and validate the count and order. Do not start with
+10 full-resolution images in one context.
+
+**Optimisations**
+
+- Downscale/compress before sending: ~768–1024 px on the longest side and JPEG
+  quality ~0.8 is enough for garment classification. Add
+  `expo-image-manipulator` for this.
+- Read base64 lazily per photo rather than holding all 10 in memory.
+- Concurrency 2–3; do not fire all 10 at once.
+- Keep the system prompt static and cacheable; keep the per-photo message short.
+- Deduplicate within the batch by photo hash before calling the model.
+- Raise the draft endpoint limit to 30 requests/minute (done) to allow 10
+  photos plus retries.
 
 ## Proposed: Duplicate detection
 
@@ -123,6 +160,20 @@ against a shared database.
   item’s name and a default of **Skip**.
 - Attribute match: “Possible duplicate”, with the existing item.
 - In bulk import, duplicates start unchecked.
+- When a duplicate is found, present three explicit choices: **Skip**, **Add
+  anyway**, or **Update existing**. The app should show the existing item’s
+  name/photo and let the user decide; never silently merge or overwrite.
+
+### Scope and save semantics (decided)
+
+- Duplicate checks are scoped to the **active profile only**. The same garment
+  may legitimately belong to two profiles.
+- Bulk save is **per item**, with a success/error result per card. One failure
+  does not discard the rest of the batch.
+- Duplicate prompts let the user choose Skip, Add anyway, or Update existing.
+- Drafts stay in memory until the user confirms; no DB writes before review.
+- Backfill existing item hashes so old photos participate in exact-photo
+  matching.
 
 ### Backfill
 
@@ -153,4 +204,4 @@ matching still works; exact-photo matching applies to new imports.
 4. Add the backfill script for existing photos.
 5. Add the bulk-import screen with multi-select, concurrency 2, review and
    per-item save.
-6. Raise the AI draft rate limit for bulk batches.
+6. Raise the AI draft rate limit for bulk batches. **(done — 30/minute)**

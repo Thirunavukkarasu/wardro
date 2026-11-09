@@ -28,6 +28,7 @@ const DraftRequestSchema = z
         'Send exactly one of imageBase64 or url.'
     )
 
+const DRAFT_REQUESTS_PER_MINUTE = 30
 const windows = new Map<string, number[]>()
 
 function isRateLimited(uid: string): boolean {
@@ -35,7 +36,7 @@ function isRateLimited(uid: string): boolean {
     const recent = (windows.get(uid) ?? []).filter(
         (timestamp) => now - timestamp < 60_000
     )
-    if (recent.length >= 15) {
+    if (recent.length >= DRAFT_REQUESTS_PER_MINUTE) {
         windows.set(uid, recent)
         return true
     }
