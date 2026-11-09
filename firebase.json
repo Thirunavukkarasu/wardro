@@ -1,7 +1,4 @@
 {
-  "storage": {
-    "rules": "storage.rules"
-  },
   "hosting": {
     "public": "website/out",
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],

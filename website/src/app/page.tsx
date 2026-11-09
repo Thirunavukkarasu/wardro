@@ -84,7 +84,7 @@ const faqs = [
   },
   {
     q: "Are my photos used to train models?",
-    a: "No. Photos are stored in your private Firebase Storage. When you ask the assistant or attach a photo, the request is processed by the AI model configured for the deployment — local Ollama or a cloud provider — under that provider's terms.",
+    a: "No. Photos are stored in private Google Cloud Storage. When you ask the assistant or attach a photo, the request is processed by the AI model configured for the deployment — local Ollama or a cloud provider — under that provider's terms.",
   },
   {
     q: "Is Wardro free?",
@@ -495,7 +495,7 @@ export default function Home() {
           </div>
           <div className="space-y-3 text-[13px] leading-6 text-wardro-text-secondary">
             <p>
-              Wardrobe photos live in private Firebase Storage. Account data is
+              Wardrobe photos live in private Google Cloud Storage. Account data is
               scoped to your household and protected by Firebase authentication.
               Wardro does not sell your data or run advertising.
             </p>

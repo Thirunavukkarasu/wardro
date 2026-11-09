@@ -1,7 +1,7 @@
 # backend
 
 Hono API for Wardro, backed by **Drizzle ORM on plain Postgres** and Google
-Cloud Storage (the Firebase Storage bucket).
+Cloud Storage for item photos. Firebase is used only for authentication.
 
 ## Local development
 
@@ -35,22 +35,28 @@ string change.
 
 ### Storage
 
-Item photos are uploaded by the app through the Firebase Storage SDK, which
-writes to the project's bucket (`wardo-ce8d5.firebasestorage.app`) under
-`users/{uid}/items/...`; `storage.rules` restricts each user to their own
-folder. The API only deletes objects, and `src/storage.ts` does that through
-`firebase-admin/storage` — a thin wrapper over `@google-cloud/storage`.
+Item photos live in Google Cloud Storage; Firebase is used only for
+authentication. The app uploads to authenticated `POST /api/photos`, the API
+writes the object to `GCS_PHOTOS_BUCKET` under `users/{uid}/items/...`, and the
+response is a stable `/api/photos/users/{uid}/items/{file}?sig=...` URL stored
+as `photoUri`.
 
-That bucket is ordinary Google Cloud Storage, so backend-side access is plain
-IAM and `gcloud storage` works for administration and inspection:
+`GET /api/photos/*` verifies the HMAC signature (the Secret Manager secret
+`PHOTO_URL_SECRET`) and streams the object, so the bucket stays private and
+web `<img>` / native `Image` need no Authorization header. Deletes go through
+`src/storage.ts` using `@google-cloud/storage`; `firebase-admin` is no longer a
+dependency.
+
+The runtime service account needs `roles/storage.objectAdmin` on the bucket and
+secret accessor on `PHOTO_URL_SECRET` (see the bootstrap below). For local
+uploads and deletes, authenticate the API with Application Default Credentials
+(`gcloud auth application-default login`) or point
+`GOOGLE_APPLICATION_CREDENTIALS` at a service-account key. Admin and inspection
+can use `gcloud storage`:
 
 ```sh
 gcloud storage ls gs://wardo-ce8d5.firebasestorage.app/users/
 ```
-
-Use the Firebase console (or `firebase deploy --only storage`) only for the
-bucket and rules the client SDK depends on; the API needs just
-`roles/storage.objectAdmin` on the bucket.
 
 ### Bruno API collection
 
@@ -134,9 +140,12 @@ the current project, so the first run only needs the two secrets:
 | `CLOUD_RUN_SERVICE` | `wardro-api` | Cloud Run service name |
 | `ARTIFACT_REGISTRY_REPOSITORY` | `wardro` | Docker repository in Artifact Registry |
 | `CLOUD_RUN_SERVICE_ACCOUNT` | `wardro-api@<project>.iam.gserviceaccount.com` | Runtime identity of the service |
-| `FIREBASE_STORAGE_BUCKET` | `wardo-ce8d5.firebasestorage.app` | Bucket used by `removeStoredPhoto` (ordinary GCS) |
+| `GCS_PHOTOS_BUCKET` | `wardo-ce8d5.firebasestorage.app` | Bucket for item photos |
 | `CORS_ORIGINS` | `https://wardro-lake.vercel.app` | Extra browser origins, comma-separated |
 | `DATABASE_URL_SECRET` | `DATABASE_URL` | Secret Manager secret mapped to `DATABASE_URL` |
+
+The workflow also maps the `PHOTO_URL_SECRET` Secret Manager secret into the
+service; create it in the bootstrap below.
 
 > The first run **creates** the service named by `CLOUD_RUN_SERVICE` in
 > `GCP_REGION`. If you already created one manually under a different name or
@@ -206,9 +215,21 @@ gcloud secrets add-iam-policy-binding DATABASE_URL \
   --member "serviceAccount:wardro-api@${PROJECT_ID}.iam.gserviceaccount.com" \
   --role roles/secretmanager.secretAccessor
 
-# The app uploads through the Firebase Storage SDK, so create the
-# Firebase-managed bucket in the console (Storage → Get Started). Deletes from
-# Cloud Run are plain GCS IAM, so only this binding is needed.
+# Signs the stable /api/photos URLs. Rotating this invalidates stored URLs.
+openssl rand -hex 32 | gcloud secrets create PHOTO_URL_SECRET \
+  --project "$PROJECT_ID" --data-file=-
+
+gcloud secrets add-iam-policy-binding PHOTO_URL_SECRET \
+  --project "$PROJECT_ID" \
+  --member "serviceAccount:wardro-api@${PROJECT_ID}.iam.gserviceaccount.com" \
+  --role roles/secretmanager.secretAccessor
+
+# The bucket holds item photos. The API owns all access, so no Firebase
+# Storage rules or client SDK are involved. Create the bucket first if it does
+# not exist yet:
+#   gcloud storage buckets create gs://wardo-ce8d5.firebasestorage.app \
+#     --project "$PROJECT_ID" --location "$REGION" \
+#     --uniform-bucket-level-access
 gcloud storage buckets add-iam-policy-binding \
   gs://wardo-ce8d5.firebasestorage.app \
   --member "serviceAccount:wardro-api@${PROJECT_ID}.iam.gserviceaccount.com" \

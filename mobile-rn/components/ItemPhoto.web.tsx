@@ -14,7 +14,7 @@ interface ItemPhotoProps {
  *
  * Uses the same `Image` configuration as the wardrobe cards, with the
  * placeholder behind the image instead of toggling on `onError`. That keeps
- * valid Firebase Storage photos from getting stuck on the fallback.
+ * valid photos from getting stuck on the fallback.
  */
 export default function ItemPhoto({
   item,

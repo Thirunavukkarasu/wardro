@@ -72,11 +72,10 @@ integration status.
   without code changes. Cloud Run reads `DATABASE_URL` from the Secret Manager
   secret of the same name; the Cloud SQL connector remains as a fallback
   (`CLOUD_SQL_CONNECTION_NAME` + DB credentials).
-- **Storage** — item photos are uploaded by the app to
-  `users/{uid}/items/...`; rules live in `storage.rules`. Deploy with
-  `firebase deploy --only storage`. The bucket is ordinary Google Cloud
-  Storage: the API reaches it through GCS IAM (`@google-cloud/storage` via
-  `firebase-admin`), and `gcloud storage` works for admin and inspection.
+- **Storage** — item photos live in a private Google Cloud Storage bucket. The
+  app uploads to authenticated `POST /api/photos`; the API returns stable
+  signed `/api/photos/...` URLs and streams the objects back. Firebase is used
+  only for authentication, so there are no Storage rules.
 - **API** — the `wardro-api` service runs on Google Cloud Run in
   `wardo-ce8d5` on the Bun runtime. Pushes to `main` under `backend/` build a
   Bun container image, push it to Artifact Registry and deploy a new revision
@@ -87,10 +86,9 @@ integration status.
 
 ## Technologies
 
-- React Native (Expo Router) + Firebase Authentication + Firebase Storage
+- React Native (Expo Router) + Firebase Authentication + Google Cloud Storage
 - Bun + Hono API (runs on Bun in Cloud Run)
 - Drizzle ORM + Postgres (provider-agnostic)
 - Python 3.12 + FastAPI + LangGraph agent service (local Ollama inference)
-- Firebase Storage
 - Google Cloud Run + Artifact Registry
 - Next.js + Tailwind CSS

@@ -1,6 +1,4 @@
-import { getDownloadURL, ref, uploadString } from "firebase/storage";
-
-import { auth, storage } from "~/lib/firebase";
+import { auth } from "~/lib/firebase";
 import { apiBaseUrl, requestTimeoutMs } from "~/lib/firebase-config";
 import type { PickedPhoto } from "~/lib/types";
 
@@ -60,19 +58,6 @@ function errorMessage(decoded: unknown): string | null {
   return null;
 }
 
-function extensionFor(photo: PickedPhoto): string {
-  const mime = (photo.mimeType ?? "").toLowerCase();
-  if (mime === "image/png") return "png";
-  if (mime === "image/webp") return "webp";
-  if (mime === "image/gif") return "gif";
-
-  const name = (photo.fileName ?? photo.uri ?? "").toLowerCase();
-  if (name.endsWith(".png")) return "png";
-  if (name.endsWith(".webp")) return "webp";
-  if (name.endsWith(".gif")) return "gif";
-  return "jpg";
-}
-
 /**
  * Thin wrapper over `fetch` that understands the backend's `{ "data": ... }`
  * envelope and attaches the current Firebase ID token to every request.
@@ -108,9 +93,10 @@ class ApiClient {
     method: "GET" | "POST" | "PATCH" | "DELETE",
     path: string,
     body?: unknown,
+    timeoutMs: number = requestTimeoutMs,
   ): Promise<T> {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), requestTimeoutMs);
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
 
     try {
       const response = await fetch(this.uri(path), {
@@ -177,15 +163,11 @@ class ApiClient {
   }
 
   /**
-   * Uploads a picked photo straight to Firebase Storage and returns the
-   * download URL to store as `photoUri`.
-   *
-   * Photos live under `users/{uid}/items/...`, the path the Storage rules
-   * allow the signed-in user to write.
+   * Uploads a picked photo through the authenticated API, which writes it to
+   * Google Cloud Storage and returns the signed URL to store as `photoUri`.
    */
   async uploadPhoto(photo: PickedPhoto): Promise<string> {
-    const uid = auth.currentUser?.uid;
-    if (!uid) {
+    if (!auth.currentUser) {
       throw new ApiException("Sign in again to upload photos.");
     }
 
@@ -200,20 +182,22 @@ class ApiClient {
     }
 
     const contentType = (photo.mimeType ?? "").startsWith("image/")
-      ? photo.mimeType
+      ? photo.mimeType!
       : "image/jpeg";
-    const random = Math.random().toString(36).slice(2, 10);
-    const path = `users/${uid}/items/${Date.now()}-${random}.${extensionFor(
-      photo,
-    )}`;
 
     try {
-      const storageRef = ref(storage, path);
-      await uploadString(storageRef, base64, "base64", {
-        contentType,
-      });
-      return await getDownloadURL(storageRef);
+      const uploaded = await this.send<{ photoUri?: string }>(
+        "POST",
+        "/photos",
+        { base64, contentType },
+        60_000,
+      );
+      if (!uploaded?.photoUri) {
+        throw new ApiException("Could not upload the photo.");
+      }
+      return uploaded.photoUri;
     } catch (error) {
+      if (error instanceof ApiException) throw error;
       throw new ApiException(
         (error as Error)?.message || "Could not upload the photo.",
       );

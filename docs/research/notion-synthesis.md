@@ -128,7 +128,7 @@ carry a real `wardrobe_item.id`; the model must never invent inventory.
 
 The full lifecycle worth building:
 
-1. User uploads or captures a photo (Firebase Storage).
+1. User uploads or captures a photo (Google Cloud Storage).
 2. Bun checks auth, profile and storage ownership.
 3. Python downloads the image through a controlled reference and runs vision.
 4. The model returns structured attributes plus confidence.

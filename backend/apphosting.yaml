@@ -11,8 +11,12 @@ env:
     availability:
       - BUILD
       - RUNTIME
-  - variable: FIREBASE_STORAGE_BUCKET
+  - variable: GCS_PHOTOS_BUCKET
     value: wardo-ce8d5.firebasestorage.app
+    availability:
+      - RUNTIME
+  - variable: PHOTO_URL_SECRET
+    secret: PHOTO_URL_SECRET
     availability:
       - RUNTIME
   - variable: CORS_ORIGINS

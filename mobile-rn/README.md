@@ -1,9 +1,9 @@
 # Wardro — React Native app
 
 The primary Wardro client: Expo (SDK 54) + Expo Router, Firebase
-Authentication, Firebase Storage, and the Hono backend. It replaces Clerk and
-the old `userId`-in-the-body API with the same Firebase-ID-token model the
-Flutter port (`../mobile`) used.
+Authentication, Google Cloud Storage (through the API), and the Hono backend.
+It replaces Clerk and the old `userId`-in-the-body API with the same
+Firebase-ID-token model the Flutter port (`../mobile`) used.
 
 ## Running
 
@@ -195,10 +195,11 @@ Wardrobe/item requests also send `X-Profile-Id`; `/profiles` is account-level.
 | `POST /wardrobeItems` | Add item |
 | `PATCH /wardrobeItems/:id` | Edit item fields and replace its photo |
 | `DELETE /wardrobeItems/:id` | Delete item + its photo |
+| `POST /photos` | Upload a photo; returns the signed `photoUri` |
 
-Photos are uploaded directly from the app to Firebase Storage under
-`users/{uid}/items/...` (`lib/api.ts`), and the returned download URL is stored
-as `photoUri`. Storage rules live in `../storage.rules`.
+Photos are uploaded by the app to the authenticated `POST /photos` endpoint;
+the API writes them to Google Cloud Storage and returns the signed URL stored
+as `photoUri`. Firebase is used only for authentication.
 
 ## Agent endpoint used
 

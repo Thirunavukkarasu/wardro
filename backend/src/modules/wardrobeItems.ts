@@ -10,15 +10,24 @@ import { db } from '@/db'
 import { wardrobeItems, wardrobes } from '@/schema'
 import { requireUser } from '@/auth'
 import { requireProfile, type ProfileEnv } from '@/profile'
-import { removeStoredPhoto } from '@/storage'
+import {
+    photoBelongsToUser,
+    photoPathFromUrl,
+    presentPhotoUri,
+    removeStoredPhoto,
+} from '@/storage'
 
 const routes = new Hono<ProfileEnv>()
 
 routes.use('*', requireUser, requireProfile)
 
-const withUserId = <T extends { ownerUid: string }>(row: T) => ({
+const withUserId = <T extends { ownerUid: string; photoUri: string | null }>(
+    row: T,
+    origin: string
+) => ({
     ...row,
     userId: row.ownerUid,
+    photoUri: presentPhotoUri(row.photoUri, origin),
 })
 
 async function ownsWardrobe(
@@ -43,6 +52,13 @@ routes.post('/', async (c) => {
     try {
         const item = WardrobeItemSchema.parse(await c.req.json())
         const uid = c.get('uid')
+
+        if (item.photoUri && !photoBelongsToUser(item.photoUri, uid)) {
+            return Response.json(
+                { error: 'Photo does not belong to this account' },
+                { status: 400 }
+            )
+        }
 
         if (!(await ownsWardrobe(item.wardrobeId, uid, c.get('profileId')))) {
             return Response.json(
@@ -73,7 +89,7 @@ routes.post('/', async (c) => {
             .returning()
 
         return Response.json(
-            { data: [withUserId(created)] },
+            { data: [withUserId(created, new URL(c.req.url).origin)] },
             { status: 201 }
         )
     } catch (error: any) {
@@ -101,7 +117,11 @@ routes.get('/', async (c) => {
         .orderBy(desc(wardrobeItems.createdAt))
 
     return Response.json(
-        { data: items.map(withUserId) },
+        {
+            data: items.map((item) =>
+                withUserId(item, new URL(c.req.url).origin)
+            ),
+        },
         { status: 200 }
     )
 })
@@ -134,7 +154,11 @@ routes.get('/:wardrobeId', async (c) => {
         )
 
     return Response.json(
-        { data: items.map(withUserId) },
+        {
+            data: items.map((item) =>
+                withUserId(item, new URL(c.req.url).origin)
+            ),
+        },
         { status: 200 }
     )
 })
@@ -148,6 +172,16 @@ routes.patch('/:id', async (c) => {
 
         const uid = c.get('uid')
         const body = WardrobeItemUpdateSchema.parse(await c.req.json())
+
+        if (
+            body.photoUri !== undefined &&
+            !photoBelongsToUser(body.photoUri, uid)
+        ) {
+            return Response.json(
+                { error: 'Photo does not belong to this account' },
+                { status: 400 }
+            )
+        }
 
         const rows = await db
             .select()
@@ -218,16 +252,18 @@ routes.patch('/:id', async (c) => {
             return Response.json({ error: 'Item not found' }, { status: 404 })
         }
 
-        // Only clean up Storage after the ownership-scoped update succeeded.
-        if (
-            body.photoUri !== undefined &&
-            body.photoUri !== existing.photoUri
-        ) {
-            await removeStoredPhoto(existing.photoUri)
+        // A presentPhotoUri round-trip can change the URL form while pointing
+        // at the same object, so compare object paths rather than strings.
+        if (body.photoUri !== undefined) {
+            const nextPath = photoPathFromUrl(body.photoUri)
+            const previousPath = photoPathFromUrl(existing.photoUri)
+            if (nextPath !== previousPath) {
+                await removeStoredPhoto(existing.photoUri)
+            }
         }
 
         return Response.json(
-            { data: [withUserId(updated)] },
+            { data: [withUserId(updated, new URL(c.req.url).origin)] },
             { status: 200 }
         )
     } catch (error: any) {

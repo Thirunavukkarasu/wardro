@@ -178,7 +178,7 @@ Visual layouts, reusable components, and reference images for each step are in
 As of 2026-11-05:
 
 - Firebase auth (email/password + Google), token-authenticated API client, and
-  Firebase Storage photo uploads are in place.
+  API-proxied photo uploads to Google Cloud Storage are in place.
 - Shared `AppHeader` / `FormScreen` shells, back buttons, and sticky form
   footers are in place.
 - Today dashboard with the profile rail, Closet with search/category/wardrobe

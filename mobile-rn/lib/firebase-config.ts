@@ -14,9 +14,6 @@ export const firebaseConfig = {
     process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN ||
     "wardo-ce8d5.firebaseapp.com",
   projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID || "wardo-ce8d5",
-  storageBucket:
-    process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET ||
-    "wardo-ce8d5.firebasestorage.app",
   messagingSenderId:
     process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "251900114942",
   appId:

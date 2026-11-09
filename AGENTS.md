@@ -113,7 +113,9 @@ with any redistributed copy.
 ## Architecture invariants
 
 1. **Firebase is the identity source.** Derive the owner uid from the verified
-   Firebase token. Never trust an owner id supplied by a client.
+   Firebase token. Never trust an owner id supplied by a client. Firebase is
+   used only for authentication: photos live in Google Cloud Storage and all
+   records live in Postgres.
 2. **Everything wardrobe-scoped is profile-scoped.** Every wardrobe/item query
    filters both `owner_uid` and `profile_id`. `X-Profile-Id` is validated
    server-side; fall back to the account's default profile only when it is

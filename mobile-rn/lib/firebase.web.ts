@@ -1,6 +1,5 @@
 import { getApp, getApps, initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getStorage } from "firebase/storage";
 
 import { firebaseConfig } from "~/lib/firebase-config";
 
@@ -11,5 +10,4 @@ import { firebaseConfig } from "~/lib/firebase-config";
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
-export const storage = getStorage(app);
 export { app };

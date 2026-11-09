@@ -27,7 +27,7 @@ env:
   ARTIFACT_REPOSITORY: ${{ vars.ARTIFACT_REGISTRY_REPOSITORY || 'wardro' }}
   CLOUD_RUN_SERVICE: ${{ vars.CLOUD_RUN_SERVICE || 'wardro-api' }}
   CLOUD_RUN_SERVICE_ACCOUNT: ${{ vars.CLOUD_RUN_SERVICE_ACCOUNT || format('wardro-api@{0}.iam.gserviceaccount.com', vars.GCP_PROJECT_ID || 'wardo-ce8d5') }}
-  FIREBASE_STORAGE_BUCKET: ${{ vars.FIREBASE_STORAGE_BUCKET || 'wardo-ce8d5.firebasestorage.app' }}
+  GCS_PHOTOS_BUCKET: ${{ vars.GCS_PHOTOS_BUCKET || 'wardo-ce8d5.firebasestorage.app' }}
   CORS_ORIGINS: ${{ vars.CORS_ORIGINS || 'https://wardro-lake.vercel.app' }}
   DATABASE_URL_SECRET: ${{ vars.DATABASE_URL_SECRET || 'DATABASE_URL' }}
   IMAGE: ${{ format('{0}-docker.pkg.dev/{1}/{2}/{3}:{4}', vars.GCP_REGION || 'asia-south1', vars.GCP_PROJECT_ID || 'wardo-ce8d5', vars.ARTIFACT_REGISTRY_REPOSITORY || 'wardro', vars.CLOUD_RUN_SERVICE || 'wardro-api', github.sha) }}
@@ -101,8 +101,8 @@ jobs:
             --min-instances 0 \
             --max-instances 10 \
             --timeout 60 \
-            --set-env-vars "^@^NODE_ENV=production@FIREBASE_PROJECT_ID=${GCP_PROJECT_ID}@FIREBASE_STORAGE_BUCKET=${FIREBASE_STORAGE_BUCKET}@CORS_ORIGINS=${CORS_ORIGINS}" \
-            --set-secrets "DATABASE_URL=${DATABASE_URL_SECRET}:latest" \
+            --set-env-vars "^@^NODE_ENV=production@FIREBASE_PROJECT_ID=${GCP_PROJECT_ID}@GCS_PHOTOS_BUCKET=${GCS_PHOTOS_BUCKET}@CORS_ORIGINS=${CORS_ORIGINS}" \
+            --set-secrets "DATABASE_URL=${DATABASE_URL_SECRET}:latest,PHOTO_URL_SECRET=PHOTO_URL_SECRET:latest" \
             --quiet
 
       - name: Print service URL

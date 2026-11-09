@@ -84,7 +84,7 @@ export interface WardrobeItem {
   createdAt: Date | null;
 }
 
-/** A photo chosen or captured by the user, with base64 for Firebase Storage. */
+/** A photo chosen or captured by the user, with base64 for the upload API. */
 export interface PickedPhoto {
   uri: string;
   base64: string | null;

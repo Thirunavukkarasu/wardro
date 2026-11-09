@@ -6,7 +6,7 @@ import { db } from '@/db'
 import { wardrobeItems, wardrobes } from '@/schema'
 import { requireUser } from '@/auth'
 import { requireProfile, type ProfileEnv } from '@/profile'
-import { removeStoredPhoto } from '@/storage'
+import { presentPhotoUri, removeStoredPhoto } from '@/storage'
 
 const routes = new Hono<ProfileEnv>()
 
@@ -74,7 +74,19 @@ routes.get('/summary', async (c) => {
             .groupBy(wardrobes.id)
             .orderBy(wardrobes.createdAt)
 
-        return Response.json({ data: response }, { status: 200 })
+        const origin = new URL(c.req.url).origin
+
+        return Response.json(
+            {
+                data: response.map((row) => ({
+                    ...row,
+                    coverPhotoUri: row.coverPhotoUri
+                        ? presentPhotoUri(row.coverPhotoUri, origin)
+                        : row.coverPhotoUri,
+                })),
+            },
+            { status: 200 }
+        )
     } catch (error) {
         console.error('Error fetching wardrobe summary:', error)
         return Response.json({ error: 'Internal Server Error' }, { status: 500 })

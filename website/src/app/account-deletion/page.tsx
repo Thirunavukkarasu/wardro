@@ -83,7 +83,7 @@ export default function AccountDeletionPage() {
               <li>Firebase Authentication account</li>
               <li>Household profile rows</li>
               <li>Wardrobes and wardrobe items</li>
-              <li>Item photos in Firebase Storage</li>
+              <li>Item photos in Google Cloud Storage</li>
               <li>Chat threads and AI analysis records</li>
             </ul>
           </div>

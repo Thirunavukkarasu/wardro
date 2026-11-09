@@ -195,13 +195,13 @@ export default function PrivacyPage() {
                 Storage and security
               </h2>
               <p className="mt-3">
-                Account authentication and wardrobe photos are handled by Google
-                Firebase (Firebase Authentication and Firebase Storage).
-                Wardrobe records are stored in a PostgreSQL database, and the API
-                and website are hosted by service providers. Data is transmitted
-                over TLS. Access to wardrobe records is restricted to the
-                authenticated account and the active profile; Storage rules
-                restrict photo access to the signed-in user.
+                Account authentication is handled by Google Firebase
+                Authentication. Wardrobe photos are stored in Google Cloud
+                Storage, and wardrobe records are stored in a PostgreSQL
+                database; the API and website are hosted by service providers.
+                Data is transmitted over TLS. Access to wardrobe records and
+                photos is restricted to the authenticated account and the
+                active profile.
               </p>
               <p className="mt-3">
                 No service is perfectly secure. If we become aware of a breach
@@ -216,9 +216,9 @@ export default function PrivacyPage() {
               </h2>
               <p className="mt-3">
                 We share data only with service providers needed to run Wardro:
-                Google Firebase (authentication, storage, hosting), our
-                PostgreSQL database provider, and the configured AI model
-                provider. These providers process data on our behalf or as
+                Google Firebase (authentication), Google Cloud (photo storage
+                and API hosting), our PostgreSQL database provider, and the
+                configured AI model provider. These providers process data on our behalf or as
                 independent controllers under their own terms. We may disclose
                 data if required by law or to protect the service and its users.
                 We do not sell personal data.
