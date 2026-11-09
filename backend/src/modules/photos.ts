@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 
 import { requireUser, type AuthEnv } from '@/auth'
+import { requestOrigin } from '@/origin'
 import {
     isPhotoSignatureValid,
     photoUrl,
@@ -64,7 +65,7 @@ routes.post('/', requireUser, async (c) => {
             base64,
             contentType,
         })
-        const origin = new URL(c.req.url).origin
+        const origin = requestOrigin(c)
 
         return Response.json(
             {

@@ -6,6 +6,7 @@ import { db } from '@/db'
 import { wardrobeItems, wardrobes } from '@/schema'
 import { requireUser } from '@/auth'
 import { requireProfile, type ProfileEnv } from '@/profile'
+import { requestOrigin } from '@/origin'
 import { presentPhotoUri, removeStoredPhoto } from '@/storage'
 
 const routes = new Hono<ProfileEnv>()
@@ -74,7 +75,7 @@ routes.get('/summary', async (c) => {
             .groupBy(wardrobes.id)
             .orderBy(wardrobes.createdAt)
 
-        const origin = new URL(c.req.url).origin
+        const origin = requestOrigin(c)
 
         return Response.json(
             {

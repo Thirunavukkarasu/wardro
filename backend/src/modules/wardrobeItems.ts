@@ -6,6 +6,7 @@ import {
     WardrobeItemSchema,
     WardrobeItemUpdateSchema,
 } from '@/types'
+import { requestOrigin } from '@/origin'
 import { db } from '@/db'
 import { wardrobeItems, wardrobes } from '@/schema'
 import { requireUser } from '@/auth'
@@ -93,7 +94,7 @@ routes.post('/', async (c) => {
             .returning()
 
         return Response.json(
-            { data: [withUserId(created, new URL(c.req.url).origin)] },
+            { data: [withUserId(created, requestOrigin(c))] },
             { status: 201 }
         )
     } catch (error: any) {
@@ -123,7 +124,7 @@ routes.get('/', async (c) => {
     return Response.json(
         {
             data: items.map((item) =>
-                withUserId(item, new URL(c.req.url).origin)
+                withUserId(item, requestOrigin(c))
             ),
         },
         { status: 200 }
@@ -160,7 +161,7 @@ routes.get('/:wardrobeId', async (c) => {
     return Response.json(
         {
             data: items.map((item) =>
-                withUserId(item, new URL(c.req.url).origin)
+                withUserId(item, requestOrigin(c))
             ),
         },
         { status: 200 }
@@ -270,7 +271,7 @@ routes.patch('/:id', async (c) => {
         }
 
         return Response.json(
-            { data: [withUserId(updated, new URL(c.req.url).origin)] },
+            { data: [withUserId(updated, requestOrigin(c))] },
             { status: 200 }
         )
     } catch (error: any) {

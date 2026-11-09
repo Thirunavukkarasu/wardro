@@ -44,9 +44,10 @@ bucket or changing the API origin does not require touching stored rows.
 
 `GET /api/photos/*` verifies the HMAC signature (the Secret Manager secret
 `PHOTO_URL_SECRET`) and streams the object, so the bucket stays private and
-web `<img>` / native `Image` need no Authorization header. Deletes go through
-`src/storage.ts` using `@google-cloud/storage`; `firebase-admin` is no longer a
-dependency.
+web `<img>` / native `Image` need no Authorization header. Photo URLs use
+`PUBLIC_API_ORIGIN` when set, because Cloud Run's internal request origin is not
+reachable from a phone. Deletes go through `src/storage.ts` using
+`@google-cloud/storage`; `firebase-admin` is no longer a dependency.
 
 The runtime service account needs `roles/storage.objectAdmin` on the bucket and
 secret accessor on `PHOTO_URL_SECRET` (see the bootstrap below). For local
@@ -134,6 +135,7 @@ the current project, so the first run only needs the two secrets:
 | `ARTIFACT_REGISTRY_REPOSITORY` | `wardro` | Docker repository in Artifact Registry |
 | `CLOUD_RUN_SERVICE_ACCOUNT` | `wardro-api@<project>.iam.gserviceaccount.com` | Runtime identity of the service |
 | `GCS_PHOTOS_BUCKET` | `wardo-ce8d5-wardrobe-photos` | Bucket for item photos |
+| `PUBLIC_API_ORIGIN` | `https://wardro-api-251900114942.asia-south1.run.app` | Public origin used in signed photo URLs |
 | `CORS_ORIGINS` | `https://wardro-lake.vercel.app` | Extra browser origins, comma-separated |
 | `DATABASE_URL_SECRET` | `DATABASE_URL` | Secret Manager secret mapped to `DATABASE_URL` |
 
