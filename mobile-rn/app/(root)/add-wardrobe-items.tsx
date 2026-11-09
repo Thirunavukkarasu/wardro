@@ -11,7 +11,7 @@ import {
   Wallet,
   X,
 } from "lucide-react-native";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Image, Pressable, ScrollView, Text, View } from "react-native";
 
 import CustomButton from "~/components/CustomButton";
@@ -74,6 +74,7 @@ export default function AddItemScreen() {
   const [autoFilling, setAutoFilling] = useState<"photo" | "url" | null>(null);
   const [autoFillError, setAutoFillError] = useState<string | null>(null);
   const [autoFillNote, setAutoFillNote] = useState<string | null>(null);
+  const autoScannedRef = useRef<string | null>(null);
   const [itemName, setItemName] = useState(editingItem?.itemName ?? "");
   const [purchaseDate, setPurchaseDate] = useState<Date | null>(
     editingItem?.purchaseDate ?? null,
@@ -173,7 +174,7 @@ export default function AddItemScreen() {
     };
   };
 
-  const applyDraft = (draft: ItemDraft) => {
+  const applyDraft = useCallback((draft: ItemDraft) => {
     if (draft.itemName.trim()) setItemName(draft.itemName.trim());
     if (draft.brand) setBrand(draft.brand);
     if (draft.category) setCategory(draft.category);
@@ -194,38 +195,50 @@ export default function AddItemScreen() {
         ? "Filled from the page metadata. Review the details before saving."
         : "Draft filled. Review the details before saving.",
     );
-  };
+  }, []);
 
-  const autoFillFromPhoto = async () => {
-    if (!photo) {
-      setAutoFillError("Add or take a photo first.");
-      return;
-    }
+  const runPhotoDraft = useCallback(
+    async (target: PickedPhoto) => {
+      const base64 = pickedPhotoBase64(target);
+      if (!base64) {
+        setAutoFillError("Could not read the selected photo.");
+        return;
+      }
+
+      setAutoFilling("photo");
+      setAutoFillError(null);
+      setAutoFillNote(null);
+      try {
+        const draft = await api.draftItem({
+          imageBase64: base64,
+          contentType: target.mimeType,
+        });
+        applyDraft(draft);
+      } catch (fillError) {
+        setAutoFillError(
+          fillError instanceof ApiException
+            ? fillError.message
+            : "Could not scan the photo.",
+        );
+      } finally {
+        setAutoFilling(null);
+      }
+    },
+    [applyDraft],
+  );
+
+  // Choosing or taking a photo starts the scan automatically. The manual
+  // button remains as a retry when the model is temporarily unavailable.
+  useEffect(() => {
+    if (!photo) return;
     const base64 = pickedPhotoBase64(photo);
-    if (!base64) {
-      setAutoFillError("Could not read the selected photo.");
-      return;
-    }
+    if (!base64) return;
 
-    setAutoFilling("photo");
-    setAutoFillError(null);
-    setAutoFillNote(null);
-    try {
-      const draft = await api.draftItem({
-        imageBase64: base64,
-        contentType: photo.mimeType,
-      });
-      applyDraft(draft);
-    } catch (fillError) {
-      setAutoFillError(
-        fillError instanceof ApiException
-          ? fillError.message
-          : "Could not scan the photo.",
-      );
-    } finally {
-      setAutoFilling(null);
-    }
-  };
+    const key = `${photo.uri}:${base64.length}:${base64.slice(0, 24)}`;
+    if (autoScannedRef.current === key) return;
+    autoScannedRef.current = key;
+    void runPhotoDraft(photo);
+  }, [photo, runPhotoDraft]);
 
   const autoFillFromUrl = async () => {
     const url = sourceUrl.trim();
@@ -400,8 +413,8 @@ export default function AddItemScreen() {
               </Text>
             </View>
             <Text className="mt-1 text-[12px] leading-5 text-ink-secondary">
-              Scan the selected photo, or paste a product link. Review
-              everything before saving.
+              Photo details fill automatically when you choose a photo. You can
+              also paste a product link. Review everything before saving.
             </Text>
 
             <View className="mt-3">
@@ -412,7 +425,9 @@ export default function AddItemScreen() {
                 variant="outline"
                 isLoading={autoFilling === "photo"}
                 disabled={!photo || autoFilling !== null}
-                onPress={autoFillFromPhoto}
+                onPress={() => {
+                  if (photo) void runPhotoDraft(photo);
+                }}
               />
             </View>
 
