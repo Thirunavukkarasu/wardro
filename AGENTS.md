@@ -37,6 +37,13 @@ Do not merge the two trees. Link across them instead.
 blueprints and references; the tokens and shared component rules live in
 `docs/design-system/`.
 
+## Project skills
+
+- [`.claude/skills/android-release/`](.claude/skills/android-release/SKILL.md) —
+  build, download and publish the signed Android AAB.
+- [`.claude/skills/website-interactions/`](.claude/skills/website-interactions/SKILL.md) —
+  motion and interaction guidance for the marketing site.
+
 ## Repository layout
 
 | Directory | Stack | Status |
