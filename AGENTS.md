@@ -20,6 +20,7 @@ Do not merge the two trees. Link across them instead.
 | Research index and conclusions | [`docs/research/README.md`](docs/research/README.md) |
 | Notion synthesis: AI architecture, taxonomy, corrections | [`docs/research/notion-synthesis.md`](docs/research/notion-synthesis.md) |
 | Schema review and phased migration plan | [`docs/research/data-model-assessment.md`](docs/research/data-model-assessment.md) |
+| Feature backlog, bulk import and duplicate detection | [`docs/features.md`](docs/features.md) |
 | Original Notion exports (reference only) | [`docs/research/sources/README.md`](docs/research/sources/README.md) |
 | Four-profile simulation dataset and seed workflow | [`scripts/datasets/wardrobe-simulation/README.md`](scripts/datasets/wardrobe-simulation/README.md) |
 | Repo-level tooling and fixtures | [`scripts/README.md`](scripts/README.md) |

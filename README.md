@@ -57,7 +57,9 @@ structure and phasing, and `mobile-rn/docs/design/` for screen blueprints,
 component specs, and design references. The shared visual language (Warm
 Neutral + Muted Olive) is documented in [`docs/design-system/`](docs/design-system/README.md).
 Research notes and the Notion synthesis live in [`docs/research/`](docs/research/README.md);
-the four-profile simulation dataset is in
+the feature backlog, bulk photo import and duplicate-detection plan are in
+[`docs/features.md`](docs/features.md).
+The four-profile simulation dataset is in
 [`scripts/datasets/wardrobe-simulation/`](scripts/datasets/wardrobe-simulation/README.md).
 `backend/README.md` covers build/deploy details, and
 `wardro-agent/README.md` covers the LangChain agent service and its current
