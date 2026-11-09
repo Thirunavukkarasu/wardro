@@ -207,7 +207,7 @@ export async function draftFromImage(input: {
                     type: 'text',
                     text: `Identify the single garment in this photo and extract its details.${hint}`,
                 },
-                { type: 'image', image: base64, mediaType },
+                { type: 'file', data: base64, mediaType },
             ],
         },
     ])
