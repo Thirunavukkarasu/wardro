@@ -108,6 +108,10 @@ DEMO_BASE_URL=http://localhost:3000/demo npm run seed:demo
 - `DEMO_BASE_URL` must be reachable from the device running the app. Use
   `http://10.0.2.2:3000/demo` for an Android emulator, or your LAN IP for a
   physical device.
+- A deployed API backed by Google Cloud Storage does not serve `/demo`. Upload
+  the images to the bucket and store bucket-relative paths
+  (`users/{uid}/items/<file>`) in `photo_uri`; the API expands them to signed
+  URLs. Avoid seeding a deployment with a `localhost` `DEMO_BASE_URL`.
 - The seed is additive and idempotent: it reuses an existing profile when the
   name matches and skips items it has already imported.
 - It also reconciles the original single-profile test data: the default profile
