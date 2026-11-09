@@ -71,9 +71,12 @@ draft. It never writes wardrobe rows; the app fills the form and saves through
 { "url": "https://shop.example.com/item" }
 ```
 
-The server calls an Ollama OpenAI-compatible endpoint with the Vercel AI SDK.
-Photos need a vision-capable model; product pages can use a text model. If no
-text model is configured, URL imports still fall back to page metadata.
+The server calls an Ollama OpenAI-compatible endpoint with the Vercel AI SDK
+and requests structured output with a Zod schema (`Output.object`). Photos need
+a vision-capable model; product pages can use a text model. If no text model is
+configured, URL imports still fall back to page metadata. The current Ollama
+Cloud model is `deepseek-v4.1-flash:1017-cloud`, which supports vision and
+tools.
 
 | Variable | Purpose |
 | --- | --- |

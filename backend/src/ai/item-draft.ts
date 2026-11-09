@@ -1,5 +1,11 @@
 import { createOpenAI } from '@ai-sdk/openai'
-import { generateText, type ModelMessage } from 'ai'
+import {
+    Output,
+    extractJsonMiddleware,
+    generateText,
+    wrapLanguageModel,
+    type ModelMessage,
+} from 'ai'
 import { z } from 'zod'
 
 import { uploadStoredPhotoBuffer } from '@/storage'
@@ -79,17 +85,46 @@ function modelFor(kind: 'text' | 'vision'): string | null {
 }
 
 async function runModel(
-    model: string,
+    modelId: string,
     messages: ModelMessage[]
-): Promise<string> {
+): Promise<ItemDraft> {
+    const model = wrapLanguageModel({
+        model: getProvider().chat(modelId),
+        middleware: extractJsonMiddleware(),
+    })
+
     try {
         const result = await generateText({
-            model: getProvider().chat(model),
+            model,
+            output: Output.object({
+                name: 'WardrobeItemDraft',
+                description: 'Editable wardrobe item details',
+                schema: ItemDraftSchema,
+            }),
             messages,
             instructions: SYSTEM_PROMPT,
             temperature: 0.2,
         })
-        return result.text
+        if (!result.output) {
+            throw new DraftError('The AI model did not return a draft.')
+        }
+        return normalizeDraft(result.output)
+    } catch (error) {
+        if (error instanceof DraftUnavailableError) throw error
+        console.warn(
+            'Structured output failed; retrying as plain text:',
+            error
+        )
+    }
+
+    try {
+        const result = await generateText({
+            model,
+            messages,
+            instructions: SYSTEM_PROMPT,
+            temperature: 0.2,
+        })
+        return parseDraft(result.text)
     } catch (error) {
         if (error instanceof DraftUnavailableError) throw error
         console.error('Ollama item-draft request failed:', error)
@@ -97,6 +132,39 @@ async function runModel(
             'The AI model could not produce a draft. Check the model configuration.'
         )
     }
+}
+
+function normalizeDraft(value: ItemDraft): ItemDraft {
+    const record = { ...value } as Record<string, unknown>
+
+    for (const key of [
+        'brand',
+        'category',
+        'color',
+        'size',
+        'currency',
+        'purchaseDate',
+        'description',
+    ]) {
+        record[key] = nullableString(record[key])
+    }
+    record.price = nullablePrice(record.price)
+    record.purchaseDate = nullableDate(record.purchaseDate)
+    if (typeof record.confidence === 'string') {
+        record.confidence = Number(record.confidence)
+    }
+    if (
+        typeof record.itemName !== 'string' ||
+        record.itemName.trim().toLowerCase() === 'null'
+    ) {
+        throw new DraftError('The AI model could not identify the item.')
+    }
+
+    const parsed = ItemDraftSchema.safeParse(record)
+    if (!parsed.success) {
+        throw new DraftError('The AI model returned an incomplete draft.')
+    }
+    return parsed.data
 }
 
 export async function draftFromImage(input: {
@@ -131,7 +199,7 @@ export async function draftFromImage(input: {
         ? `\nUser hint: ${input.hint.trim()}`
         : ''
 
-    const text = await runModel(model, [
+    const draft = await runModel(model, [
         {
             role: 'user',
             content: [
@@ -144,7 +212,7 @@ export async function draftFromImage(input: {
         },
     ])
 
-    return { draft: parseDraft(text), photoPath: null, source: 'ai' }
+    return { draft, photoPath: null, source: 'ai' }
 }
 
 export async function draftFromUrl(input: {
@@ -166,12 +234,11 @@ export async function draftFromUrl(input: {
     }
 
     try {
-        const text = await runModel(model, [
+        const draft = await runModel(model, [
             { role: 'user', content: pagePrompt(page) },
         ])
-        return { draft: parseDraft(text), photoPath, source: 'ai' }
+        return { draft, photoPath, source: 'ai' }
     } catch (error) {
-        if (error instanceof DraftUnavailableError) throw error
         console.warn('URL item draft fell back to page metadata:', error)
         return {
             draft: metadataDraft(page),
