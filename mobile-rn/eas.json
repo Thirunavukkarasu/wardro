@@ -5,19 +5,32 @@
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://wardro-api-251900114942.asia-south1.run.app/api"
+      }
     },
     "development-simulator": {
       "developmentClient": true,
       "distribution": "internal",
       "ios": {
         "simulator": true
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://wardro-api-251900114942.asia-south1.run.app/api"
       }
     },
     "preview": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://wardro-api-251900114942.asia-south1.run.app/api"
+      }
     },
-    "production": {}
+    "production": {
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://wardro-api-251900114942.asia-south1.run.app/api"
+      }
+    }
   },
   "submit": {
     "production": {}
