@@ -17,6 +17,13 @@ import Link from "next/link";
 import SiteFooter from "@/components/site/footer";
 import SiteNavbar from "@/components/site/navbar";
 import PhoneShot from "@/components/site/phone-shot";
+import Reveal from "@/components/site/reveal";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 const features = [
   {
@@ -104,7 +111,7 @@ export default function Home() {
         <div className="pointer-events-none absolute -right-24 top-0 h-96 w-96 rounded-full bg-wardro-accent/20 blur-3xl" />
 
         <div className="site-container relative grid items-center gap-14 pb-20 pt-16 sm:pt-20 lg:grid-cols-[1.05fr_0.95fr] lg:gap-10 lg:pb-28 lg:pt-24">
-          <div>
+          <div className="hero-enter">
             <p className="eyebrow flex items-center gap-2">
               <Sparkles size={13} strokeWidth={2.4} />
               A calmer wardrobe for the whole household
@@ -124,14 +131,14 @@ export default function Home() {
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
                 href="#screens"
-                className="inline-flex items-center justify-center gap-2 rounded-full bg-wardro-primary-dark px-5 py-3.5 text-[13px] font-bold text-white transition-colors hover:bg-wardro-text-primary"
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-wardro-primary-dark px-5 py-3.5 text-[13px] font-bold text-white transition-[background-color,transform] duration-150 ease-out hover:bg-wardro-text-primary motion-safe:active:scale-[0.97]"
               >
                 See the app
                 <ArrowRight size={15} />
               </Link>
               <Link
                 href="#download"
-                className="inline-flex items-center justify-center gap-2 rounded-full border border-wardro-border bg-wardro-surface px-5 py-3.5 text-[13px] font-bold text-wardro-text-primary transition-colors hover:border-wardro-primary/50"
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-wardro-border bg-wardro-surface px-5 py-3.5 text-[13px] font-bold text-wardro-text-primary transition-[border-color,transform] duration-150 ease-out hover:border-wardro-primary/50 motion-safe:active:scale-[0.97]"
               >
                 <Smartphone size={15} />
                 Coming to Android
@@ -154,7 +161,10 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="relative mx-auto w-full max-w-[430px] lg:max-w-none">
+          <div
+            className="hero-enter relative mx-auto w-full max-w-[430px] lg:max-w-none"
+            style={{ transitionDelay: "80ms" }}
+          >
             <div className="absolute left-1/2 top-8 h-[88%] w-[72%] -translate-x-1/2 rotate-[7deg] rounded-[3rem] bg-wardro-primary-light" />
             <div className="absolute right-0 top-24 hidden w-[54%] rotate-[5deg] opacity-90 lg:block">
               <PhoneShot
@@ -219,7 +229,7 @@ export default function Home() {
       {/* Product / household */}
       <section id="product" className="site-container py-20 sm:py-24">
         <div className="grid gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
-          <div>
+          <Reveal>
             <p className="eyebrow">One household, many wardrobes</p>
             <h2 className="editorial mt-4 text-balance text-[38px] font-semibold leading-[1.05] text-wardro-text-primary sm:text-[48px]">
               A shared account that still feels personal.
@@ -246,7 +256,7 @@ export default function Home() {
                 </div>
               ))}
             </div>
-          </div>
+          </Reveal>
 
           <div className="grid gap-4 sm:grid-cols-2">
             {[
@@ -258,9 +268,10 @@ export default function Home() {
               { name: "Swati", role: "Everyday · Occasion", color: "bg-wardro-accent" },
               { name: "Arush", role: "School · Play", color: "bg-wardro-success" },
               { name: "Adiran", role: "Everyday · Sports", color: "bg-wardro-warning" },
-            ].map((profile) => (
-              <div
+            ].map((profile, index) => (
+              <Reveal
                 key={profile.name}
+                delay={index * 60}
                 className="rounded-[22px] border border-wardro-border bg-wardro-surface p-5 shadow-card"
               >
                 <span
@@ -274,7 +285,7 @@ export default function Home() {
                 <p className="mt-1 text-[11.5px] text-wardro-text-secondary">
                   {profile.role}
                 </p>
-              </div>
+              </Reveal>
             ))}
           </div>
         </div>
@@ -283,7 +294,7 @@ export default function Home() {
       {/* Features */}
       <section className="bg-wardro-surface-secondary/60 py-20 sm:py-24">
         <div className="site-container">
-          <div className="max-w-2xl">
+          <Reveal className="max-w-2xl">
             <p className="eyebrow">What Wardro does</p>
             <h2 className="editorial mt-4 text-balance text-[38px] font-semibold leading-[1.05] text-wardro-text-primary sm:text-[48px]">
               Less searching. More wearing.
@@ -292,13 +303,14 @@ export default function Home() {
               The everyday jobs of a wardrobe, brought into one quiet place.
               Wardro is deliberately not another social feed or shopping app.
             </p>
-          </div>
+          </Reveal>
 
           <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {features.map((feature) => (
-              <div
+            {features.map((feature, index) => (
+              <Reveal
                 key={feature.title}
-                className="rounded-[22px] border border-wardro-border bg-wardro-surface p-6 shadow-card transition-transform duration-300 hover:-translate-y-1"
+                delay={index * 50}
+                className="rounded-[22px] border border-wardro-border bg-wardro-surface p-6 shadow-card transition-[transform,box-shadow] duration-200 ease-out hover:-translate-y-1 hover:shadow-lg"
               >
                 <span className="flex h-10 w-10 items-center justify-center rounded-full bg-wardro-primary-light">
                   <feature.icon size={18} className="text-wardro-primary-dark" />
@@ -309,7 +321,7 @@ export default function Home() {
                 <p className="mt-2 text-[13px] leading-6 text-wardro-text-secondary">
                   {feature.body}
                 </p>
-              </div>
+              </Reveal>
             ))}
           </div>
         </div>
@@ -318,7 +330,7 @@ export default function Home() {
       {/* How it works */}
       <section id="how-it-works" className="site-container py-20 sm:py-24">
         <div className="grid gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
-          <div>
+          <Reveal>
             <p className="eyebrow">How it works</p>
             <h2 className="editorial mt-4 text-balance text-[38px] font-semibold leading-[1.05] text-wardro-text-primary sm:text-[48px]">
               Start with what you already own.
@@ -340,9 +352,12 @@ export default function Home() {
                 </div>
               ))}
             </div>
-          </div>
+          </Reveal>
 
-          <div className="relative mx-auto flex w-full max-w-[560px] items-center justify-center">
+          <Reveal
+            className="relative mx-auto flex w-full max-w-[560px] items-center justify-center"
+            delay={80}
+          >
             <div className="absolute h-[78%] w-[78%] rounded-full bg-wardro-primary-light" />
             <div className="relative z-10 w-[62%] -rotate-[4deg]">
               <PhoneShot
@@ -356,14 +371,14 @@ export default function Home() {
                 alt="Wardro Closet screen with searchable garment grid and wardrobe filters"
               />
             </div>
-          </div>
+          </Reveal>
         </div>
       </section>
 
       {/* AI */}
       <section id="ai" className="bg-wardro-primary-dark py-20 text-white sm:py-24">
         <div className="site-container grid gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
-          <div>
+          <Reveal>
             <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-wardro-primary-light">
               Ask Wardro
             </p>
@@ -416,21 +431,21 @@ export default function Home() {
               development it can use Ollama; production can use a cloud vision
               or chat model. Your photos are not used to train our models.
             </p>
-          </div>
+          </Reveal>
 
-          <div className="mx-auto w-full max-w-[350px]">
+          <Reveal className="mx-auto w-full max-w-[350px]" delay={80}>
             <PhoneShot
               src="/screenshots/ask.webp"
               alt="Wardro chat answering an outfit question from the active profile's real wardrobe"
               className="rotate-[2deg]"
             />
-          </div>
+          </Reveal>
         </div>
       </section>
 
       {/* Screens */}
       <section id="screens" className="site-container py-20 sm:py-24">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <Reveal className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="max-w-xl">
             <p className="eyebrow">The app</p>
             <h2 className="editorial mt-4 text-balance text-[38px] font-semibold leading-[1.05] text-wardro-text-primary sm:text-[48px]">
@@ -441,7 +456,7 @@ export default function Home() {
             Warm ivory, muted olive and generous whitespace. Every screen is
             built to make the wardrobe feel curated, not like a spreadsheet.
           </p>
-        </div>
+        </Reveal>
 
         <div className="mt-10 grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-4">
           {[
@@ -465,8 +480,8 @@ export default function Home() {
               label: "Ask",
               caption: "Answers from the active profile",
             },
-          ].map((screen) => (
-            <div key={screen.label}>
+          ].map((screen, index) => (
+            <Reveal key={screen.label} delay={index * 60}>
               <PhoneShot src={screen.src} alt={`${screen.label} screen in Wardro`} />
               <p className="mt-4 text-[12px] font-bold text-wardro-text-primary">
                 {screen.label}
@@ -474,14 +489,14 @@ export default function Home() {
               <p className="mt-1 text-[11px] leading-5 text-wardro-text-secondary">
                 {screen.caption}
               </p>
-            </div>
+            </Reveal>
           ))}
         </div>
       </section>
 
       {/* Privacy */}
       <section className="border-y border-wardro-border bg-wardro-surface py-16 sm:py-20">
-        <div className="site-container grid gap-8 md:grid-cols-[1fr_1.2fr] md:items-center">
+        <Reveal className="site-container grid gap-8 md:grid-cols-[1fr_1.2fr] md:items-center">
           <div className="flex items-start gap-4">
             <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-wardro-primary-light">
               <ShieldCheck size={22} className="text-wardro-primary-dark" />
@@ -511,39 +526,50 @@ export default function Home() {
               Read the privacy policy <ArrowRight size={13} />
             </Link>
           </div>
-        </div>
+        </Reveal>
       </section>
 
       {/* FAQ */}
       <section className="site-container py-20 sm:py-24">
         <div className="grid gap-10 lg:grid-cols-[0.65fr_1.35fr]">
-          <div>
+          <Reveal>
             <p className="eyebrow">Good to know</p>
             <h2 className="editorial mt-4 text-[38px] font-semibold leading-[1.05] text-wardro-text-primary sm:text-[44px]">
               Questions, answered.
             </h2>
-          </div>
-          <div className="divide-y divide-wardro-border border-y border-wardro-border">
-            {faqs.map((faq) => (
-              <details key={faq.q} className="group py-5">
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-[14px] font-bold text-wardro-text-primary [&::-webkit-details-marker]:hidden">
-                  {faq.q}
-                  <span className="text-wardro-primary-dark transition-transform group-open:rotate-45">
-                    +
-                  </span>
-                </summary>
-                <p className="mt-3 max-w-2xl text-[13px] leading-6 text-wardro-text-secondary">
-                  {faq.a}
-                </p>
-              </details>
-            ))}
-          </div>
+          </Reveal>
+          <Reveal delay={80} className="border-y border-wardro-border">
+            <Accordion type="single" collapsible>
+              {faqs.map((faq) => (
+                <AccordionItem
+                  key={faq.q}
+                  value={faq.q}
+                  className="border-wardro-border last:border-b-0"
+                >
+                  <AccordionTrigger
+                    hideIcon
+                    className="group !py-5 text-[14px] font-bold text-wardro-text-primary hover:no-underline"
+                  >
+                    <span className="flex flex-1 items-center justify-between gap-4">
+                      {faq.q}
+                      <span className="text-wardro-primary-dark transition-transform duration-200 group-data-[state=open]:rotate-45">
+                        +
+                      </span>
+                    </span>
+                  </AccordionTrigger>
+                  <AccordionContent className="max-w-2xl text-[13px] leading-6 text-wardro-text-secondary">
+                    {faq.a}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </Reveal>
         </div>
       </section>
 
       {/* Download */}
       <section id="download" className="site-container pb-20 sm:pb-28">
-        <div className="relative overflow-hidden rounded-[32px] bg-wardro-primary-light px-6 py-12 sm:px-12 sm:py-16">
+        <Reveal className="relative overflow-hidden rounded-[32px] bg-wardro-primary-light px-6 py-12 sm:px-12 sm:py-16">
           <div className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full bg-wardro-accent/20" />
           <div className="relative grid gap-8 md:grid-cols-[1.2fr_0.8fr] md:items-center">
             <div>
@@ -560,7 +586,7 @@ export default function Home() {
             <div className="flex flex-col gap-3 md:items-end">
               <a
                 href="https://github.com/Thirunavukkarasu/wardro"
-                className="inline-flex items-center justify-center gap-2 rounded-full bg-wardro-primary-dark px-5 py-3.5 text-[13px] font-bold text-white transition-colors hover:bg-wardro-text-primary"
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-wardro-primary-dark px-5 py-3.5 text-[13px] font-bold text-white transition-[background-color,transform] duration-150 ease-out hover:bg-wardro-text-primary motion-safe:active:scale-[0.97]"
               >
                 Follow the build
                 <ArrowRight size={15} />
@@ -570,7 +596,7 @@ export default function Home() {
               </p>
             </div>
           </div>
-        </div>
+        </Reveal>
       </section>
 
       <SiteFooter />

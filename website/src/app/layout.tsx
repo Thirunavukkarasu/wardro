@@ -35,6 +35,9 @@ export default function RootLayout({
           fontSerif.variable
         )}
       >
+        <noscript>
+          <style>{`.reveal{clip-path:none!important;transition:none!important}`}</style>
+        </noscript>
         {children}
       </body>
     </html>

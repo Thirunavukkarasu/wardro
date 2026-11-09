@@ -44,6 +44,9 @@ blueprints and references; the tokens and shared component rules live in
 - [`.claude/skills/website-interactions/`](.claude/skills/website-interactions/SKILL.md) —
   motion and interaction guidance for the marketing site.
 
+Motion skills vendored from [emilkowalski/skills](https://github.com/emilkowalski/skills)
+(MIT) live in `.claude/skills/`; see [`.claude/skills/README.md`](.claude/skills/README.md).
+
 ## Repository layout
 
 | Directory | Stack | Status |
