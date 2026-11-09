@@ -17,10 +17,10 @@ npx tsc --noEmit     # typecheck
 npx expo export --platform web   # bundle check
 ```
 
-The app defaults to the deployed backend. For local development create
-`.env` from `.env.example` and point `EXPO_PUBLIC_API_URL` at
-`http://localhost:3000/api` (use `http://10.0.2.2:3000/api` on an Android
-emulator).
+The app requires `EXPO_PUBLIC_API_URL`; `.env.example` points at the deployed
+backend. For local development create `.env` from `.env.example` and point
+`EXPO_PUBLIC_API_URL` at `http://localhost:3000/api` (use
+`http://10.0.2.2:3000/api` on an Android emulator).
 
 ## Configuration
 

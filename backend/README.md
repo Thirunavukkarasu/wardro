@@ -287,12 +287,11 @@ gh run watch -R Thirunavukkarasu/wardro
 Or open **Actions → Deploy API to Cloud Run → Run workflow**.
 
 The workflow prints the service URL. With the default project, service name and
-region, the deterministic URL is
-`https://wardro-api-251900114942.asia-south1.run.app`; the app's
-`EXPO_PUBLIC_API_URL` default already points at
-`https://wardro-api-251900114942.asia-south1.run.app/api`. If you change
-`GCP_REGION`, `CLOUD_RUN_SERVICE` or `GCP_PROJECT_ID`, update
-`mobile-rn/lib/firebase-config.ts` and `mobile-rn/.env.example` to match.
+region it is `https://wardro-api-e3qjdiglha-el.a.run.app`; the new-style alias
+`https://wardro-api-251900114942.asia-south1.run.app` serves the same service.
+Set the URL (with `/api`) as `EXPO_PUBLIC_API_URL` in `mobile-rn/.env`; the app
+has no built-in backend URL. If you change `GCP_REGION`, `CLOUD_RUN_SERVICE` or
+`GCP_PROJECT_ID`, update `mobile-rn/.env.example` to match.
 
 ### App Hosting (legacy)
 
