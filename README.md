@@ -1,16 +1,24 @@
 # Wardro
 
-Wardro is a wardrobe management app that helps users to keep track of their clothes and outfits. Users can add, edit, and delete clothes, create outfits, and view their clothes and outfits in a calendar view. Wardro also provides a weather forecast for the next 7 days to help users plan their outfits.
+Wardro is a private, household-aware wardrobe manager. Every person gets a
+profile with their own wardrobes and clothes; garments are added from a photo,
+with optional AI auto-fill from the photo or a product URL. Wardro is
+deliberately not a social feed or a shopping app.
+
+The single product document is [`docs/PRD.md`](docs/PRD.md): product intent,
+scope, requirements, architecture, metrics and roadmap, with links to the
+detailed documentation.
 
 New contributors and AI agents should start at [`AGENTS.md`](AGENTS.md), which maps every area of the repository to its documentation and records the architectural invariants.
 
 ## Features
 
-- Add, edit, and delete clothes
-- Create outfits
-- Chat with the local LangGraph wardrobe agent: profile inventory and garment photo analysis (pilot)
-- View clothes and outfits in a calendar view
-- Analyze usage of clothes
+- Household profiles with separate wardrobes and items
+- Photo-first closet with AI item drafts from photos or product URLs
+- Bulk import up to 10 photos with duplicate prompts
+- Search and filters by name, brand, category and wardrobe
+- Ask the wardrobe assistant from the active profile's real inventory (pilot)
+- Private photos in Google Cloud Storage; Firebase Auth only
 
 ## Repository layout
 
@@ -58,7 +66,8 @@ component specs, and design references. The shared visual language (Warm
 Neutral + Muted Olive) is documented in [`docs/design-system/`](docs/design-system/README.md).
 Research notes and the Notion synthesis live in [`docs/research/`](docs/research/README.md);
 the feature backlog, bulk photo import and duplicate-detection plan are in
-[`docs/features.md`](docs/features.md).
+[`docs/features.md`](docs/features.md). The single product document is
+[`docs/PRD.md`](docs/PRD.md).
 The four-profile simulation dataset is in
 [`scripts/datasets/wardrobe-simulation/`](scripts/datasets/wardrobe-simulation/README.md).
 `backend/README.md` covers build/deploy details, and

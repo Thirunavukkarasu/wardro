@@ -1,5 +1,8 @@
 # Features and backlog
 
+The single product document is [`PRD.md`](PRD.md); this file is the detailed
+feature backlog behind it.
+
 Status values: **Done**, **In progress**, **Proposed**, **Later**.
 
 ## Done

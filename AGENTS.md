@@ -16,6 +16,7 @@ Do not merge the two trees. Link across them instead.
 | Need | Read |
 | --- | --- |
 | Project overview, repository layout, deployment | [`README.md`](README.md) |
+| Product requirements, scope, metrics and roadmap | [`docs/PRD.md`](docs/PRD.md) |
 | Shared visual language: colours, type, spacing, components, layouts | [`docs/design-system/README.md`](docs/design-system/README.md) |
 | Research index and conclusions | [`docs/research/README.md`](docs/research/README.md) |
 | Notion synthesis: AI architecture, taxonomy, corrections | [`docs/research/notion-synthesis.md`](docs/research/notion-synthesis.md) |
