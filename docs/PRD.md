@@ -136,6 +136,7 @@ Status legend: **Shipped**, **Pilot**, **Planned**, **Later**, **Not supported**
 | Build diagnostics | Profile → About this build (version, build profile, build time, commit, API URL, package) | Shipped |
 | Assistant chat | Inventory-aware questions, outfit ideas and single-image analysis via the FastAPI/LangGraph agent | Pilot |
 | Assistant writes | Save analyzed garment, write tools, conversation persistence, production auth proxy | Planned |
+| Store purchase import | Import past purchases from online stores (Amazon/SHEIN/ZARA/ASOS) | Later |
 | Outfits / calendar / wear history / weather / analytics | Not built | Later |
 | iOS | App runs, but native Google sign-in has no client; not a supported target | Not supported |
 | Marketing site | Next.js site with product, privacy, account deletion and restrained motion | Shipped |
@@ -314,6 +315,22 @@ Status uses the legend above.
 | CHAT-03 | Analyze an attached garment photo without saving it | P1 | Pilot |
 | CHAT-04 | Production auth proxy, write tools, persistence | P2 | Planned |
 | DIAG-01 | About this build shows version, build profile, time, commit, API URL and package | P1 | Shipped |
+
+### Store purchase import (proposed)
+
+| ID | Requirement | Priority | Status |
+| --- | --- | --- | --- |
+| IMPORT-01 | Import a draft from a pasted order or product link | P1 | Product URLs shipped; order pages planned |
+| IMPORT-02 | Import receipts from a forwarding address or read-only mailbox with explicit consent | P2 | Later |
+| IMPORT-03 | In-app store purchase-history flow for Amazon/SHEIN/ZARA/ASOS | P2 | Later; legal/store review required |
+| IMPORT-04 | Track `source_store`, `source_order_id`, `source_url`, `purchased_at`, `order_total`; dedupe by order id + item | P2 | Later |
+
+The reference “sign in and navigate to purchase history” flow is possible with
+an in-app browser, but consumer stores expose no purchase-history API, pages use
+MFA/captcha/bot protection, and extraction may conflict with store terms. Do not
+store store credentials. Prefer order/product links first, then email receipts,
+then a one-store in-app pilot. The detailed plan and risks are in
+[`docs/features.md`](features.md).
 
 ## 7. Data model
 
@@ -510,6 +527,7 @@ claim metrics that are not measured.
 | AI availability/cost | Configurable provider; metadata fallback for URL imports; rate limits |
 | Duplicate false negatives | Attribute matching shipped; photo hash planned; embeddings later |
 | Same photo, different name | Not caught until perceptual hashing lands |
+| Store purchase import | No consumer purchase-history APIs; sign-in/scraping is fragile and ToS-sensitive. Start with order/product links and email receipts, then pilot one store |
 | Play “Draft app” setup | Internal testing works; production/store listing tasks remain |
 | Tester onboarding | Tester email list and opt-in link required; side-loaded APK must be removed |
 | iOS Google sign-in | No iOS OAuth client; unsupported |
@@ -538,6 +556,8 @@ claim metrics that are not measured.
 ### Later
 
 - Photo/embedding-based semantic dedupe.
+- Store purchase import: order/product-link paste first, then email receipts;
+  an in-app store purchase-history pilot only after legal and store review.
 - Outfits, calendar, wear history, weather and insights.
 - Assistant write tools with explicit confirmation, persistence and a
   production auth proxy.
@@ -576,4 +596,4 @@ and [`wardro-agent/README.md`](../wardro-agent/README.md).
 
 | Date | Change |
 | --- | --- |
-| 2026-11-10 | Initial PRD. v7 internal testing, bulk import shipped, Android OAuth and safe-area fixes, website motion, current architecture and backlog. |
+| 2026-11-10 | Initial PRD. v7 internal testing, bulk import shipped, Android OAuth and safe-area fixes, website motion, current architecture and backlog. Store purchase import documented as a later proposal. |

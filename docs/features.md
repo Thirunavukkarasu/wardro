@@ -209,6 +209,43 @@ Existing items have no hash. Add a one-off script that reads each managed
 photo from GCS, computes the hash and updates the row. Until then, attribute
 matching still works; exact-photo matching applies to new imports.
 
+## Proposed: Store purchase import
+
+**Goal:** import past online purchases (Amazon, SHEIN, ZARA, ASOS) as item
+drafts, using a store picker similar to the reference flow.
+
+**Feasibility:** the “sign in and navigate to your purchase history” flow is
+technically possible with an in-app browser/WebView and visible-page
+extraction, but it is fragile and legally sensitive:
+
+- Consumer stores expose no general purchase-history API.
+- Login pages use MFA, captcha and bot protection; some block embedded
+  browsers or third-party OAuth providers.
+- Store HTML changes break per-store parsers.
+- Automated extraction may conflict with a store's terms; legal review is
+  required.
+- Never capture or store store passwords. Use the store's own login page and
+  keep the session isolated.
+
+**Recommended order**
+
+1. **Order/product link paste** — share an order or product URL; reuse the
+   existing URL-import pipeline. Lowest risk, works today for product pages.
+2. **Email receipt import** — a forwarding address or a read-only mailbox
+   connection (Gmail/Outlook) with explicit consent. Receipt emails are more
+   stable than order-page HTML and can be parsed with the AI model.
+3. **In-app store purchase-history flow** — the reference screenshot. Pilot one
+   store first, user-initiated, no credential capture, visible-order extraction,
+   with a clear disclaimer and a manual fallback.
+4. **Browser extension** — later, for desktop purchase-history capture.
+
+**Data to add when this lands:** `source_store`, `source_order_id`,
+`source_url`, `purchased_at`, `order_total`; dedupe by order id plus item
+signature.
+
+**Status:** Proposed — not started. The product should not promise four-store
+support until at least one reliable path is validated.
+
 ## Open questions
 
 - Should a duplicate update the existing item instead of adding a new one
