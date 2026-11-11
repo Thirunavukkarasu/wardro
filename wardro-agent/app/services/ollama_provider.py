@@ -243,7 +243,16 @@ class OllamaProvider:
     def _health_client(self) -> tuple[httpx.AsyncClient, bool]:
         if self._http_client is not None:
             return self._http_client, False
-        return httpx.AsyncClient(timeout=self._settings.ollama_health_timeout), True
+        headers: dict[str, str] = {}
+        if self._settings.ollama_api_key:
+            headers["Authorization"] = f"Bearer {self._settings.ollama_api_key}"
+        return (
+            httpx.AsyncClient(
+                timeout=self._settings.ollama_health_timeout,
+                headers=headers,
+            ),
+            True,
+        )
 
     def _translate_error(self, exc: Exception, model_name: str) -> OllamaError:
         if isinstance(exc, OllamaError):

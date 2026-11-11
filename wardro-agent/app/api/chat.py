@@ -16,6 +16,7 @@ from app.dependencies import (
 from app.graph.routing import Intent, normalize_intent, resolve_agent
 from app.graph.state import WardroState
 from app.policies.access_control import ContextResolutionError, resolve_trusted_context
+from app.policies.firebase_auth import VerifiedUserDep
 from app.schemas.requests import ChatRequest
 from app.schemas.responses import ChatResponse, ErrorResponse
 from app.services.ollama_provider import OllamaError
@@ -40,14 +41,14 @@ async def chat(
     request: ChatRequest,
     graph: WorkflowDep,
     settings: SettingsDep,
+    verified_user: VerifiedUserDep,
     wardrobe_backend: WardrobeBackendDep,
     image_analyzer: ImageAnalyzerDep,
 ) -> ChatResponse | JSONResponse:
     """Send a user message through the agent workflow.
 
-    Identity is resolved at the application boundary. In this milestone identity
-    comes from the request body only in development; production requires auth
-    middleware.
+    Identity comes from a verified Firebase ID token in deployed environments,
+    or the request body in development.
     """
     try:
         context = resolve_trusted_context(
@@ -56,6 +57,7 @@ async def chat(
             household_id=request.household_id,
             profile_id=request.profile_id,
             thread_id=request.thread_id,
+            verified_user_id=verified_user.uid if verified_user else None,
         )
     except ContextResolutionError as exc:
         raise HTTPException(
@@ -144,10 +146,11 @@ async def chat(
         "items": [],
     }
 
-    if request.firebase_token and context.profile_id:
+    backend_token = verified_user.token if verified_user else request.firebase_token
+    if backend_token and context.profile_id:
         try:
             items = await wardrobe_backend.list_items(
-                token=request.firebase_token,
+                token=backend_token,
                 profile_id=context.profile_id,
             )
             wardrobe_context = {
@@ -168,9 +171,9 @@ async def chat(
                 "note": str(exc),
                 "items": [],
             }
-    elif not request.firebase_token:
+    elif not backend_token:
         logger.info(
-            "No development backend token supplied thread_id=%s; inventory context unavailable.",
+            "No backend token supplied thread_id=%s; inventory context unavailable.",
             context.thread_id,
         )
 

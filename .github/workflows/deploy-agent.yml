@@ -1,0 +1,95 @@
+name: Deploy Agent to Cloud Run
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "wardro-agent/**"
+      - ".github/workflows/deploy-agent.yml"
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: deploy-agent
+  cancel-in-progress: false
+
+env:
+  GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID || 'wardo-ce8d5' }}
+  GCP_REGION: ${{ vars.GCP_REGION || 'asia-south1' }}
+  ARTIFACT_REPOSITORY: ${{ vars.ARTIFACT_REGISTRY_REPOSITORY || 'wardro' }}
+  CLOUD_RUN_SERVICE: ${{ vars.CLOUD_RUN_AGENT_SERVICE || 'wardro-agent' }}
+  CLOUD_RUN_SERVICE_ACCOUNT: ${{ vars.CLOUD_RUN_SERVICE_ACCOUNT || format('wardro-api@{0}.iam.gserviceaccount.com', vars.GCP_PROJECT_ID || 'wardo-ce8d5') }}
+  PUBLIC_API_ORIGIN: ${{ vars.PUBLIC_API_ORIGIN || 'https://wardro-api-251900114942.asia-south1.run.app' }}
+  AGENT_OLLAMA_BASE_URL: ${{ vars.AGENT_OLLAMA_BASE_URL || 'https://ollama.com' }}
+  OLLAMA_CHAT_MODEL: ${{ vars.OLLAMA_TEXT_MODEL || 'qwen3' }}
+  OLLAMA_VISION_MODEL: ${{ vars.OLLAMA_VISION_MODEL || 'qwen3-vl' }}
+  OLLAMA_API_KEY_SECRET: ${{ vars.OLLAMA_API_KEY_SECRET || 'OLLAMA_API_KEY' }}
+  CORS_ORIGINS: ${{ vars.CORS_ORIGINS || 'https://wardro-lake.vercel.app' }}
+  FIREBASE_PROJECT_ID: ${{ vars.GCP_PROJECT_ID || 'wardo-ce8d5' }}
+  IMAGE: ${{ format('{0}-docker.pkg.dev/{1}/{2}/{3}:{4}', vars.GCP_REGION || 'asia-south1', vars.GCP_PROJECT_ID || 'wardo-ce8d5', vars.ARTIFACT_REGISTRY_REPOSITORY || 'wardro', vars.CLOUD_RUN_AGENT_SERVICE || 'wardro-agent', github.sha) }}
+
+jobs:
+  deploy:
+    name: Build and deploy the agent
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker "${GCP_REGION}-docker.pkg.dev" --quiet
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: wardro-agent
+          file: wardro-agent/Dockerfile
+          push: true
+          tags: ${{ env.IMAGE }}
+          labels: org.opencontainers.image.revision=${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Deploy revision to Cloud Run
+        run: |
+          gcloud run deploy "$CLOUD_RUN_SERVICE" \
+            --project "$GCP_PROJECT_ID" \
+            --region "$GCP_REGION" \
+            --platform managed \
+            --image "$IMAGE" \
+            --port 8080 \
+            --allow-unauthenticated \
+            --service-account "$CLOUD_RUN_SERVICE_ACCOUNT" \
+            --memory 1Gi \
+            --cpu 1 \
+            --concurrency 4 \
+            --min-instances 0 \
+            --max-instances 1 \
+            --timeout 300 \
+            --set-env-vars "^@^APP_ENV=production@FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID}@OLLAMA_BASE_URL=${AGENT_OLLAMA_BASE_URL}@OLLAMA_CHAT_MODEL=${OLLAMA_CHAT_MODEL}@OLLAMA_VISION_MODEL=${OLLAMA_VISION_MODEL}@OLLAMA_REQUEST_TIMEOUT=240@BACKEND_API_URL=${PUBLIC_API_ORIGIN}@CORS_ORIGINS=${CORS_ORIGINS}" \
+            --set-secrets "OLLAMA_API_KEY=${OLLAMA_API_KEY_SECRET}:latest" \
+            --quiet
+
+      - name: Print service URL
+        run: |
+          gcloud run services describe "$CLOUD_RUN_SERVICE" \
+            --project "$GCP_PROJECT_ID" \
+            --region "$GCP_REGION" \
+            --format='value(status.url)'

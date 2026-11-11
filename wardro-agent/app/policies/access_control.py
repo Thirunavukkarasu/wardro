@@ -30,7 +30,9 @@ class TrustedRequestContext:
     household_id: str | None
     profile_id: str | None
     thread_id: str
-    identity_source: Literal["development_request_body"] = DEVELOPMENT_IDENTITY_SOURCE
+    identity_source: Literal["development_request_body", "firebase_token"] = (
+        DEVELOPMENT_IDENTITY_SOURCE
+    )
 
 
 def resolve_trusted_context(
@@ -40,20 +42,25 @@ def resolve_trusted_context(
     household_id: str | None,
     profile_id: str | None,
     thread_id: str | None,
+    verified_user_id: str | None = None,
 ) -> TrustedRequestContext:
     """Resolve identity for a chat request.
 
-    In development the request body is the identity source because no auth
-    middleware exists yet. In every other environment client-supplied identity is
-    rejected, which keeps the service fail-closed if deployed without auth.
-
-    Raises:
-        ContextResolutionError: Identity is unavailable or untrusted.
+    A verified Firebase uid always wins. Development can fall back to the
+    request body; every other environment refuses unverified identity.
     """
+    if verified_user_id:
+        return TrustedRequestContext(
+            user_id=verified_user_id,
+            household_id=_optional_value(household_id),
+            profile_id=_optional_value(profile_id),
+            thread_id=_optional_value(thread_id) or f"thread-{uuid4().hex}",
+            identity_source="firebase_token",
+        )
+
     if not settings.is_development:
         raise ContextResolutionError(
-            "Authenticated identity is required. Development-only context injection "
-            "is disabled outside APP_ENV=development."
+            "Authenticated identity is required. Send a valid Firebase ID token."
         )
 
     resolved_user_id = (user_id or "").strip()

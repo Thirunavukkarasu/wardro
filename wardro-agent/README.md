@@ -2,9 +2,11 @@
 
 Local-first, family wardrobe management and AI styling. This directory contains the
 Python AI agent service: a FastAPI application that routes chat requests through a
-LangGraph workflow to specialised agents backed by local Ollama models.
+LangGraph workflow to specialised agents.
 
-**No cloud LLM providers are used.** All inference runs against a local Ollama server.
+Local development uses a local Ollama server. Deployed environments verify Firebase ID
+tokens and may point at an authenticated Ollama endpoint via `OLLAMA_BASE_URL` and
+`OLLAMA_API_KEY`.
 
 ## Where this fits
 
@@ -20,7 +22,7 @@ returns drafts that the user confirms.
 | FastAPI API, LangGraph workflow, four agents, Ollama provider | Implemented |
 | Intent classification, deterministic routing, structured errors | Implemented |
 | Health, model availability, 68 tests, Ruff checks | Implemented |
-| Firebase auth / internal JWT from Bun | Not wired — development-only body identity |
+| Firebase ID-token verification | Implemented for deployed environments; the Bun proxy remains future |
 | Profile-scoped inventory read | Implemented for development via the Firebase token passthrough |
 | Inventory-aware styling | Implemented in text (agents receive the profile inventory) |
 | Single-image garment analysis | Implemented — attach a photo in chat; the vision model returns structured attributes |
@@ -53,10 +55,10 @@ FastAPI layer fetches the active profile's items from the Bun API using a
 development-only Firebase token and passes the snapshot to the analyst and
 stylist agents. The token is never logged, stored in graph state, or checkpointed.
 
-Not implemented yet (see [Limitations](#current-limitations)): the Bun→Python
-authentication proxy, saving the analyzed garment, queued multi-photo analysis,
-inventory write/action tools, conversation persistence, and RAG. The intended
-integration order is in [Next milestones](#next-milestones).
+Not implemented yet (see [Limitations](#current-limitations)): the Bun→Python proxy,
+saving the analyzed garment, queued multi-photo analysis, inventory write/action
+tools, conversation persistence, and RAG. The intended integration order is in
+[Next milestones](#next-milestones).
 
 ## Architecture
 
@@ -183,13 +185,14 @@ Edit `.env` if your Ollama URL, models, or backend URLs differ. `.env` is gitign
 | Variable | Default | Purpose |
 |---|---|---|
 | `APP_NAME` | `Wardro AI` | Application title |
-| `APP_ENV` | `development` | `development`, `test`, `staging`, or `production` |
+| `APP_ENV` | `development` | `development`, `test`, `staging`, or `production`; production requires Firebase auth |
 | `DEBUG` | `false` | Exposes internal error detail in API responses |
 | `LOG_LEVEL` | `INFO` | Root log level (JSON logs) |
 | `API_V1_PREFIX` | `/api/v1` | API route prefix |
-| `OLLAMA_BASE_URL` | `http://localhost:11434` | Ollama server URL |
+| `OLLAMA_BASE_URL` | `http://localhost:11434` | Ollama server URL (`https://ollama.com` when deployed) |
+| `OLLAMA_API_KEY` | — | Bearer token for an authenticated/cloud Ollama endpoint |
 | `OLLAMA_CHAT_MODEL` | `qwen3` | Chat/instruct model |
-| `OLLAMA_VISION_MODEL` | `qwen3-vl` | Vision model (reserved; not used yet) |
+| `OLLAMA_VISION_MODEL` | `qwen3-vl` | Vision model used for photo analysis |
 | `OLLAMA_TEMPERATURE` | `0.2` | Sampling temperature |
 | `OLLAMA_NUM_PREDICT` | `1024` | Maximum generated tokens |
 | `OLLAMA_DISABLE_THINKING` | `true` | Send `think: false`; prevents reasoning from consuming the output budget |
@@ -200,7 +203,8 @@ Edit `.env` if your Ollama URL, models, or backend URLs differ. `.env` is gitign
 | `CORS_ORIGINS` | `localhost:8081`, `127.0.0.1:8081`, `localhost:19006`, … | Comma-separated browser origins allowed to call the API |
 | `CORS_ORIGIN_REGEX` | `^https?://(localhost\|127\.0\.0\.1)(:\d+)?$` | Development-only regex that also permits any localhost port |
 | `DATABASE_URL` | — | Reserved for the persistence milestone |
-| `BACKEND_API_URL` | `http://localhost:3000` | Wardrobe backend (not called yet) |
+| `BACKEND_API_URL` | `http://localhost:3000` | Read-only wardrobe inventory API |
+| `FIREBASE_PROJECT_ID` | `wardo-ce8d5` | Project used to verify Firebase ID tokens when deployed |
 
 ### 5. Start the API
 
@@ -209,6 +213,25 @@ uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 OpenAPI docs: <http://localhost:8000/docs>
+
+## Deploy to Cloud Run
+
+`.github/workflows/deploy-agent.yml` builds the image and deploys it on pushes
+that touch `wardro-agent/`, or manually through **Deploy Agent to Cloud Run**.
+
+- Cloud Run service `wardro-agent`, region `asia-south1`, port 8080.
+- Runtime service account: reuses `wardro-api@…`; Firebase Admin uses its ADC.
+- Scaling: `--min-instances 0`, `--max-instances 1`, concurrency 4, timeout
+  300 seconds. It scales to zero when idle, which also covers overnight.
+- Secrets: `OLLAMA_API_KEY` from Secret Manager, read with the same Workload
+  Identity as the API deploy.
+- Environment: `APP_ENV=production`, `FIREBASE_PROJECT_ID`,
+  `OLLAMA_BASE_URL=https://ollama.com` by default, the configured chat/vision
+  models, `BACKEND_API_URL` and `CORS_ORIGINS`.
+- `GET /health` and `GET /health/ollama` are public. `POST /api/v1/chat`
+  requires `Authorization: Bearer <Firebase ID token>`.
+- After the first deploy, set the service URL as `EXPO_PUBLIC_AGENT_URL` for
+  the mobile release.
 
 ## API examples
 

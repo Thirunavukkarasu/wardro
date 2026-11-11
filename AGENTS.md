@@ -57,7 +57,7 @@ Motion skills vendored from [emilkowalski/skills](https://github.com/emilkowalsk
 | `backend/api-tests/` | Bruno collections | Manual API tests |
 | `scripts/` | Node/Bun tooling + fixtures | Seed script and simulation dataset |
 | `scripts/datasets/wardrobe-simulation/` | JSON + JPEG fixtures | Demo/test dataset |
-| `wardro-agent/` | FastAPI + LangGraph + Ollama | Agent service, Milestone 1 (not yet wired to live data) |
+| `wardro-agent/` | FastAPI + LangGraph + Ollama | Agent service; deployed on Cloud Run with Firebase auth (Milestone 1) |
 | `docs/` | Markdown | Shared design and research |
 | `website/` | Next.js 14 | Marketing site |
 

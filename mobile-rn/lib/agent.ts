@@ -2,12 +2,11 @@ import { agentBaseUrl } from "~/lib/firebase-config";
 import { auth } from "~/lib/firebase";
 
 /**
- * Local FastAPI agent client.
+ * FastAPI agent client.
  *
- * This is the development integration: the agent service is running in
- * APP_ENV=development and accepts the user/profile ids in the body. Production
- * traffic will go through the Bun `/api/ai/*` proxy with Firebase auth and a
- * short-lived internal JWT.
+ * Deployed requests carry a Firebase ID token in the Authorization header;
+ * development can also send identity in the body. The same token is forwarded
+ * to the read-only wardrobe backend.
  */
 // Vision requests can take longer than text on a cloud Ollama model.
 const AGENT_TIMEOUT_MS = 300_000;
@@ -93,12 +92,17 @@ export async function sendAgentMessage({
   }
 
   try {
+    const headers: Record<string, string> = {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    };
+    if (firebaseToken) {
+      headers.Authorization = `Bearer ${firebaseToken}`;
+    }
+
     const response = await fetch(endpoint(), {
       method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
+      headers,
       body: JSON.stringify({
         message: message.trim(),
         thread_id: threadId,
@@ -154,11 +158,11 @@ export async function sendAgentMessage({
     if (error instanceof AgentException) throw error;
     if (timedOut || (error as { name?: string })?.name === "AbortError") {
       throw new AgentException(
-        "The agent took too long to answer. Check that Ollama is running.",
+        "The AI service took too long to answer. Try again.",
       );
     }
     throw new AgentException(
-      `Could not reach the agent at ${agentBaseUrl}. Start wardro-agent and try again.`,
+      "Could not reach the AI service. Check your connection and try again.",
     );
   } finally {
     clearTimeout(timer);
