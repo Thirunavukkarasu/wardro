@@ -8,7 +8,7 @@ export default function RootGroupLayout() {
       <Stack.Screen name="add-wardrobe" />
       <Stack.Screen name="add-wardrobe-items" />
       <Stack.Screen name="web-import" />
-      <Stack.Screen name="bulk-import" />
+      <Stack.Screen name="review" />
       <Stack.Screen name="add-profile" />
       <Stack.Screen name="wardrobes" />
       <Stack.Screen name="wardrobe/[id]" />

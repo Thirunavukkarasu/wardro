@@ -111,9 +111,10 @@ differently so “Profile / More” does not become a junk drawer.
 | Closet | **Closet grid** | Searchable, filterable garments with wardrobe chips | Merge current Items + Wardrobes |
 | Closet | Search & filters | Text search + wardrobe/category/colour/size filters | Built (category chips appear when data has categories) |
 | Closet | Item detail | Photo hero, details, dates, delete, edit, mark worn | Built; mark worn next |
-| Closet | **Add hub** | Choose a method: camera, photos, website, typing, or a batch | Built (`/(root)/add-item`) |
-| Closet | Add item | Photo-first form; accepts a picked photo or a finished draft | Built |
-| Closet | Web importer | In-app browser; “Auto Scan” or “Capture” hands a draft to the form | Built (`/(root)/web-import`, single item) |
+| Closet | **Add hub** | Choose a source: camera, photos (up to 10), website, typing. Everything lands in Review items | Built (`/(root)/add-item`) |
+| Closet | Add item | Photo-first form for “Type it in” and editing an existing item | Built |
+| Closet | Web importer | In-app browser; “Auto Scan” or “Capture” feeds Review items | Built (`/(root)/web-import`, single action) |
+| Closet | **Review items** | Up to 10 rows from any source; drafts, select/delete, duplicates, Add to closet | Built (`/(root)/review`) |
 | Closet | Edit item | Pre-filled form + photo replacement | Built (photo replace picker) |
 | Closet | Add / Edit wardrobe | Create or update a collection | Built |
 | Closet | Wardrobe detail | One collection’s grid + delete + add | Built |
@@ -132,7 +133,7 @@ differently so “Profile / More” does not become a junk drawer.
 ## 4. Navigation rules
 
 - **FAB → Add hub** from Today and Closet. The hub routes to camera, photo
-  library, the in-app web importer, a blank form, or bulk import. Editing an
+  library, the in-app web importer, a blank form, or the review. Editing an
   item still opens the form directly. Hidden on Create, Calendar, and
   Profile unless it gains a contextual create action.
 - **Create** — opens the outfit builder; “Add clothing” is available as a
@@ -188,13 +189,17 @@ As of 2026-11-05:
 - Today dashboard with the profile rail, Closet with search/category/wardrobe
   filters, the pushed Wardrobes manager, item/wardrobe detail, add/edit item,
   add/edit wardrobe, and Profile with profile management are built.
-- **Add hub** (`/(root)/add-item`) is the front door for creating an item:
-  Take a photo, Choose a photo, From a website, Type it in, and Add a batch.
-  Camera/photo library hand the picked photo to the form in memory; the web
-  importer and bulk flow hand over a finished draft.
-- **Web importer** (`/(root)/web-import`) is an in-app browser with “Add this
-  page” (current URL through the existing importer) and “Capture” (visible
-  page through the vision draft). Both open the item form pre-filled. It
+- **Add hub** (`/(root)/add-item`) is the front door for creating items:
+  Take a photo, Choose photos (up to 10), From a website and Type it in.
+  There is no separate bulk option — every source produces rows in the shared
+  **Review items** screen (`/(root)/review`), which drafts local photos,
+  handles duplicates, and commits with “Add N to closet”. Camera, photo
+  library, web Capture and web Auto Scan all use that path; editing an item
+  and “Type it in” open the form directly.
+- **Web importer** (`/(root)/web-import`) is an in-app browser with “Auto
+  Scan” (current URL through the existing importer) and “Capture” (visible
+  page through the vision draft). Both create review rows. The start screen
+  keeps the last visited URLs locally per profile, with a Clear action. It
   requires `react-native-webview` and `react-native-view-shot`, so a native
   rebuild is needed after pulling these changes. Listing-page multi-scan
   (Acloset-style Auto Scan returning many items) is **not** built.

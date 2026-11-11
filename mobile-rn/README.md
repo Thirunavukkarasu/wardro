@@ -93,7 +93,7 @@ prompting.
 | `app/(root)/wardrobes.tsx` | Manage collections (pushed screen) |
 | `app/(root)/add-wardrobe.tsx` | Create or edit a wardrobe |
 | `app/(root)/add-wardrobe-items.tsx` | Photo-first garment create/edit |
-| `app/(root)/bulk-import.tsx` | Multi-photo import with AI drafts and duplicate prompts |
+| `app/(root)/review.tsx` | Shared review for every add source: AI drafts, selection and duplicates |
 | `app/(root)/add-profile.tsx` | Create or edit a profile |
 | `app/(root)/wardrobe/[id].tsx` | One wardrobe's photo grid, edit and delete |
 | `app/(root)/item/[id].tsx` | Item hero, details, edit and delete |
@@ -213,14 +213,22 @@ the API writes them to Google Cloud Storage and returns the bucket-relative
 object path stored as `photoUri`. API responses expand that path to a signed
 URL. Firebase is used only for authentication.
 
-The add/edit item screen also offers **Fill details automatically**: it scans
-the selected photo or imports a product URL through `POST /ai/item-draft`. The
-returned draft only fills the form; nothing is written until the user saves.
+The add/edit item screen scans a chosen photo automatically through
+`POST /ai/item-draft`. The returned draft only fills the form; nothing is
+written until the user saves.
 
-**Bulk Import** (linked from Add Item) selects up to 10 photos, drafts two at a
-time, and reviews each card before saving. Duplicate checks compare normalized
-name/brand/category/colour/size against the active profile and let the user
-choose Skip, Add anyway, or Update existing.
+**Add hub** (`app/(root)/add-item.tsx`) is the front door: Take a photo,
+Choose photos (up to 10), From a website, or Type it in. Every source feeds the
+shared **Review items** screen (`app/(root)/review.tsx`), which drafts local
+photos two at a time and also accepts ready server drafts. Duplicate checks
+compare normalized name/brand/category/colour/size against the active profile
+and let the user choose Skip, Add anyway, or Update existing. “Add N to
+closet” is the only write.
+
+The web importer (`app/(root)/web-import.tsx`) renders a store page in a
+WebView. Auto Scan reads the current URL and Capture screenshots the page; both
+feed the same review. The start screen keeps the last visited URLs locally per
+profile (`lib/recent-urls.ts`), with a Clear action.
 
 ## Agent endpoint used
 

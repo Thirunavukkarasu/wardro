@@ -21,7 +21,7 @@ for implementation detail; update this document when product scope changes.
 | Repository overview, layout and local setup | [`README.md`](../README.md) |
 | Agent/contributor rules and architectural invariants | [`AGENTS.md`](../AGENTS.md) |
 | Shared visual language, tokens and components | [`docs/design-system/README.md`](design-system/README.md) |
-| Feature backlog and the bulk-import/dedupe plan | [`docs/features.md`](features.md) |
+| Feature backlog and the review/dedupe plan | [`docs/features.md`](features.md) |
 | Research index and conclusions | [`docs/research/README.md`](research/README.md) |
 | AI architecture, taxonomy and corrections | [`docs/research/notion-synthesis.md`](research/notion-synthesis.md) |
 | Schema review and phased migration plan | [`docs/research/data-model-assessment.md`](research/data-model-assessment.md) |
@@ -129,7 +129,7 @@ Status legend: **Shipped**, **Pilot**, **Planned**, **Later**, **Not supported**
 | Photos | Private GCS upload; bucket-relative path in the DB; signed API URLs for display; delete with item/profile | Shipped |
 | AI draft — photo | Vision model drafts garment details; automatic scan on photo selection | Shipped |
 | AI draft — URL | Fetch a product page, extract metadata/JSON-LD, draft details, optionally copy the product image to GCS | Shipped |
-| Bulk import | Up to 10 photos, 2 drafts at a time, review, include/skip, per-item save | Shipped (minimal) |
+| Review & add | Every source (photo, camera, web) lands in one review: up to 10 rows, drafts, include/skip, per-item save | Shipped |
 | Duplicates | Attribute-based match against the active profile; Skip / Add anyway / Update existing | Shipped (attribute-only) |
 | Duplicates | Perceptual photo hash, embeddings, cross-photo semantic matching | Planned |
 | Item form | Category/colour/size dropdowns with database values and custom entry; date defaults | Shipped |
@@ -183,14 +183,15 @@ works if the AI is unavailable (manual entry).
 **Acceptance:** blocked/maintenance pages return a clear error, not a bogus
 draft; the import is rate-limited; no private hosts are fetched.
 
-### 5.4 Bulk import up to 10 photos
+### 5.4 Review and add up to 10 items
 
-1. User opens Bulk Import from Add Item.
-2. Selects up to 10 photos.
-3. Two drafts run at a time; each card shows progress and the draft.
-4. Duplicate cards are flagged against the active profile and earlier drafts.
+1. User opens the Add hub and picks a source: camera, photo library, website
+   or typing.
+2. Every source creates rows in the shared Review items screen (up to 10).
+3. Local photos are drafted two at a time; server drafts arrive ready.
+4. Duplicate rows are flagged against the active profile and earlier rows.
 5. The user chooses Skip, Add anyway or Update existing.
-6. Included items are saved individually with success/error status.
+6. Included items are added with individual success/error status.
 7. New items default to purchase date = today and expiry = today + 1 year.
 
 **Acceptance:** one failed photo does not discard the batch; duplicates are not
@@ -291,7 +292,7 @@ Status uses the legend above.
 | AI-07 | Rate limit supports a 10-photo batch plus retries (30/min) | P1 | Shipped |
 | AI-08 | Drafts survive provider failure with metadata fallback for URLs | P1 | Shipped |
 
-### Bulk import and duplicates
+### Review and duplicates
 
 | ID | Requirement | Priority | Status |
 | --- | --- | --- | --- |
@@ -440,7 +441,7 @@ Field-level details live in [`backend/README.md`](../backend/README.md) and
 | Health check | < 200 ms |
 | AI draft | Typically < 30 s; hard timeout 120 s |
 | Photo display | Signed URL cached; no visible placeholder for valid photos |
-| Bulk import | 10 photos processed 2 at a time; progress visible |
+| Review | 10 items processed 2 at a time; progress visible |
 | Android cold start | Acceptable on a mid-range device; no blocking AI call before UI |
 
 Targets are goals; product analytics and latency instrumentation are not yet
@@ -575,7 +576,7 @@ and [`wardro-agent/README.md`](../wardro-agent/README.md).
 | **Wardrobe** | A collection inside a profile (e.g. Work, Weekend) |
 | **Item** | A garment row with photo and metadata |
 | **Draft** | AI-extracted item values, not yet saved |
-| **Bulk import** | Selecting multiple photos and saving several drafts in one flow |
+| **Review** | The shared confirmation screen for every add source (up to 10 rows) |
 | **Duplicate** | An existing item or earlier draft that matches the current one |
 | **Signed photo URL** | Stable `/api/photos/...?sig=...` URL backed by a private GCS object |
 | **Agent** | The FastAPI + LangGraph assistant service (pilot) |

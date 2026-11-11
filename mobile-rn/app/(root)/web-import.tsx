@@ -3,6 +3,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Globe,
+  History,
   RotateCw,
   X,
 } from "lucide-react-native";
@@ -22,8 +23,19 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { WebView, type WebViewNavigation } from "react-native-webview";
 
 import { api, ApiException } from "~/lib/api";
-import { setPendingPhoto } from "~/lib/pending-add";
-import type { ItemDraft } from "~/lib/types";
+import {
+  reviewKey,
+  setPendingReview,
+  type PendingReviewItem,
+} from "~/lib/pending-review";
+import { useProfiles } from "~/lib/profiles-context";
+import {
+  clearRecentUrls,
+  getRecentUrls,
+  MAX_RECENT,
+  recordRecentUrl,
+  type RecentUrl,
+} from "~/lib/recent-urls";
 import { wardroColors } from "~/src/theme/colors";
 
 const STORES = [
@@ -64,6 +76,71 @@ async function openExternally(url: string) {
   }
 }
 
+function hostOf(url: string): string {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return url;
+  }
+}
+
+interface RecentLinksProps {
+  items: RecentUrl[];
+  onOpen: (url: string) => void;
+  onClear: () => void;
+}
+
+function RecentLinks({ items, onOpen, onClear }: RecentLinksProps) {
+  if (items.length === 0) return null;
+
+  return (
+    <View className="mt-7 w-full">
+      <View className="flex-row items-center justify-between">
+        <Text className="text-[11px] font-bold uppercase tracking-[0.12em] text-ink-secondary">
+          Recently visited
+        </Text>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Clear recently visited links"
+          hitSlop={8}
+          onPress={onClear}
+          className="py-1 active:opacity-60"
+        >
+          <Text className="text-[11px] font-semibold text-ink-secondary">
+            Clear
+          </Text>
+        </Pressable>
+      </View>
+
+      {items.slice(0, 5).map((entry) => (
+        <Pressable
+          key={entry.url}
+          accessibilityRole="button"
+          accessibilityLabel={`Open ${entry.title ?? entry.url}`}
+          onPress={() => onOpen(entry.url)}
+          className="mt-2 flex-row items-center rounded-[14px] border border-line bg-white px-3.5 py-2.5 active:opacity-80"
+        >
+          <History size={16} color={wardroColors.primaryDark} />
+          <View className="ml-2.5 flex-1">
+            <Text
+              numberOfLines={1}
+              className="text-[12.5px] font-semibold text-ink"
+            >
+              {entry.title || hostOf(entry.url)}
+            </Text>
+            <Text
+              numberOfLines={1}
+              className="mt-0.5 text-[10.5px] text-ink-secondary"
+            >
+              {hostOf(entry.url)}
+            </Text>
+          </View>
+        </Pressable>
+      ))}
+    </View>
+  );
+}
+
 /**
  * In-app browser for adding an item from a store page. "Auto Scan" sends
  * the current URL through the existing importer; "Capture" sends the visible
@@ -84,13 +161,51 @@ export default function WebImportScreen() {
   const [drafting, setDrafting] = useState<"scan" | "capture" | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const openItemForm = (draft: ItemDraft) => {
+  const { activeProfile } = useProfiles();
+  const profileId = activeProfile?.id ?? null;
+  const [recent, setRecent] = useState<RecentUrl[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    void getRecentUrls(profileId).then((rows) => {
+      if (!cancelled) setRecent(rows);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [profileId]);
+
+  const remember = (url: string, title: string | null) => {
+    if (!url.startsWith("http")) return;
+    setRecent((current) =>
+      [
+        { url, title: title?.trim() || null, visitedAt: Date.now() },
+        ...current.filter((entry) => entry.url !== url),
+      ].slice(0, MAX_RECENT),
+    );
+    void recordRecentUrl(profileId, url, title);
+  };
+
+  const clearHistory = () => {
+    setRecent([]);
+    void clearRecentUrls(profileId);
+  };
+
+  const openRecent = (url: string) => {
+    setError(null);
+    setAddress(url);
+    setCurrentUrl(url);
+  };
+
+  const reviewParams = params.wardrobeId
+    ? { wardrobeId: params.wardrobeId }
+    : {};
+
+  const openReview = (rows: PendingReviewItem[]) => {
+    setPendingReview(rows);
     router.replace({
-      pathname: "/(root)/add-wardrobe-items",
-      params: {
-        ...(params.wardrobeId ? { wardrobeId: params.wardrobeId } : {}),
-        draft: JSON.stringify(draft),
-      },
+      pathname: "/(root)/review",
+      params: reviewParams,
     });
   };
 
@@ -131,7 +246,16 @@ export default function WebImportScreen() {
     setError(null);
     try {
       const draft = await api.draftItem({ url });
-      openItemForm(draft);
+      openReview([
+        {
+          key: reviewKey("scan", 0),
+          photo: null,
+          photoPath: draft.photoPath,
+          photoUri: draft.photoUri,
+          draft,
+          sourceUrl: url,
+        },
+      ]);
     } catch (draftError) {
       setError(
         draftError instanceof ApiException
@@ -168,18 +292,23 @@ export default function WebImportScreen() {
         throw new Error("The screen could not be captured.");
       }
 
-      // Hand the screenshot to the form as a picked photo. The form fills the
-      // details from it and uploads it on save, so the item keeps its photo.
-      setPendingPhoto({
-        uri: `data:image/jpeg;base64,${imageBase64}`,
-        base64: imageBase64,
-        mimeType: "image/jpeg",
-        fileName: null,
-      });
-      router.replace({
-        pathname: "/(root)/add-wardrobe-items",
-        params: params.wardrobeId ? { wardrobeId: params.wardrobeId } : {},
-      });
+      // Hand the screenshot to the shared review list. The review drafts it
+      // and uploads the photo when the user adds it to the closet.
+      openReview([
+        {
+          key: reviewKey("capture", 0),
+          photo: {
+            uri: `data:image/jpeg;base64,${imageBase64}`,
+            base64: imageBase64,
+            mimeType: "image/jpeg",
+            fileName: null,
+          },
+          photoPath: null,
+          photoUri: null,
+          draft: null,
+          sourceUrl: currentUrl,
+        },
+      ]);
     } catch (draftError) {
       setError(
         draftError instanceof Error
@@ -369,6 +498,7 @@ export default function WebImportScreen() {
               if (!editingAddress) setAddress(nav.url);
               setCanGoBack(nav.canGoBack);
               setCanGoForward(nav.canGoForward);
+              if (!nav.loading) remember(nav.url, nav.title);
             }}
             onShouldStartLoadWithRequest={shouldStartLoad}
             onOpenWindow={({ nativeEvent }) => {
@@ -461,6 +591,12 @@ export default function WebImportScreen() {
               Use a different link
             </Text>
           </Pressable>
+
+          <RecentLinks
+            items={recent}
+            onOpen={openRecent}
+            onClear={clearHistory}
+          />
         </View>
       ) : (
         <View className="flex-1 items-center justify-center px-8">
@@ -499,6 +635,12 @@ export default function WebImportScreen() {
               Live preview needs the phone app; Auto Scan works here.
             </Text>
           ) : null}
+
+          <RecentLinks
+            items={recent}
+            onOpen={openRecent}
+            onClear={clearHistory}
+          />
         </View>
       )}
 

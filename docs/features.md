@@ -27,77 +27,76 @@ Status values: **Done**, **In progress**, **Proposed**, **Later**.
   year.
 - **Bulk draft allowance** — `POST /api/ai/item-draft` allows 30 requests per
   minute, enough for a 10-photo batch plus retries.
-- **Minimal bulk import** — select up to 10 photos, draft two at a time,
-  review cards with include/skip, detect duplicates against the active profile
-  using normalized attributes, and choose Skip / Add anyway / Update existing.
-  Saves are per item and default dates to today / today + 1 year.
-- **Add hub** — `/(root)/add-item` is the front door for creating an item. It
-  groups the methods that exist into “One at a time” (camera, photos, website,
-  typing) and “Or all at once” (bulk photos). The FAB, Today quick actions and
-  the Closet empty state open the hub; wardrobe detail forwards its wardrobe.
-  Editing an item still opens the form directly.
+- **Universal review** — every add source produces rows in
+  `/(root)/review` (the “Review items” screen): camera, photo library,
+  web Capture, web Auto Scan, and later email. Local photos are drafted two at
+  a time; server drafts arrive ready with a `photoPath`. The review supports
+  include/skip, select all, delete selected, duplicate choices (Skip / Add
+  anyway / Update existing) and one “Add N to closet” commit with per-item
+  results. Dates default to today / today + 1 year.
+- **Add hub** — `/(root)/add-item` is the front door for creating items. It
+  offers Take a photo (one at a time), Choose photos (up to 10 at once), From a
+  website and Type it in. There is no separate bulk option: every source feeds
+  the same review list. The FAB, Today quick actions and the Closet empty state
+  open the hub; wardrobe detail forwards its wardrobe. Editing an item still
+  opens the form directly.
 - **In-app web importer** — `/(root)/web-import` is a `react-native-webview`
   browser. “Auto Scan” sends the current URL through the existing
   `POST /api/ai/item-draft` pipeline; “Capture” screenshots the visible page
-  and sends it through the vision draft. Both hand a finished draft to the
-  item form. The browser validates addresses, keeps session cookies and
-  storage, shows loading progress, supports back/forward/reload, opens
-  non-web schemes and downloads in the system browser, and clears errors on
-  the next load. Single item only; listing multi-scan is not built.
-- **Draft handoff** — the item form accepts a picked photo in memory (camera
-  and photo library) or a serialized draft in route params (web importer), so
-  the Add hub does not duplicate the form's work.
+  and sends it through the vision draft. Both land in the shared review list.
+  The browser validates addresses, keeps session cookies and storage, shows
+  loading progress, supports back/forward/reload, opens non-web schemes and
+  downloads in the system browser, and clears errors on the next load. The
+  start screen keeps the last eight visited URLs locally, per profile, with a
+  Clear action. Single item per action; listing multi-scan is not built.
+- **Review handoff** — sources hand rows to the review through an in-memory
+  store (`lib/pending-review.ts`) because photos carry base64; server drafts
+  also carry a bucket `photoPath`.
 
-## Bulk photo import (up to 10) — minimal version shipped
+## Review and add (up to 10)
 
-The first version ships the smallest useful flow:
-
-- `expo-image-picker` multi-select, limited to 10 photos.
-- Two draft requests in flight; the existing `POST /api/ai/item-draft` is used
-  one photo at a time.
+- `expo-image-picker` multi-select, limited to 10 items per review.
+- Every source lands here: camera, photo library, web Capture, web Auto Scan.
+- Two draft requests in flight for local photos; the existing
+  `POST /api/ai/item-draft` is used one photo at a time.
+- Server-drafted rows (Auto Scan) arrive ready with a `photoPath`.
 - Review cards show the generated name/details, status and a duplicate prompt.
 - Duplicate choices: **Skip**, **Add anyway**, **Update existing**.
 - Duplicate matching uses normalized attributes (`itemName`, brand, category,
   colour, size) against the active profile and against earlier drafts in the
-  same batch.
-- Per-item save with a success/error result; purchase date defaults to today
-  and expiry to today + 1 year.
-- Entry point: Add hub → “Add a batch”.
+  same review.
+- Select all, delete selected, and one “Add N to closet” commit with a
+  success/error result per item; purchase date defaults to today and expiry to
+  today + 1 year.
+- Entry points: Add hub → Take/Choose photos; web importer → Capture or Auto
+  Scan; “Add photos” / “Take a photo” in the review appends up to 10.
 
 Not included yet: photo hashes, embeddings, backfill, inline field editing in
-the review screen, server-side batch processing, and hash-based dedupe.
+the review screen, server-side batch processing, hash-based dedupe, and the
+DOM-based listing scan.
 
-**Goal:** select 4–10 photos in one action, draft each item, review them, and
-save the selected ones without touching the single-item flow.
-
-**Why a separate flow:** bulk needs a review grid, per-photo progress and
-duplicate decisions. Adding that to the current Add Item form would make the
-single-item path harder to use.
+**Why a review:** one photo or ten needs the same draft, duplicate and
+confirmation step, so every add source uses the same review screen instead of
+branching between a form and a batch flow.
 
 **Flow**
 
-1. Entry point: **Import multiple** from Today/Closet, opening a separate
-   `/(root)/bulk-import` route. Keep Add Item as it is.
-2. Pick up to 10 photos with `expo-image-picker`:
-   `allowsMultipleSelection: true`, `selectionLimit: 10`. The web picker
-   supports `multiple` but ignores `selectionLimit`, so the app slices the
-   result to 10 and tells the user.
-3. Show a card per photo with thumbnail, progress and the generated draft.
-4. Process 2–3 photos at a time, each through `POST /api/ai/item-draft`.
-   One image per request; no new batch endpoint is required for v1.
-5. Run the duplicate check before showing the review (see below).
-6. Review: include/exclude each item, edit its fields, and see duplicate
-   warnings.
-7. Save included items through the existing `POST /wardrobeItems`; upload each
-   photo through `/api/photos`. Show a per-item success/error summary.
-8. Do not write drafts to the database before confirmation.
+1. The Add hub opens a source: camera, photo library, website or typing.
+2. Every source creates rows (up to 10) in `/(root)/review`.
+3. Local photos are drafted 2 at a time through `POST /api/ai/item-draft`;
+   server drafts (Auto Scan) arrive ready with a `photoPath`.
+4. Run the duplicate check before showing the review (see below).
+5. Review: include/skip, select all, delete and duplicate choices.
+6. “Add N to closet” saves the included rows through `POST /wardrobeItems` and
+   uploads local photos through `/api/photos`; show a per-item summary.
+7. Do not write drafts to the database before confirmation.
 
 **API impact**
 
 - `POST /api/ai/item-draft` already accepts one base64 image; the client can
   fan out with a concurrency limit.
 - The current 15 requests/minute limit is too low for 10 photos plus retries.
-  Add a bulk allowance or a separate limit for the bulk screen.
+  Add a review allowance or a separate limit for the review screen.
 - A future `POST /api/ai/item-drafts` batch endpoint could move the fan-out
   server-side; not needed for the first version.
 
@@ -204,7 +203,7 @@ against a shared database.
 - Exact photo-hash match: “You already have this photo”, with the existing
   item’s name and a default of **Skip**.
 - Attribute match: “Possible duplicate”, with the existing item.
-- In bulk import, duplicates start unchecked.
+- In the review, duplicates start unchecked.
 - When a duplicate is found, present three explicit choices: **Skip**, **Add
   anyway**, or **Update existing**. The app should show the existing item’s
   name/photo and let the user decide; never silently merge or overwrite.
@@ -257,7 +256,7 @@ extraction, but it is fragile and legally sensitive:
 3. **Listing multi-scan** — one screenshot of a store page, many detected
    products, review list, bulk add. This is Acloset’s “Auto Scan” behaviour. It
    needs a multi-item vision endpoint (the current draft endpoint returns one
-   item) and the review additions listed under the bulk-import open questions.
+   item) and the review additions listed under the review open questions.
 4. **In-app store purchase-history flow** — the reference screenshot. Pilot one
    store first, user-initiated, no credential capture, visible-order extraction,
    with a clear disclaimer and a manual fallback.
@@ -293,6 +292,6 @@ path is validated.
 2. Add the server-side hash helper and return `photoHash` from uploads/drafts.
 3. Add the duplicate-check endpoint and tests for hash and attribute matches.
 4. Add the backfill script for existing photos.
-5. Add the bulk-import screen with multi-select, concurrency 2, review and
+5. Add the review screen with multi-select, concurrency 2, review and
    per-item save. **(done — attribute-only duplicate check)**
 6. Raise the AI draft rate limit for bulk batches. **(done — 30/minute)**

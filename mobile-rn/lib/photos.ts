@@ -13,6 +13,35 @@ export function pickedPhotoBase64(photo: PickedPhoto): string | null {
 }
 
 /**
+ * Opens the photo library for a multi-photo selection. Used by every add
+ * source; the review screen decides how many more it can take.
+ */
+export async function pickPhotos(limit: number): Promise<PickedPhoto[]> {
+  if (Platform.OS !== "web") {
+    const permission =
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) return [];
+  }
+
+  const result = await ImagePicker.launchImageLibraryAsync({
+    mediaTypes: ImagePicker.MediaTypeOptions.Images,
+    allowsMultipleSelection: true,
+    selectionLimit: limit,
+    quality: 0.85,
+    base64: true,
+  });
+
+  if (result.canceled || result.assets.length === 0) return [];
+
+  return result.assets.slice(0, limit).map((asset) => ({
+    uri: asset.uri,
+    base64: asset.base64 ?? null,
+    mimeType: asset.mimeType ?? "image/jpeg",
+    fileName: asset.fileName ?? null,
+  }));
+}
+
+/**
  * Opens the camera or the photo library and returns one picked photo.
  * Shared by the Add hub and the item form's photo field.
  */

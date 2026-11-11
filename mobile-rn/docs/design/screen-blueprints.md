@@ -130,28 +130,27 @@ season/occasion, usage stats, outfits-containing, and styling notes are next.
 
 ## Screen 4a — Add to your closet (hub)
 
-The front door for creating an item. It routes; it does not collect details.
+The front door for creating items. It routes; it does not collect details.
 
-| Section | Options | Behaviour |
-| --- | --- | --- |
-| **One at a time** | Take a photo · Choose a photo · From a website · Type it in | Camera/photos pick immediately and open the form; website opens the in-app browser; typing opens a blank form |
-| **Or all at once** | Add a batch — up to 10 photos | Opens the bulk review |
+| Option | Behaviour |
+| --- | --- |
+| **Take a photo** | Takes one photo and opens Review items; repeat there to add up to 10 |
+| **Choose photos** | Multi-select up to 10 and open Review items |
+| **From a website** | Opens the in-app browser; Auto Scan/Capture feed Review items |
+| **Type it in** | Opens the blank item form (one item, no photo) |
 
 Copy:
 
-- Title: “Add to your closet”; subtitle: “One piece, or the whole bag.”
-- Section labels: “One at a time” and “Or all at once” (the manual/auto split,
-  stated in human terms).
-- Tile captions: “Snap it now”, “From your camera roll”, “Browse a store or
-  paste a link”, “No photo needed”.
-- Batch: “Up to 10 photos — we'll name each piece.”
+- Title: “Add to your closet”; subtitle: “Up to 10 items, however you add them.”
+- Tile captions: “Add up to 10, one at a time”, “Up to 10 at once”, “Scan or
+  capture a page”, “One item, no photo”.
 
 Rules:
 
+- There is **no separate batch option**; every source is multi-add up to 10 and
+  every source lands in Review items.
 - Only methods that exist appear. No Library (no catalog), no email or store
   import until they are real, no “More methods” drawer.
-- The batch card is a single wide card, not a fifth tile, so it reads as a
-  different kind of action.
 - Editing an item never passes through the hub; it opens the form directly.
 
 ---
@@ -166,11 +165,11 @@ Rules:
 | 4 | Web page | Rendered in `react-native-webview`, with session cookies and storage |
 | 5 | Auto Scan | Sends the current URL through `POST /api/ai/item-draft` |
 | 6 | Capture | Screenshots the visible page and sends it through the vision draft |
+| 7 | Recently visited | Last eight URLs, stored locally per profile; tap to reopen, Clear to wipe |
 
-Both actions open the item form already filled in. “Auto Scan” is primary;
-“Capture” is the fallback for pages the server-side extractor cannot read.
-Both buttons are always visible; on web, Capture explains that it needs the
-phone app.
+Both actions create a row in Review items. “Auto Scan” is primary; “Capture”
+is the fallback for pages the server-side extractor cannot read. Both buttons
+are always visible; on web, Capture explains that it needs the phone app.
 
 Navigation rules:
 
@@ -180,9 +179,33 @@ Navigation rules:
 - Network errors show a retry action; the error clears on the next load.
 - Android hardware back walks page history before leaving the screen.
 
-Later: **Auto Scan** for listing pages — one screenshot, many detected
-products, review list, bulk add. This needs a multi-item vision endpoint and is
-not part of the current build.
+Later: **Auto Scan** for listing pages — one page, many detected products,
+review list, add them together. This needs a multi-item extract endpoint and is not part
+of the current build.
+
+---
+
+## Screen 4c — Review items
+
+The single confirmation surface for every add source.
+
+| Order | Element | Notes |
+| --- | --- | --- |
+| 1 | Header | “Review items”, “N of 10 items” |
+| 2 | Add items card | Add photos, Take a photo, wardrobe picker |
+| 3 | Selection controls | Select all, Delete selected |
+| 4 | Rows | Photo, category chip, name, details, include/skip, duplicate choices |
+| 5 | Sticky footer | “Add N to closet”, then Done |
+
+Rules:
+
+- Local photos are drafted two at a time; server drafts arrive ready.
+- The review holds at most 10 items; Add photos appends up to the remainder.
+- Nothing is written until “Add N to closet”; each row reports success or error.
+- Duplicate choices are Skip, Add anyway and Update existing, matched on
+  normalized name/brand/category/colour/size within the active profile.
+
+Later: per-row detail view, retry and source link.
 
 ---
 

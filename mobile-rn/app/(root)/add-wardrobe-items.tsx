@@ -34,7 +34,6 @@ import {
   DEFAULT_SIZES,
   mergeOptions,
 } from "~/lib/item-options";
-import { takePendingPhoto } from "~/lib/pending-add";
 import { pickedPhotoBase64 } from "~/lib/photos";
 import { useProfiles } from "~/lib/profiles-context";
 import type { ItemDraft, PickedPhoto, Wardrobe } from "~/lib/types";
@@ -51,7 +50,6 @@ export default function AddItemScreen() {
     id?: string;
     item?: string;
     wardrobeId?: string;
-    draft?: string;
   }>();
 
   const editingItem = useMemo<WardrobeItem | null>(() => {
@@ -249,25 +247,6 @@ export default function AddItemScreen() {
         : "Draft filled. Review the details before saving.",
     );
   }, []);
-
-  // A photo picked on the Add hub arrives without base64 in the route, so it
-  // is handed over in memory and consumed once.
-  useEffect(() => {
-    if (editingItem) return;
-    const pending = takePendingPhoto();
-    if (pending) setPhoto(pending);
-  }, [editingItem]);
-
-  // The web importer hands over a finished draft instead of a photo, so the
-  // form starts already filled in.
-  useEffect(() => {
-    if (!params.draft) return;
-    try {
-      applyDraft(JSON.parse(params.draft) as ItemDraft);
-    } catch {
-      // A malformed handoff still leaves the manual form usable.
-    }
-  }, [params.draft, applyDraft]);
 
   const runPhotoDraft = useCallback(
     async (target: PickedPhoto) => {

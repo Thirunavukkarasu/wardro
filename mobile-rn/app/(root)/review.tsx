@@ -1,11 +1,10 @@
-import * as ImagePicker from "expo-image-picker";
 import { router, useLocalSearchParams } from "expo-router";
 import { Images, Sparkles } from "lucide-react-native";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   Image,
-  Platform,
   Pressable,
   Text,
   View,
@@ -16,7 +15,16 @@ import FormScreen from "~/components/FormScreen";
 import SelectField from "~/components/SelectField";
 import { api, ApiException } from "~/lib/api";
 import { addYears, parseDateOr } from "~/lib/dates";
-import { pickedPhotoBase64 } from "~/lib/photos";
+import {
+  pickPhoto,
+  pickPhotos,
+  pickedPhotoBase64,
+} from "~/lib/photos";
+import {
+  reviewKey,
+  takePendingReview,
+  type PendingReviewItem,
+} from "~/lib/pending-review";
 import { useProfiles } from "~/lib/profiles-context";
 import {
   wardrobeFromJson,
@@ -28,7 +36,7 @@ import {
 } from "~/lib/types";
 import { wardroColors } from "~/src/theme/colors";
 
-const MAX_PHOTOS = 10;
+const MAX_ITEMS = 10;
 const CONCURRENCY = 2;
 
 type RowStatus =
@@ -39,10 +47,13 @@ type RowStatus =
   | "saved"
   | "error";
 
-type BulkRow = {
+type ReviewRow = {
   key: string;
-  photo: PickedPhoto;
+  photo: PickedPhoto | null;
+  photoPath: string | null;
+  photoUri: string | null;
   draft: ItemDraft | null;
+  sourceUrl: string | null;
   status: RowStatus;
   error: string | null;
   include: boolean;
@@ -50,6 +61,23 @@ type BulkRow = {
   duplicateId: number | null;
   updateExisting: boolean;
 };
+
+function toReviewRow(item: PendingReviewItem): ReviewRow {
+  return {
+    key: item.key,
+    photo: item.photo,
+    photoPath: item.photoPath,
+    photoUri: item.photoUri,
+    draft: item.draft,
+    sourceUrl: item.sourceUrl,
+    status: item.draft ? "ready" : "queued",
+    error: null,
+    include: true,
+    duplicateOf: null,
+    duplicateId: null,
+    updateExisting: false,
+  };
+}
 
 type ComparableItem = {
   itemName: string;
@@ -123,7 +151,7 @@ function findDuplicate(
   return null;
 }
 
-function statusLabel(row: BulkRow): string {
+function statusLabel(row: ReviewRow): string {
   switch (row.status) {
     case "queued":
       return "Waiting…";
@@ -155,7 +183,7 @@ function draftDetails(draft: ItemDraft | null): string {
     .join(" · ");
 }
 
-export default function BulkImportScreen() {
+export default function ReviewScreen() {
   const { activeProfile } = useProfiles();
   const params = useLocalSearchParams<{ wardrobeId?: string }>();
   const [wardrobes, setWardrobes] = useState<Wardrobe[]>([]);
@@ -163,7 +191,9 @@ export default function BulkImportScreen() {
     null,
   );
   const [existingItems, setExistingItems] = useState<WardrobeItem[]>([]);
-  const [rows, setRows] = useState<BulkRow[]>([]);
+  const [rows, setRows] = useState<ReviewRow[]>([]);
+  const [incoming] = useState<PendingReviewItem[]>(() => takePendingReview());
+  const consumedRef = useRef(false);
   const [loadingSetup, setLoadingSetup] = useState(true);
   const [setupError, setSetupError] = useState<string | null>(null);
   const [picking, setPicking] = useState(false);
@@ -206,7 +236,7 @@ export default function BulkImportScreen() {
     void loadSetup();
   }, [loadSetup]);
 
-  const updateRow = useCallback((key: string, patch: Partial<BulkRow>) => {
+  const updateRow = useCallback((key: string, patch: Partial<ReviewRow>) => {
     setRows((current) =>
       current.map((row) => (row.key === key ? { ...row, ...patch } : row)),
     );
@@ -245,12 +275,25 @@ export default function BulkImportScreen() {
   }, []);
 
   const processRows = useCallback(
-    async (rowsToProcess: BulkRow[], existing: WardrobeItem[]) => {
+    async (rowsToProcess: ReviewRow[], existing: WardrobeItem[]) => {
       const queue = [...rowsToProcess];
       const workers = Array.from({ length: CONCURRENCY }, async () => {
         while (queue.length > 0) {
           const row = queue.shift();
           if (!row) break;
+
+          if (row.draft) {
+            updateRow(row.key, { status: "ready", error: null });
+            continue;
+          }
+          if (!row.photo) {
+            updateRow(row.key, {
+              status: "error",
+              include: false,
+              error: "No photo to analyse.",
+            });
+            continue;
+          }
 
           updateRow(row.key, { status: "drafting", error: null });
           try {
@@ -280,65 +323,103 @@ export default function BulkImportScreen() {
     [markDuplicates, updateRow],
   );
 
-  const pickPhotos = async () => {
+  // Rows handed over by the hub or the web importer start as soon as the
+  // wardrobe and existing items are loaded.
+  useEffect(() => {
+    if (consumedRef.current || loadingSetup || incoming.length === 0) {
+      return;
+    }
+    consumedRef.current = true;
+
+    const nextRows = incoming.slice(0, MAX_ITEMS).map((item) => {
+      const row = toReviewRow(item);
+      if (!row.photo && !row.draft) {
+        return {
+          ...row,
+          status: "error" as const,
+          include: false,
+          error: "No photo to analyse.",
+        };
+      }
+      return row;
+    });
+    setRows(nextRows);
+
+    const needsDraft = nextRows.filter((row) => row.photo && !row.draft);
+    if (needsDraft.length > 0) {
+      void processRows(needsDraft, existingItems);
+    } else {
+      markDuplicates(existingItems);
+    }
+  }, [incoming, existingItems, loadingSetup, markDuplicates, processRows]);
+
+  const rowFromPhoto = (photo: PickedPhoto, index: number): ReviewRow => ({
+    key: reviewKey("photo", index),
+    photo,
+    photoPath: null,
+    photoUri: null,
+    draft: null,
+    sourceUrl: null,
+    status: "queued",
+    error: null,
+    include: true,
+    duplicateOf: null,
+    duplicateId: null,
+    updateExisting: false,
+  });
+
+  const appendPhotos = async (photos: PickedPhoto[]) => {
+    if (photos.length === 0) return;
+    const nextRows = photos.map((photo, index) => rowFromPhoto(photo, index));
+    setRows((current) => [...current, ...nextRows]);
+    await processRows(nextRows, existingItems);
+  };
+
+  const addPhotos = async () => {
     if (!selectedWardrobeId) {
       setNote("Create a wardrobe first.");
+      return;
+    }
+    const remaining = MAX_ITEMS - rows.length;
+    if (remaining <= 0) {
+      setNote(`A review can hold up to ${MAX_ITEMS} items.`);
       return;
     }
 
     setPicking(true);
     setNote(null);
     try {
-      if (Platform.OS !== "web") {
-        const permission =
-          await ImagePicker.requestMediaLibraryPermissionsAsync();
-        if (!permission.granted) {
-          setNote("Photo library permission is required.");
-          return;
-        }
-      }
-
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsMultipleSelection: true,
-        selectionLimit: MAX_PHOTOS,
-        quality: 0.85,
-        base64: true,
-      });
-
-      if (result.canceled || result.assets.length === 0) return;
-
-      const assets = result.assets.slice(0, MAX_PHOTOS);
-      if (result.assets.length > MAX_PHOTOS) {
-        setNote(`Only the first ${MAX_PHOTOS} photos were kept.`);
-      }
-
-      const nextRows: BulkRow[] = assets.map((asset, index) => ({
-        key: `${Date.now()}-${index}-${Math.random().toString(36).slice(2, 8)}`,
-        photo: {
-          uri: asset.uri,
-          base64: asset.base64 ?? null,
-          mimeType: asset.mimeType ?? "image/jpeg",
-          fileName: asset.fileName ?? null,
-        },
-        draft: null,
-        status: "queued",
-        error: null,
-        include: true,
-        duplicateOf: null,
-        duplicateId: null,
-        updateExisting: false,
-      }));
-
-      setRows(nextRows);
-      setPicking(false);
-      await processRows(nextRows, existingItems);
+      const photos = await pickPhotos(remaining);
+      await appendPhotos(photos);
     } catch (error) {
       setNote(
         error instanceof ApiException
           ? error.message
           : "Could not open the photo library.",
       );
+    } finally {
+      setPicking(false);
+    }
+  };
+
+  const addCameraPhoto = async () => {
+    if (!selectedWardrobeId) {
+      setNote("Create a wardrobe first.");
+      return;
+    }
+    const remaining = MAX_ITEMS - rows.length;
+    if (remaining <= 0) {
+      setNote(`A review can hold up to ${MAX_ITEMS} items.`);
+      return;
+    }
+
+    setPicking(true);
+    setNote(null);
+    try {
+      const photo = await pickPhoto("camera");
+      if (photo) await appendPhotos([photo]);
+    } catch {
+      setNote("Could not open the camera.");
     } finally {
       setPicking(false);
     }
@@ -360,14 +441,16 @@ export default function BulkImportScreen() {
 
       updateRow(row.key, { status: "saving", error: null });
       try {
-        const photoUri = await api.uploadPhoto(row.photo);
+        const photoUri = row.photo
+          ? await api.uploadPhoto(row.photo)
+          : (row.photoPath ?? row.photoUri);
         const draftDate = draft.purchaseDate
           ? parseDateOr(draft.purchaseDate, new Date())
           : null;
         const payload: Record<string, unknown> = {
           itemName: draft.itemName,
-          photoUri,
         };
+        if (photoUri) payload.photoUri = photoUri;
         if (!row.updateExisting) payload.wardrobeId = selectedWardrobeId;
 
         if (row.updateExisting) {
@@ -422,10 +505,36 @@ export default function BulkImportScreen() {
     wardrobes.find((wardrobe) => wardrobe.id === selectedWardrobeId)?.name ??
     "";
 
+  const selectAll = () => {
+    setRows((current) =>
+      current.map((row) =>
+        row.status === "ready" && row.draft && !row.duplicateOf
+          ? { ...row, include: true }
+          : row,
+      ),
+    );
+  };
+
+  const deleteSelected = () => {
+    Alert.alert(
+      "Delete selected items?",
+      "They will be removed from this review.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () =>
+            setRows((current) => current.filter((row) => !row.include)),
+        },
+      ],
+    );
+  };
+
   return (
     <FormScreen
-      title="Bulk Import"
-      subtitle={`${rows.length} of ${MAX_PHOTOS} photos`}
+      title="Review items"
+      subtitle={`${rows.length} of ${MAX_ITEMS} items`}
       footer={
         <View>
           {note ? (
@@ -440,8 +549,8 @@ export default function BulkImportScreen() {
             <CustomButton
               title={
                 includedCount === 1
-                  ? "Save 1 item"
-                  : `Save ${includedCount} items`
+                  ? "Add 1 to closet"
+                  : `Add ${includedCount} to closet`
               }
               isLoading={saving}
               disabled={
@@ -457,12 +566,12 @@ export default function BulkImportScreen() {
         <View className="flex-row items-center">
           <Sparkles size={18} color={wardroColors.primaryDark} />
           <Text className="ml-2 text-[15px] font-semibold text-ink">
-            Add several items at once
+            Add items
           </Text>
         </View>
         <Text className="mt-1 text-[12px] leading-5 text-ink-secondary">
-          Pick up to {MAX_PHOTOS} photos. Each one is drafted automatically;
-          review and include only what you want to save.
+          Take a photo or choose up to {MAX_ITEMS}. Each one is drafted
+          automatically; review them before adding to your closet.
         </Text>
 
         <View className="mt-3">
@@ -472,14 +581,31 @@ export default function BulkImportScreen() {
                 ? "Opening photos…"
                 : drafting
                   ? "Reading photos…"
-                  : "Choose up to 10 photos"
+                  : "Add photos"
             }
             variant="outline"
             isLoading={picking}
             disabled={
-              loadingSetup || Boolean(setupError) || !selectedWardrobeId || busy
+              loadingSetup ||
+              Boolean(setupError) ||
+              !selectedWardrobeId ||
+              busy ||
+              picking
             }
-            onPress={pickPhotos}
+            onPress={addPhotos}
+          />
+          <CustomButton
+            title="Take a photo"
+            variant="outline"
+            className="mt-2"
+            disabled={
+              loadingSetup ||
+              Boolean(setupError) ||
+              !selectedWardrobeId ||
+              busy ||
+              picking
+            }
+            onPress={addCameraPhoto}
           />
         </View>
 
@@ -524,24 +650,57 @@ export default function BulkImportScreen() {
         <View className="mt-5 items-center rounded-[18px] border border-dashed border-line bg-surface px-5 py-8">
           <Images size={34} color={wardroColors.text.disabled} />
           <Text className="mt-3 text-sm font-semibold text-ink">
-            No photos selected yet
+            Nothing to review yet
           </Text>
           <Text className="mt-1 text-center text-[12px] leading-4 text-ink-secondary">
-            Choose up to {MAX_PHOTOS} photos from your library. Duplicates
-            found in this profile are skipped by default.
+            Add photos or take one. Duplicates found in this profile are
+            skipped by default.
           </Text>
         </View>
       ) : (
-        rows.map((row) => (
+        <>
+          <View className="mt-5 flex-row items-center justify-between">
+            <Pressable
+              accessibilityRole="button"
+              onPress={selectAll}
+              className="py-2 active:opacity-70"
+            >
+              <Text className="text-[12.5px] font-semibold text-ink">
+                Select all
+              </Text>
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              onPress={deleteSelected}
+              className="py-2 active:opacity-70"
+            >
+              <Text className="text-[12.5px] font-semibold text-danger">
+                Delete selected
+              </Text>
+            </Pressable>
+          </View>
+
+          {rows.map((row) => {
+            const imageUri = row.photo?.uri ?? row.photoUri;
+            return (
           <View
             key={row.key}
             className="mt-3 flex-row rounded-[18px] border border-line bg-white p-3"
           >
-            <Image
-              source={{ uri: row.photo.uri }}
-              style={{ width: 72, height: 92, borderRadius: 12 }}
-              resizeMode="cover"
-            />
+            {imageUri ? (
+              <Image
+                source={{ uri: imageUri }}
+                style={{ width: 72, height: 92, borderRadius: 12 }}
+                resizeMode="cover"
+              />
+            ) : (
+              <View
+                className="items-center justify-center rounded-[12px] bg-surface"
+                style={{ width: 72, height: 92 }}
+              >
+                <Images size={22} color={wardroColors.text.disabled} />
+              </View>
+            )}
 
             <View className="ml-3 flex-1">
               <Text
@@ -684,7 +843,9 @@ export default function BulkImportScreen() {
               ) : null}
             </View>
           </View>
-        ))
+            );
+          })}
+        </>
       )}
     </FormScreen>
   );
