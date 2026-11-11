@@ -39,3 +39,4 @@ yarn-error.log*
 
 # Agent worktrees (nested repo copies)
 .claude/worktrees/
+.claude/settings.local.json
