@@ -24,8 +24,8 @@ env:
   CLOUD_RUN_SERVICE_ACCOUNT: ${{ vars.CLOUD_RUN_SERVICE_ACCOUNT || format('wardro-api@{0}.iam.gserviceaccount.com', vars.GCP_PROJECT_ID || 'wardo-ce8d5') }}
   PUBLIC_API_ORIGIN: ${{ vars.PUBLIC_API_ORIGIN || 'https://wardro-api-251900114942.asia-south1.run.app' }}
   AGENT_OLLAMA_BASE_URL: ${{ vars.AGENT_OLLAMA_BASE_URL || 'https://ollama.com' }}
-  OLLAMA_CHAT_MODEL: ${{ vars.OLLAMA_TEXT_MODEL || 'qwen3' }}
-  OLLAMA_VISION_MODEL: ${{ vars.OLLAMA_VISION_MODEL || 'qwen3-vl' }}
+  OLLAMA_CHAT_MODEL: ${{ vars.AGENT_OLLAMA_CHAT_MODEL || 'deepseek-v4.1-flash:1017' }}
+  OLLAMA_VISION_MODEL: ${{ vars.AGENT_OLLAMA_VISION_MODEL || 'deepseek-v4.1-flash:1017' }}
   OLLAMA_API_KEY_SECRET: ${{ vars.OLLAMA_API_KEY_SECRET || 'OLLAMA_API_KEY' }}
   CORS_ORIGINS: ${{ vars.CORS_ORIGINS || 'https://wardro-lake.vercel.app' }}
   FIREBASE_PROJECT_ID: ${{ vars.GCP_PROJECT_ID || 'wardo-ce8d5' }}

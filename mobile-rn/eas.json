@@ -32,6 +32,7 @@
     "production": {
       "env": {
         "EXPO_PUBLIC_API_URL": "https://wardro-api-251900114942.asia-south1.run.app/api",
+        "EXPO_PUBLIC_AGENT_URL": "https://wardro-agent-251900114942.asia-south1.run.app",
         "EXPO_PUBLIC_BUILD_PROFILE": "eas-production"
       }
     }
