@@ -14,6 +14,7 @@ jobs:
 
     env:
       EXPO_PUBLIC_API_URL: ${{ vars.EXPO_PUBLIC_API_URL || 'https://wardro-api-251900114942.asia-south1.run.app/api' }}
+      EXPO_PUBLIC_AGENT_URL: ${{ vars.EXPO_PUBLIC_AGENT_URL }}
       ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
       ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
       ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
@@ -32,6 +33,13 @@ jobs:
               exit 1
             fi
           done
+
+      - name: Verify agent URL
+        run: |
+          if [ -z "${EXPO_PUBLIC_AGENT_URL}" ]; then
+            echo "::error::Set the repository variable EXPO_PUBLIC_AGENT_URL to the Cloud Run agent URL."
+            exit 1
+          fi
 
       - name: Set up Node
         uses: actions/setup-node@v4
