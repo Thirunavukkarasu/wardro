@@ -1,8 +1,6 @@
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import {
   ImageIcon,
-  Images,
-  Link2,
   Palette,
   Ruler,
   Shirt,
@@ -13,7 +11,14 @@ import {
   X,
 } from "lucide-react-native";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Image, Pressable, ScrollView, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Image,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
 
 import CustomButton from "~/components/CustomButton";
 import DateField from "~/components/DateField";
@@ -75,8 +80,7 @@ export default function AddItemScreen() {
     path: string;
     url: string;
   } | null>(null);
-  const [sourceUrl, setSourceUrl] = useState("");
-  const [autoFilling, setAutoFilling] = useState<"photo" | "url" | null>(null);
+  const [autoFilling, setAutoFilling] = useState<"photo" | null>(null);
   const [autoFillError, setAutoFillError] = useState<string | null>(null);
   const [autoFillNote, setAutoFillNote] = useState<string | null>(null);
   const autoScannedRef = useRef<string | null>(null);
@@ -308,30 +312,6 @@ export default function AddItemScreen() {
     void runPhotoDraft(photo);
   }, [photo, runPhotoDraft]);
 
-  const autoFillFromUrl = async () => {
-    const url = sourceUrl.trim();
-    if (!url) {
-      setAutoFillError("Paste a product URL first.");
-      return;
-    }
-
-    setAutoFilling("url");
-    setAutoFillError(null);
-    setAutoFillNote(null);
-    try {
-      const draft = await api.draftItem({ url });
-      applyDraft(draft);
-    } catch (fillError) {
-      setAutoFillError(
-        fillError instanceof ApiException
-          ? fillError.message
-          : "Could not import that URL.",
-      );
-    } finally {
-      setAutoFilling(null);
-    }
-  };
-
   const save = async () => {
     setError(null);
 
@@ -441,7 +421,12 @@ export default function AddItemScreen() {
             photo={photo}
             onChange={(next) => {
               setPhoto(next);
-              if (next) setImportedPhoto(null);
+              if (next) {
+                setImportedPhoto(null);
+              } else {
+                setAutoFillNote(null);
+                setAutoFillError(null);
+              }
             }}
           />
 
@@ -455,7 +440,7 @@ export default function AddItemScreen() {
                 />
                 <View className="ml-3 flex-1">
                   <Text className="text-[13px] font-semibold text-ink">
-                    Photo imported from URL
+                    Photo added from the web
                   </Text>
                   <Text className="mt-0.5 text-[11px] leading-4 text-ink-secondary">
                     You can replace it with your own photo.
@@ -473,76 +458,37 @@ export default function AddItemScreen() {
             </View>
           ) : null}
 
-          <View className="mt-4 rounded-[18px] border border-line bg-white p-4">
-            <View className="flex-row items-center">
-              <Sparkles size={18} color={wardroColors.primaryDark} />
-              <Text className="ml-2 text-[15px] font-semibold text-ink">
-                Fill details automatically
+          {photo || autoFillNote || autoFillError ? (
+            <View className="mt-3 flex-row items-center rounded-[14px] border border-line bg-surface px-4 py-3">
+              {autoFilling === "photo" ? (
+                <ActivityIndicator
+                  size="small"
+                  color={wardroColors.primaryDark}
+                />
+              ) : (
+                <Sparkles size={16} color={wardroColors.primaryDark} />
+              )}
+              <Text className="ml-2 flex-1 text-[12px] leading-5 text-ink-secondary">
+                {autoFilling === "photo"
+                  ? "Reading the photo and filling the details…"
+                  : (autoFillError ??
+                    autoFillNote ??
+                    "Details fill automatically. Review them before saving.")}
               </Text>
+              {photo && autoFillError && autoFilling !== "photo" ? (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Scan the photo again"
+                  onPress={() => void runPhotoDraft(photo)}
+                  className="ml-3 rounded-full border border-line bg-white px-3 py-1.5 active:opacity-70"
+                >
+                  <Text className="text-[11px] font-bold text-brand">
+                    Try again
+                  </Text>
+                </Pressable>
+              ) : null}
             </View>
-            <Text className="mt-1 text-[12px] leading-5 text-ink-secondary">
-              Photo details fill automatically when you choose a photo. You can
-              also paste a product link. Review everything before saving.
-            </Text>
-
-            <View className="mt-3">
-              <CustomButton
-                title={
-                  autoFilling === "photo" ? "Scanning photo…" : "Scan photo"
-                }
-                variant="outline"
-                isLoading={autoFilling === "photo"}
-                disabled={!photo || autoFilling !== null}
-                onPress={() => {
-                  if (photo) void runPhotoDraft(photo);
-                }}
-              />
-            </View>
-
-            <InputField
-              label="Product URL"
-              placeholder="https://shop.example.com/item"
-              icon={<Link2 size={20} color={wardroColors.text.disabled} />}
-              value={sourceUrl}
-              onChangeText={(value) => {
-                setSourceUrl(value);
-                setAutoFillError(null);
-              }}
-              autoCapitalize="none"
-              autoCorrect={false}
-              keyboardType="url"
-            />
-            <CustomButton
-              title={autoFilling === "url" ? "Importing…" : "Import from URL"}
-              variant="outline"
-              isLoading={autoFilling === "url"}
-              disabled={!sourceUrl.trim() || autoFilling !== null}
-              onPress={autoFillFromUrl}
-            />
-
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Bulk import up to 10 photos"
-              onPress={() => router.push("/(root)/bulk-import")}
-              className="mt-3 flex-row items-center justify-center rounded-[14px] border border-line bg-surface py-2.5 active:opacity-80"
-            >
-              <Images size={16} color={wardroColors.primaryDark} />
-              <Text className="ml-2 text-[12.5px] font-semibold text-brand">
-                Bulk import up to 10 photos
-              </Text>
-            </Pressable>
-
-            {autoFillError ? (
-              <Text className="mt-2 text-xs font-medium text-danger">
-                {autoFillError}
-              </Text>
-            ) : null}
-            {autoFillNote ? (
-              <Text className="mt-2 text-[11px] leading-4 text-ink-secondary">
-                {autoFillNote}
-              </Text>
-            ) : null}
-          </View>
+          ) : null}
 
           <View className="mt-4">
                 <Text className="mb-1.5 text-[13.5px] font-semibold text-ink">

@@ -160,15 +160,25 @@ Rules:
 
 | Order | Element | Notes |
 | --- | --- | --- |
-| 1 | Address bar | Paste a product link or type a store address |
-| 2 | Start panel | “Browse a store” with a few store shortcuts |
-| 3 | Web page | Rendered in `react-native-webview` with the user's session |
-| 4 | Add this page | Sends the current URL through `POST /api/ai/item-draft` |
-| 5 | Capture | Screenshots the visible page and sends it through the vision draft |
+| 1 | Address bar | Paste a product link or type a store address; clear control |
+| 2 | Browser controls | Back, forward, reload; a thin progress bar while loading |
+| 3 | Start panel | “Browse a store” with a few store shortcuts |
+| 4 | Web page | Rendered in `react-native-webview`, with session cookies and storage |
+| 5 | Auto Scan | Sends the current URL through `POST /api/ai/item-draft` |
+| 6 | Capture | Screenshots the visible page and sends it through the vision draft |
 
-Both actions open the item form already filled in. “Add this page” is primary;
+Both actions open the item form already filled in. “Auto Scan” is primary;
 “Capture” is the fallback for pages the server-side extractor cannot read.
-“Capture” is hidden on web, where the live page is not rendered.
+Both buttons are always visible; on web, Capture explains that it needs the
+phone app.
+
+Navigation rules:
+
+- Only `http`/`https` pages load in place. `tel:`, `mailto:`, `intent:` and
+  other app schemes are handed to the operating system; downloads (PDF, ZIP,
+  APK) open externally.
+- Network errors show a retry action; the error clears on the next load.
+- Android hardware back walks page history before leaving the screen.
 
 Later: **Auto Scan** for listing pages — one screenshot, many detected
 products, review list, bulk add. This needs a multi-item vision endpoint and is

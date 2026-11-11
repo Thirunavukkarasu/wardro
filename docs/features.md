@@ -11,7 +11,8 @@ Status values: **Done**, **In progress**, **Proposed**, **Later**.
   URL into a validated draft. It never writes wardrobe rows; the user reviews
   and saves through the normal item endpoints.
 - **Automatic photo scan** — choosing or taking a photo in Add Item starts the
-  vision draft automatically. The Scan photo button remains as a retry.
+  vision draft automatically. A "Try again" action appears in the scan status
+  row if the model fails.
 - **URL import** — public product pages are fetched with SSRF guards, metadata
   and JSON-LD are extracted, and the product image can be copied to GCS.
 - **Structured output** — the AI SDK `generateText` + `Output.object` path
@@ -36,10 +37,13 @@ Status values: **Done**, **In progress**, **Proposed**, **Later**.
   the Closet empty state open the hub; wardrobe detail forwards its wardrobe.
   Editing an item still opens the form directly.
 - **In-app web importer** — `/(root)/web-import` is a `react-native-webview`
-  browser. “Add this page” sends the current URL through the existing
+  browser. “Auto Scan” sends the current URL through the existing
   `POST /api/ai/item-draft` pipeline; “Capture” screenshots the visible page
   and sends it through the vision draft. Both hand a finished draft to the
-  item form. Single item only; listing multi-scan is not built.
+  item form. The browser validates addresses, keeps session cookies and
+  storage, shows loading progress, supports back/forward/reload, opens
+  non-web schemes and downloads in the system browser, and clears errors on
+  the next load. Single item only; listing multi-scan is not built.
 - **Draft handoff** — the item form accepts a picked photo in memory (camera
   and photo library) or a serialized draft in route params (web importer), so
   the Add hub does not duplicate the form's work.
@@ -58,7 +62,7 @@ The first version ships the smallest useful flow:
   same batch.
 - Per-item save with a success/error result; purchase date defaults to today
   and expiry to today + 1 year.
-- Entry point: Add Item → “Bulk import up to 10 photos”.
+- Entry point: Add hub → “Add a batch”.
 
 Not included yet: photo hashes, embeddings, backfill, inline field editing in
 the review screen, server-side batch processing, and hash-based dedupe.

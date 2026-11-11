@@ -113,7 +113,7 @@ differently so “Profile / More” does not become a junk drawer.
 | Closet | Item detail | Photo hero, details, dates, delete, edit, mark worn | Built; mark worn next |
 | Closet | **Add hub** | Choose a method: camera, photos, website, typing, or a batch | Built (`/(root)/add-item`) |
 | Closet | Add item | Photo-first form; accepts a picked photo or a finished draft | Built |
-| Closet | Web importer | In-app browser; “Add this page” or “Capture” hands a draft to the form | Built (`/(root)/web-import`, single item) |
+| Closet | Web importer | In-app browser; “Auto Scan” or “Capture” hands a draft to the form | Built (`/(root)/web-import`, single item) |
 | Closet | Edit item | Pre-filled form + photo replacement | Built (photo replace picker) |
 | Closet | Add / Edit wardrobe | Create or update a collection | Built |
 | Closet | Wardrobe detail | One collection’s grid + delete + add | Built |

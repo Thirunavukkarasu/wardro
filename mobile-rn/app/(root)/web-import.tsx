@@ -1,9 +1,17 @@
 import { router, useLocalSearchParams } from "expo-router";
-import { Globe, RotateCw, X } from "lucide-react-native";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Globe,
+  RotateCw,
+  X,
+} from "lucide-react-native";
 import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   BackHandler,
+  Keyboard,
+  Linking,
   Platform,
   Pressable,
   Text,
@@ -14,18 +22,22 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { WebView, type WebViewNavigation } from "react-native-webview";
 
 import { api, ApiException } from "~/lib/api";
+import { setPendingPhoto } from "~/lib/pending-add";
 import type { ItemDraft } from "~/lib/types";
 import { wardroColors } from "~/src/theme/colors";
 
 const STORES = [
   { label: "H&M", url: "https://www2.hm.com/en_in/index.html" },
   { label: "Zara", url: "https://www.zara.com/in/" },
+  { label: "Myntra", url: "https://www.myntra.com/" },
   { label: "Amazon", url: "https://www.amazon.in/" },
 ];
 
+const ALLOWED_NAVIGATION = /^(https?:|about:blank|blob:|data:)/i;
+
 function normalizeUrl(value: string): string | null {
   const trimmed = value.trim();
-  if (!trimmed) return null;
+  if (!trimmed || /\s/.test(trimmed)) return null;
 
   const withScheme = /^https?:\/\//i.test(trimmed)
     ? trimmed
@@ -36,14 +48,24 @@ function normalizeUrl(value: string): string | null {
     if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
       return null;
     }
+    if (parsed.username || parsed.password) return null;
+    if (!parsed.hostname.includes(".")) return null;
     return parsed.toString();
   } catch {
     return null;
   }
 }
 
+async function openExternally(url: string) {
+  try {
+    await Linking.openURL(url);
+  } catch {
+    // Schemes the device cannot handle are simply ignored.
+  }
+}
+
 /**
- * In-app browser for adding an item from a store page. "Add this page" sends
+ * In-app browser for adding an item from a store page. "Auto Scan" sends
  * the current URL through the existing importer; "Capture" sends the visible
  * page image through the vision draft. Both hand a draft to the item form.
  */
@@ -55,7 +77,11 @@ export default function WebImportScreen() {
   const [address, setAddress] = useState("");
   const [currentUrl, setCurrentUrl] = useState<string | null>(null);
   const [canGoBack, setCanGoBack] = useState(false);
-  const [drafting, setDrafting] = useState<"page" | "capture" | null>(null);
+  const [canGoForward, setCanGoForward] = useState(false);
+  const [editingAddress, setEditingAddress] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [drafting, setDrafting] = useState<"scan" | "capture" | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const openItemForm = (draft: ItemDraft) => {
@@ -79,9 +105,11 @@ export default function WebImportScreen() {
   const go = (value: string) => {
     const next = normalizeUrl(value);
     if (!next) {
-      setError("Enter a valid web address.");
+      setError("Enter a web address, for example hm.com.");
       return;
     }
+    Keyboard.dismiss();
+    setEditingAddress(false);
     setError(null);
     setAddress(next);
     if (next === currentUrl) {
@@ -91,14 +119,15 @@ export default function WebImportScreen() {
     }
   };
 
-  const addThisPage = async () => {
+  const autoScanPage = async () => {
     const url = normalizeUrl(address) ?? currentUrl;
     if (!url) {
       setError("Open a product page first.");
       return;
     }
 
-    setDrafting("page");
+    Keyboard.dismiss();
+    setDrafting("scan");
     setError(null);
     try {
       const draft = await api.draftItem({ url });
@@ -116,7 +145,7 @@ export default function WebImportScreen() {
 
   const capturePage = async () => {
     if (Platform.OS === "web") {
-      setError("Capture isn't available on web. Use Add this page instead.");
+      setError("Capture needs the phone app. Use Auto Scan here.");
       return;
     }
     if (!currentUrl) {
@@ -126,27 +155,55 @@ export default function WebImportScreen() {
 
     setDrafting("capture");
     setError(null);
+    Keyboard.dismiss();
     try {
       const { captureRef } = await import("react-native-view-shot");
       const imageBase64 = await captureRef(captureViewRef, {
         format: "jpg",
         quality: 0.85,
         result: "base64",
+        handleGLSurfaceViewOnAndroid: true,
       });
-      const draft = await api.draftItem({
-        imageBase64,
-        contentType: "image/jpeg",
+      if (!imageBase64) {
+        throw new Error("The screen could not be captured.");
+      }
+
+      // Hand the screenshot to the form as a picked photo. The form fills the
+      // details from it and uploads it on save, so the item keeps its photo.
+      setPendingPhoto({
+        uri: `data:image/jpeg;base64,${imageBase64}`,
+        base64: imageBase64,
+        mimeType: "image/jpeg",
+        fileName: null,
       });
-      openItemForm(draft);
+      router.replace({
+        pathname: "/(root)/add-wardrobe-items",
+        params: params.wardrobeId ? { wardrobeId: params.wardrobeId } : {},
+      });
     } catch (draftError) {
       setError(
-        draftError instanceof ApiException
+        draftError instanceof Error
           ? draftError.message
-          : "Could not read that screen. Try Add this page instead.",
+          : "Could not capture that screen.",
       );
     } finally {
       setDrafting(null);
     }
+  };
+
+  const shouldStartLoad = (request: { url: string }) => {
+    const { url } = request;
+    if (/^javascript:/i.test(url)) return false;
+    if (
+      /^https?:/i.test(url) &&
+      /\.(pdf|zip|rar|apk|dmg|exe)(\?|#|$)/i.test(url)
+    ) {
+      void openExternally(url);
+      return false;
+    }
+    if (ALLOWED_NAVIGATION.test(url)) return true;
+    void openExternally(url);
+    return false;
   };
 
   // Let the Android back button walk the page history before leaving.
@@ -168,7 +225,9 @@ export default function WebImportScreen() {
   }, [canGoBack]);
 
   const busy = drafting !== null;
+  const actionsBlocked = busy || loading;
   const canSubmit = Boolean(normalizeUrl(address) ?? currentUrl);
+  const showBrowserControls = currentUrl !== null && Platform.OS !== "web";
 
   return (
     <SafeAreaView
@@ -186,12 +245,53 @@ export default function WebImportScreen() {
           <X size={22} color={wardroColors.text.primary} />
         </Pressable>
 
+        {showBrowserControls ? (
+          <>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Go back a page"
+              hitSlop={6}
+              disabled={!canGoBack}
+              onPress={() => webRef.current?.goBack()}
+              className="h-11 w-8 items-center justify-center active:opacity-60"
+            >
+              <ChevronLeft
+                size={20}
+                color={
+                  canGoBack
+                    ? wardroColors.text.primary
+                    : wardroColors.text.disabled
+                }
+              />
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Go forward a page"
+              hitSlop={6}
+              disabled={!canGoForward}
+              onPress={() => webRef.current?.goForward()}
+              className="h-11 w-8 items-center justify-center active:opacity-60"
+            >
+              <ChevronRight
+                size={20}
+                color={
+                  canGoForward
+                    ? wardroColors.text.primary
+                    : wardroColors.text.disabled
+                }
+              />
+            </Pressable>
+          </>
+        ) : null}
+
         <View className="mx-1 h-10 flex-1 flex-row items-center rounded-full bg-surface px-3">
           <Globe size={15} color={wardroColors.text.secondary} />
           <TextInput
             value={address}
             onChangeText={setAddress}
             onSubmitEditing={() => go(address)}
+            onFocus={() => setEditingAddress(true)}
+            onBlur={() => setEditingAddress(false)}
             placeholder="Paste a link or a store address"
             placeholderTextColor={wardroColors.text.disabled}
             autoCapitalize="none"
@@ -201,32 +301,62 @@ export default function WebImportScreen() {
             selectTextOnFocus
             className="ml-2 h-10 flex-1 text-[13px] text-ink"
           />
+          {address.length > 0 ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Clear the address"
+              hitSlop={8}
+              onPress={() => setAddress("")}
+              className="ml-1 h-7 w-7 items-center justify-center rounded-full active:bg-line"
+            >
+              <X size={14} color={wardroColors.text.secondary} />
+            </Pressable>
+          ) : null}
         </View>
 
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Reload page"
-          hitSlop={8}
-          onPress={() => webRef.current?.reload()}
-          disabled={!currentUrl}
-          className="h-11 w-11 items-center justify-center rounded-full active:bg-surface"
-        >
-          <RotateCw
-            size={18}
-            color={
-              currentUrl
-                ? wardroColors.text.primary
-                : wardroColors.text.disabled
-            }
-          />
-        </Pressable>
+        {showBrowserControls ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Reload page"
+            hitSlop={8}
+            onPress={() => webRef.current?.reload()}
+            className="h-11 w-11 items-center justify-center rounded-full active:bg-surface"
+          >
+            <RotateCw size={18} color={wardroColors.text.primary} />
+          </Pressable>
+        ) : null}
       </View>
 
       <View className="h-px bg-line" />
 
+      {loading ? (
+        <View className="h-0.5 bg-line">
+          <View
+            className="h-0.5 bg-wardro-primary-dark"
+            style={{ width: `${Math.max(progress, 0.04) * 100}%` }}
+          />
+        </View>
+      ) : null}
+
       {error ? (
-        <View className="border-b border-line bg-danger/5 px-5 py-2.5">
-          <Text className="text-[12px] leading-4 text-danger">{error}</Text>
+        <View className="flex-row items-center border-b border-line bg-danger/5 px-5 py-2.5">
+          <Text className="flex-1 text-[12px] leading-4 text-danger">
+            {error}
+          </Text>
+          {showBrowserControls ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Retry loading the page"
+              hitSlop={8}
+              onPress={() => {
+                setError(null);
+                webRef.current?.reload();
+              }}
+              className="ml-3 rounded-full border border-danger/30 px-3 py-1 active:opacity-70"
+            >
+              <Text className="text-[11px] font-bold text-danger">Retry</Text>
+            </Pressable>
+          ) : null}
         </View>
       ) : null}
 
@@ -236,10 +366,40 @@ export default function WebImportScreen() {
             ref={webRef}
             source={{ uri: currentUrl }}
             onNavigationStateChange={(nav: WebViewNavigation) => {
-              setAddress(nav.url);
+              if (!editingAddress) setAddress(nav.url);
               setCanGoBack(nav.canGoBack);
+              setCanGoForward(nav.canGoForward);
             }}
-            onError={() => setError("That page could not be loaded.")}
+            onShouldStartLoadWithRequest={shouldStartLoad}
+            onOpenWindow={({ nativeEvent }) => {
+              if (ALLOWED_NAVIGATION.test(nativeEvent.targetUrl)) {
+                go(nativeEvent.targetUrl);
+              } else {
+                void openExternally(nativeEvent.targetUrl);
+              }
+            }}
+            onLoadStart={() => {
+              setLoading(true);
+              setProgress(0);
+              setError(null);
+              Keyboard.dismiss();
+            }}
+            onLoadProgress={({ nativeEvent }) =>
+              setProgress(nativeEvent.progress)
+            }
+            onLoadEnd={() => {
+              setLoading(false);
+              setProgress(1);
+            }}
+            onError={({ nativeEvent }) =>
+              setError(
+                nativeEvent.description || "That page could not be loaded.",
+              )
+            }
+            onRenderProcessGone={() =>
+              setError("The page stopped responding. Tap Retry.")
+            }
+            onContentProcessDidTerminate={() => webRef.current?.reload()}
             startInLoadingState
             renderLoading={() => (
               <View className="flex-1 items-center justify-center bg-white">
@@ -248,8 +408,59 @@ export default function WebImportScreen() {
             )}
             allowsBackForwardNavigationGestures
             setSupportMultipleWindows={false}
+            sharedCookiesEnabled
+            thirdPartyCookiesEnabled
+            domStorageEnabled
+            cacheEnabled
+            // WebView's default hardware layer can come back blank in
+            // react-native-view-shot; software rendering keeps Capture intact.
+            androidLayerType="software"
             style={{ flex: 1 }}
           />
+        </View>
+      ) : currentUrl ? (
+        <View className="flex-1 items-center justify-center px-8">
+          <View className="h-14 w-14 items-center justify-center rounded-full bg-surface">
+            <Globe size={26} color={wardroColors.primaryDark} />
+          </View>
+          <Text className="mt-4 text-center text-[16px] font-bold text-ink">
+            Preview runs on the phone
+          </Text>
+          <Text className="mt-1 text-center text-[12.5px] leading-5 text-ink-secondary">
+            The in-app browser isn't available in the web build. Use Auto Scan
+            to import the link, or open it in a browser tab.
+          </Text>
+          <Text
+            numberOfLines={2}
+            className="mt-4 px-4 text-center text-[11.5px] leading-4 text-ink-secondary"
+          >
+            {currentUrl}
+          </Text>
+
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Open the page in a browser tab"
+            onPress={() => void openExternally(currentUrl)}
+            className="mt-5 rounded-full border border-line bg-white px-4 py-2 active:opacity-80"
+          >
+            <Text className="text-[12px] font-semibold text-ink">
+              Open in browser
+            </Text>
+          </Pressable>
+
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => {
+              setCurrentUrl(null);
+              setAddress("");
+              setError(null);
+            }}
+            className="mt-3 px-3 py-2 active:opacity-60"
+          >
+            <Text className="text-[12px] font-semibold text-ink-secondary">
+              Use a different link
+            </Text>
+          </Pressable>
         </View>
       ) : (
         <View className="flex-1 items-center justify-center px-8">
@@ -269,6 +480,7 @@ export default function WebImportScreen() {
                 key={store.label}
                 accessibilityRole="button"
                 onPress={() => {
+                  Keyboard.dismiss();
                   setAddress(store.url);
                   setCurrentUrl(store.url);
                   setError(null);
@@ -284,7 +496,7 @@ export default function WebImportScreen() {
 
           {Platform.OS === "web" ? (
             <Text className="mt-6 text-center text-[11.5px] leading-4 text-ink-secondary">
-              The live page isn't shown on web, but Add this page still works.
+              Live preview needs the phone app; Auto Scan works here.
             </Text>
           ) : null}
         </View>
@@ -294,51 +506,49 @@ export default function WebImportScreen() {
         <View className="flex-row gap-3">
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Add this page"
-            onPress={() => void addThisPage()}
-            disabled={busy || !canSubmit}
+            accessibilityLabel="Auto Scan this page"
+            onPress={() => void autoScanPage()}
+            disabled={actionsBlocked || !canSubmit}
             className={`h-12 flex-1 flex-row items-center justify-center rounded-full ${
-              busy || !canSubmit
+              actionsBlocked || !canSubmit
                 ? "bg-wardro-primary-dark/40"
                 : "bg-wardro-primary-dark active:opacity-80"
             }`}
           >
-            {drafting === "page" ? (
+            {drafting === "scan" ? (
               <ActivityIndicator color="#fff" />
             ) : (
               <Text className="text-[14px] font-bold text-white">
-                Add this page
+                Auto Scan
               </Text>
             )}
           </Pressable>
 
-          {Platform.OS !== "web" ? (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Capture this screen"
-              onPress={() => void capturePage()}
-              disabled={busy || !currentUrl}
-              className={`h-12 flex-1 flex-row items-center justify-center rounded-full border ${
-                busy || !currentUrl
-                  ? "border-line bg-white"
-                  : "border-wardro-primary-dark bg-white active:opacity-80"
-              }`}
-            >
-              {drafting === "capture" ? (
-                <ActivityIndicator color={wardroColors.primaryDark} />
-              ) : (
-                <Text
-                  className={`text-[14px] font-bold ${
-                    busy || !currentUrl
-                      ? "text-ink-muted"
-                      : "text-wardro-primary-dark"
-                  }`}
-                >
-                  Capture
-                </Text>
-              )}
-            </Pressable>
-          ) : null}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Capture this screen"
+            onPress={() => void capturePage()}
+            disabled={actionsBlocked || !currentUrl}
+            className={`h-12 flex-1 flex-row items-center justify-center rounded-full border ${
+              actionsBlocked || !currentUrl
+                ? "border-line bg-white"
+                : "border-wardro-primary-dark bg-white active:opacity-80"
+            }`}
+          >
+            {drafting === "capture" ? (
+              <ActivityIndicator color={wardroColors.primaryDark} />
+            ) : (
+              <Text
+                className={`text-[14px] font-bold ${
+                  actionsBlocked || !currentUrl
+                    ? "text-ink-muted"
+                    : "text-wardro-primary-dark"
+                }`}
+              >
+                Capture
+              </Text>
+            )}
+          </Pressable>
         </View>
       </View>
     </SafeAreaView>
