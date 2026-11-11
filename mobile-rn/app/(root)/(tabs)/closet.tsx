@@ -323,7 +323,7 @@ export default function ClosetScreen() {
             title="No items yet"
             message="Snap a photo of a garment and it will show up here, grouped by wardrobe."
             actionLabel="Add Item"
-            onAction={() => router.push("/(root)/add-wardrobe-items")}
+            onAction={() => router.push("/(root)/add-item")}
           />
         ) : visibleItems.length === 0 ? (
           <EmptyView

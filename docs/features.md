@@ -30,6 +30,19 @@ Status values: **Done**, **In progress**, **Proposed**, **Later**.
   review cards with include/skip, detect duplicates against the active profile
   using normalized attributes, and choose Skip / Add anyway / Update existing.
   Saves are per item and default dates to today / today + 1 year.
+- **Add hub** — `/(root)/add-item` is the front door for creating an item. It
+  groups the methods that exist into “One at a time” (camera, photos, website,
+  typing) and “Or all at once” (bulk photos). The FAB, Today quick actions and
+  the Closet empty state open the hub; wardrobe detail forwards its wardrobe.
+  Editing an item still opens the form directly.
+- **In-app web importer** — `/(root)/web-import` is a `react-native-webview`
+  browser. “Add this page” sends the current URL through the existing
+  `POST /api/ai/item-draft` pipeline; “Capture” screenshots the visible page
+  and sends it through the vision draft. Both hand a finished draft to the
+  item form. Single item only; listing multi-scan is not built.
+- **Draft handoff** — the item form accepts a picked photo in memory (camera
+  and photo library) or a serialized draft in route params (web importer), so
+  the Add hub does not duplicate the form's work.
 
 ## Bulk photo import (up to 10) — minimal version shipped
 
@@ -231,20 +244,29 @@ extraction, but it is fragile and legally sensitive:
 
 1. **Order/product link paste** — share an order or product URL; reuse the
    existing URL-import pipeline. Lowest risk, works today for product pages.
+   **The in-app browser now provides the page-side half of this:** “Add this
+   page” is the link path, and “Capture” is the fallback when the extractor is
+   blocked.
 2. **Email receipt import** — a forwarding address or a read-only mailbox
    connection (Gmail/Outlook) with explicit consent. Receipt emails are more
    stable than order-page HTML and can be parsed with the AI model.
-3. **In-app store purchase-history flow** — the reference screenshot. Pilot one
+3. **Listing multi-scan** — one screenshot of a store page, many detected
+   products, review list, bulk add. This is Acloset’s “Auto Scan” behaviour. It
+   needs a multi-item vision endpoint (the current draft endpoint returns one
+   item) and the review additions listed under the bulk-import open questions.
+4. **In-app store purchase-history flow** — the reference screenshot. Pilot one
    store first, user-initiated, no credential capture, visible-order extraction,
    with a clear disclaimer and a manual fallback.
-4. **Browser extension** — later, for desktop purchase-history capture.
+5. **Browser extension** — later, for desktop purchase-history capture.
 
 **Data to add when this lands:** `source_store`, `source_order_id`,
 `source_url`, `purchased_at`, `order_total`; dedupe by order id plus item
 signature.
 
-**Status:** Proposed — not started. The product should not promise four-store
-support until at least one reliable path is validated.
+**Status:** The in-app browser and single-page import are built; listing
+multi-scan, email receipt import and store purchase-history import are not.
+The product should not promise four-store support until at least one reliable
+path is validated.
 
 ## Open questions
 

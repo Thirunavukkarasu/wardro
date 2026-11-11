@@ -1,7 +1,7 @@
-import * as ImagePicker from "expo-image-picker";
 import { Camera, ImageIcon, RefreshCw } from "lucide-react-native";
 import { Alert, Image, Platform, Pressable, Text, View } from "react-native";
 
+import { pickPhoto } from "~/lib/photos";
 import type { PickedPhoto } from "~/lib/types";
 import { wardroColors } from "~/src/theme/colors";
 
@@ -9,42 +9,6 @@ interface PhotoCaptureFieldProps {
   photo: PickedPhoto | null;
   onChange: (photo: PickedPhoto | null) => void;
   height?: number;
-}
-
-async function pickPhoto(
-  source: "camera" | "library",
-): Promise<PickedPhoto | null> {
-  if (Platform.OS !== "web") {
-    const permission =
-      source === "camera"
-        ? await ImagePicker.requestCameraPermissionsAsync()
-        : await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-    if (!permission.granted) {
-      return null;
-    }
-  }
-
-  const options: ImagePicker.ImagePickerOptions = {
-    mediaTypes: ImagePicker.MediaTypeOptions.Images,
-    quality: 0.85,
-    base64: true,
-  };
-
-  const useCamera = source === "camera" && Platform.OS !== "web";
-  const result = useCamera
-    ? await ImagePicker.launchCameraAsync(options)
-    : await ImagePicker.launchImageLibraryAsync(options);
-
-  if (result.canceled || result.assets.length === 0) return null;
-
-  const asset = result.assets[0];
-  return {
-    uri: asset.uri,
-    base64: asset.base64 ?? null,
-    mimeType: asset.mimeType ?? "image/jpeg",
-    fileName: asset.fileName ?? null,
-  };
 }
 
 /**

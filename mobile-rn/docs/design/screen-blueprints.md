@@ -128,6 +128,54 @@ season/occasion, usage stats, outfits-containing, and styling notes are next.
 
 ---
 
+## Screen 4a — Add to your closet (hub)
+
+The front door for creating an item. It routes; it does not collect details.
+
+| Section | Options | Behaviour |
+| --- | --- | --- |
+| **One at a time** | Take a photo · Choose a photo · From a website · Type it in | Camera/photos pick immediately and open the form; website opens the in-app browser; typing opens a blank form |
+| **Or all at once** | Add a batch — up to 10 photos | Opens the bulk review |
+
+Copy:
+
+- Title: “Add to your closet”; subtitle: “One piece, or the whole bag.”
+- Section labels: “One at a time” and “Or all at once” (the manual/auto split,
+  stated in human terms).
+- Tile captions: “Snap it now”, “From your camera roll”, “Browse a store or
+  paste a link”, “No photo needed”.
+- Batch: “Up to 10 photos — we'll name each piece.”
+
+Rules:
+
+- Only methods that exist appear. No Library (no catalog), no email or store
+  import until they are real, no “More methods” drawer.
+- The batch card is a single wide card, not a fifth tile, so it reads as a
+  different kind of action.
+- Editing an item never passes through the hub; it opens the form directly.
+
+---
+
+## Screen 4b — From a website (in-app browser)
+
+| Order | Element | Notes |
+| --- | --- | --- |
+| 1 | Address bar | Paste a product link or type a store address |
+| 2 | Start panel | “Browse a store” with a few store shortcuts |
+| 3 | Web page | Rendered in `react-native-webview` with the user's session |
+| 4 | Add this page | Sends the current URL through `POST /api/ai/item-draft` |
+| 5 | Capture | Screenshots the visible page and sends it through the vision draft |
+
+Both actions open the item form already filled in. “Add this page” is primary;
+“Capture” is the fallback for pages the server-side extractor cannot read.
+“Capture” is hidden on web, where the live page is not rendered.
+
+Later: **Auto Scan** for listing pages — one screenshot, many detected
+products, review list, bulk add. This needs a multi-item vision endpoint and is
+not part of the current build.
+
+---
+
 ## Screen 4 — Add clothing
 
 | Order | Step | Notes |

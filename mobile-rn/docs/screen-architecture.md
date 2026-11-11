@@ -111,7 +111,9 @@ differently so “Profile / More” does not become a junk drawer.
 | Closet | **Closet grid** | Searchable, filterable garments with wardrobe chips | Merge current Items + Wardrobes |
 | Closet | Search & filters | Text search + wardrobe/category/colour/size filters | Built (category chips appear when data has categories) |
 | Closet | Item detail | Photo hero, details, dates, delete, edit, mark worn | Built; mark worn next |
-| Closet | Add item | Photo-first capture | Built |
+| Closet | **Add hub** | Choose a method: camera, photos, website, typing, or a batch | Built (`/(root)/add-item`) |
+| Closet | Add item | Photo-first form; accepts a picked photo or a finished draft | Built |
+| Closet | Web importer | In-app browser; “Add this page” or “Capture” hands a draft to the form | Built (`/(root)/web-import`, single item) |
 | Closet | Edit item | Pre-filled form + photo replacement | Built (photo replace picker) |
 | Closet | Add / Edit wardrobe | Create or update a collection | Built |
 | Closet | Wardrobe detail | One collection’s grid + delete + add | Built |
@@ -129,7 +131,9 @@ differently so “Profile / More” does not become a junk drawer.
 
 ## 4. Navigation rules
 
-- **FAB → Add item** from Today and Closet. Hidden on Create, Calendar, and
+- **FAB → Add hub** from Today and Closet. The hub routes to camera, photo
+  library, the in-app web importer, a blank form, or bulk import. Editing an
+  item still opens the form directly. Hidden on Create, Calendar, and
   Profile unless it gains a contextual create action.
 - **Create** — opens the outfit builder; “Add clothing” is available as a
   secondary action. Keep the visual treatment slightly more prominent than the
@@ -184,6 +188,16 @@ As of 2026-11-05:
 - Today dashboard with the profile rail, Closet with search/category/wardrobe
   filters, the pushed Wardrobes manager, item/wardrobe detail, add/edit item,
   add/edit wardrobe, and Profile with profile management are built.
+- **Add hub** (`/(root)/add-item`) is the front door for creating an item:
+  Take a photo, Choose a photo, From a website, Type it in, and Add a batch.
+  Camera/photo library hand the picked photo to the form in memory; the web
+  importer and bulk flow hand over a finished draft.
+- **Web importer** (`/(root)/web-import`) is an in-app browser with “Add this
+  page” (current URL through the existing importer) and “Capture” (visible
+  page through the vision draft). Both open the item form pre-filled. It
+  requires `react-native-webview` and `react-native-view-shot`, so a native
+  rebuild is needed after pulling these changes. Listing-page multi-scan
+  (Acloset-style Auto Scan returning many items) is **not** built.
 - Multi-profile is implemented (household account, cascade delete) and the
   backend schema has been migrated.
 - A **Chat** tab is wired to the local FastAPI/LangGraph agent. It sends the

@@ -4,8 +4,10 @@ export default function RootGroupLayout() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="add-item" />
       <Stack.Screen name="add-wardrobe" />
       <Stack.Screen name="add-wardrobe-items" />
+      <Stack.Screen name="web-import" />
       <Stack.Screen name="bulk-import" />
       <Stack.Screen name="add-profile" />
       <Stack.Screen name="wardrobes" />

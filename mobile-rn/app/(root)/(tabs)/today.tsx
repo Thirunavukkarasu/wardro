@@ -197,7 +197,7 @@ export default function TodayScreen() {
             icon={<Camera size={20} color={wardroColors.primaryDark} />}
             label="Add item"
             caption="Snap a garment"
-            onPress={() => router.push("/(root)/add-wardrobe-items")}
+            onPress={() => router.push("/(root)/add-item")}
           />
           <QuickAction
             icon={<LayoutGrid size={20} color={wardroColors.primaryDark} />}
@@ -270,7 +270,7 @@ export default function TodayScreen() {
                   Photograph your first garment and it will show up here.
                 </Text>
                 <Pressable
-                  onPress={() => router.push("/(root)/add-wardrobe-items")}
+                  onPress={() => router.push("/(root)/add-item")}
                   className="mt-3 self-start rounded-full bg-brand px-4 py-2 active:opacity-80"
                 >
                   <Text className="text-xs font-bold text-white">Add Item</Text>

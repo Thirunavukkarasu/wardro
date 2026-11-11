@@ -1,5 +1,5 @@
 import * as ImagePicker from "expo-image-picker";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { Images, Sparkles } from "lucide-react-native";
 import { useCallback, useEffect, useState } from "react";
 import {
@@ -157,6 +157,7 @@ function draftDetails(draft: ItemDraft | null): string {
 
 export default function BulkImportScreen() {
   const { activeProfile } = useProfiles();
+  const params = useLocalSearchParams<{ wardrobeId?: string }>();
   const [wardrobes, setWardrobes] = useState<Wardrobe[]>([]);
   const [selectedWardrobeId, setSelectedWardrobeId] = useState<number | null>(
     null,
@@ -178,12 +179,17 @@ export default function BulkImportScreen() {
         api.get<Record<string, unknown>[]>("/wardrobeItems"),
       ]);
       const list = (wardrobeRows ?? []).map(wardrobeFromJson);
+      const preferred = params.wardrobeId
+        ? Number(params.wardrobeId)
+        : null;
       setWardrobes(list);
-      setSelectedWardrobeId((current) =>
-        current && list.some((wardrobe) => wardrobe.id === current)
-          ? current
-          : (list[0]?.id ?? null),
-      );
+      setSelectedWardrobeId((current) => {
+        const wanted = preferred ?? current;
+        if (wanted && list.some((wardrobe) => wardrobe.id === wanted)) {
+          return wanted;
+        }
+        return list[0]?.id ?? null;
+      });
       setExistingItems((itemRows ?? []).map(wardrobeItemFromJson));
     } catch (error) {
       setSetupError(
@@ -194,7 +200,7 @@ export default function BulkImportScreen() {
     } finally {
       setLoadingSetup(false);
     }
-  }, [activeProfile?.id]);
+  }, [activeProfile?.id, params.wardrobeId]);
 
   useEffect(() => {
     void loadSetup();

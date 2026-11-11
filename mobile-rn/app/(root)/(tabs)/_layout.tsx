@@ -73,7 +73,7 @@ export default function TabsLayout() {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Add item"
-          onPress={() => router.push("/(root)/add-wardrobe-items")}
+          onPress={() => router.push("/(root)/add-item")}
           className="absolute right-5 h-14 w-14 items-center justify-center rounded-full bg-wardro-primary-dark active:opacity-80"
           style={{
             bottom: 88 + insets.bottom,

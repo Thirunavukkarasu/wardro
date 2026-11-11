@@ -87,7 +87,7 @@ export default function WardrobeItemsScreen() {
 
   const addItem = () =>
     router.push({
-      pathname: "/(root)/add-wardrobe-items",
+      pathname: "/(root)/add-item",
       params: { wardrobeId: String(wardrobeId) },
     });
 
