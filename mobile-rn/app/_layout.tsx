@@ -40,8 +40,16 @@ function RootNavigator() {
   const segments = useSegments();
   const router = useRouter();
 
+  const booting =
+    status === "restoring" ||
+    (status === "signedIn" && profilesLoading);
+  const profileBlocked =
+    status === "signedIn" && (profilesError || !activeProfile);
+
   useEffect(() => {
-    if (status === "restoring") return;
+    // The Stack is replaced by a loading/error view in these states. Dispatching
+    // a replace before it mounts makes React Navigation drop the action.
+    if (booting || profileBlocked) return;
 
     const inAuthGroup = segments[0] === "(auth)";
     const inSignUp = (segments as readonly string[]).includes("sign-up");
@@ -53,18 +61,10 @@ function RootNavigator() {
 
     // Sign-up stays visible while the verification dialog is open; the
     // screen itself continues to the app when the user dismisses it.
-    if (
-      status === "signedIn" &&
-      inAuthGroup &&
-      !inSignUp
-    ) {
+    if (status === "signedIn" && inAuthGroup && !inSignUp) {
       router.replace("/(root)/(tabs)/today");
     }
-  }, [status, segments, router]);
-
-  const booting =
-    status === "restoring" ||
-    (status === "signedIn" && profilesLoading);
+  }, [status, segments, router, booting, profileBlocked]);
 
   if (booting) {
     return (
@@ -79,7 +79,7 @@ function RootNavigator() {
     );
   }
 
-  if (status === "signedIn" && (profilesError || !activeProfile)) {
+  if (profileBlocked) {
     return (
       <View className="flex-1 items-center justify-center bg-canvas px-8">
         <Text className="text-center text-base font-bold text-ink">
