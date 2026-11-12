@@ -160,12 +160,20 @@ function RootNavigator() {
       {splashVisible && (
         <Animated.View
           pointerEvents="none"
-          style={[StyleSheet.absoluteFill, { opacity: splashOpacity }]}
+          style={[
+            StyleSheet.absoluteFill,
+            {
+              backgroundColor: wardroColors.background,
+              opacity: splashOpacity,
+            },
+          ]}
         >
           <Image
             source={splashArtwork}
             resizeMode="contain"
-            style={StyleSheet.absoluteFill}
+            // The image needs its own box: with only absolute positioning,
+            // web renders it at intrinsic size and it overflows the screen.
+            style={{ width: "100%", height: "100%" }}
           />
         </Animated.View>
       )}
