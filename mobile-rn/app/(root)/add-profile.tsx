@@ -8,6 +8,7 @@ import CustomButton from "~/components/CustomButton";
 import FormScreen from "~/components/FormScreen";
 import InputField from "~/components/InputField";
 import { useProfiles } from "~/lib/profiles-context";
+import { FIELD_LIMITS, nameError } from "~/lib/validation";
 import {
   wardroColors,
   wardroProfileColors,
@@ -45,8 +46,9 @@ export default function AddProfileScreen() {
   const save = async () => {
     setLocalError(null);
 
-    if (!name.trim()) {
-      setLocalError("Give this profile a name.");
+    const nameIssue = nameError(name, "Profile name");
+    if (nameIssue) {
+      setLocalError(nameIssue);
       return;
     }
 
@@ -110,6 +112,7 @@ export default function AddProfileScreen() {
           label="Name"
           placeholder="e.g. Swati, Kids, Work capsule"
           icon={<User size={20} color={wardroColors.text.disabled} />}
+          maxLength={FIELD_LIMITS.name}
           value={name}
           onChangeText={(value) => {
             setName(value);

@@ -18,7 +18,15 @@ import InputField from "~/components/InputField";
 import OAuth from "~/components/OAuth";
 import ScreenHero from "~/components/ScreenHero";
 import { useAuth } from "~/lib/auth-context";
+import {
+  emailError,
+  FIELD_LIMITS,
+  nameError,
+  passwordError,
+} from "~/lib/validation";
 import { wardroColors } from "~/src/theme/colors";
+
+type FieldErrors = { name?: string; email?: string; password?: string };
 
 export default function SignUpScreen() {
   const {
@@ -32,6 +40,7 @@ export default function SignUpScreen() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [verificationVisible, setVerificationVisible] = useState(false);
   const [resendState, setResendState] = useState<"idle" | "sent" | "failed">(
@@ -41,22 +50,13 @@ export default function SignUpScreen() {
   const submit = async () => {
     setFormError(null);
 
-    if (!name.trim()) {
-      setFormError("Name is required.");
-      return;
-    }
-    if (!email.trim()) {
-      setFormError("Email is required.");
-      return;
-    }
-    if (!email.includes("@")) {
-      setFormError("Enter a valid email.");
-      return;
-    }
-    if (password.length < 6) {
-      setFormError("Use at least 6 characters for your password.");
-      return;
-    }
+    const next: FieldErrors = {
+      name: nameError(name) ?? undefined,
+      email: emailError(email) ?? undefined,
+      password: passwordError(password) ?? undefined,
+    };
+    setFieldErrors(next);
+    if (next.name || next.email || next.password) return;
 
     const created = await signUp(name, email, password);
     if (created) {
@@ -99,9 +99,12 @@ export default function SignUpScreen() {
               placeholder="Enter name"
               icon={<User size={20} color={wardroColors.text.disabled} />}
               autoComplete="name"
+              maxLength={FIELD_LIMITS.name}
               value={name}
+              error={fieldErrors.name}
               onChangeText={(value) => {
                 setName(value);
+                setFieldErrors((current) => ({ ...current, name: undefined }));
                 clearError();
                 setFormError(null);
               }}
@@ -114,9 +117,12 @@ export default function SignUpScreen() {
               autoCapitalize="none"
               autoComplete="email"
               keyboardType="email-address"
+              maxLength={FIELD_LIMITS.email}
               value={email}
+              error={fieldErrors.email}
               onChangeText={(value) => {
                 setEmail(value);
+                setFieldErrors((current) => ({ ...current, email: undefined }));
                 clearError();
                 setFormError(null);
               }}
@@ -128,9 +134,15 @@ export default function SignUpScreen() {
               icon={<Lock size={20} color={wardroColors.text.disabled} />}
               secureTextEntry
               autoComplete="new-password"
+              maxLength={FIELD_LIMITS.password}
               value={password}
+              error={fieldErrors.password}
               onChangeText={(value) => {
                 setPassword(value);
+                setFieldErrors((current) => ({
+                  ...current,
+                  password: undefined,
+                }));
                 clearError();
                 setFormError(null);
               }}

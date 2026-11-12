@@ -35,6 +35,7 @@ import {
   mergeOptions,
 } from "~/lib/item-options";
 import { pickedPhotoBase64 } from "~/lib/photos";
+import { FIELD_LIMITS, textError } from "~/lib/validation";
 import { useProfiles } from "~/lib/profiles-context";
 import type { ItemDraft, PickedPhoto, Wardrobe } from "~/lib/types";
 import {
@@ -294,8 +295,9 @@ export default function AddItemScreen() {
   const save = async () => {
     setError(null);
 
-    if (!itemName.trim()) {
-      setError("Give the item a name.");
+    const nameIssue = textError(itemName, "Item name", FIELD_LIMITS.itemName);
+    if (nameIssue) {
+      setError(nameIssue);
       return;
     }
     if (!selectedWardrobeId) {
@@ -520,6 +522,7 @@ export default function AddItemScreen() {
                 label="Item Name"
                 placeholder="Enter item name"
                 icon={<Shirt size={20} color={wardroColors.text.disabled} />}
+                maxLength={FIELD_LIMITS.itemName}
                 value={itemName}
                 onChangeText={(value) => {
                   setItemName(value);

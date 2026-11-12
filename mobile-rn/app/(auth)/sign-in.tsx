@@ -16,6 +16,7 @@ import InputField from "~/components/InputField";
 import OAuth from "~/components/OAuth";
 import ScreenHero from "~/components/ScreenHero";
 import { useAuth } from "~/lib/auth-context";
+import { emailError, FIELD_LIMITS } from "~/lib/validation";
 import { wardroColors } from "~/src/theme/colors";
 
 export default function SignInScreen() {
@@ -23,23 +24,21 @@ export default function SignInScreen() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<{
+    email?: string;
+    password?: string;
+  }>({});
   const [formError, setFormError] = useState<string | null>(null);
 
   const submit = async () => {
     setFormError(null);
 
-    if (!email.trim()) {
-      setFormError("Email is required.");
-      return;
-    }
-    if (!email.includes("@")) {
-      setFormError("Enter a valid email.");
-      return;
-    }
-    if (!password) {
-      setFormError("Password is required.");
-      return;
-    }
+    const next = {
+      email: emailError(email) ?? undefined,
+      password: password ? undefined : "Password is required.",
+    };
+    setFieldErrors(next);
+    if (next.email || next.password) return;
 
     const signedIn = await signIn(email, password);
     if (signedIn) {
@@ -61,7 +60,11 @@ export default function SignInScreen() {
         >
           <ScreenHero
             title="Welcome 👋"
-            onBack={() => router.replace("/(auth)/welcome")}
+            onBack={
+              router.canGoBack()
+                ? () => router.back()
+                : undefined
+            }
           />
 
           <View className="px-5 pt-4">
@@ -72,9 +75,12 @@ export default function SignInScreen() {
               autoCapitalize="none"
               autoComplete="email"
               keyboardType="email-address"
+              maxLength={FIELD_LIMITS.email}
               value={email}
+              error={fieldErrors.email}
               onChangeText={(value) => {
                 setEmail(value);
+                setFieldErrors((current) => ({ ...current, email: undefined }));
                 clearError();
                 setFormError(null);
               }}
@@ -86,9 +92,15 @@ export default function SignInScreen() {
               icon={<Lock size={20} color={wardroColors.text.disabled} />}
               secureTextEntry
               autoComplete="password"
+              maxLength={FIELD_LIMITS.password}
               value={password}
+              error={fieldErrors.password}
               onChangeText={(value) => {
                 setPassword(value);
+                setFieldErrors((current) => ({
+                  ...current,
+                  password: undefined,
+                }));
                 clearError();
                 setFormError(null);
               }}

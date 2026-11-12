@@ -8,6 +8,7 @@ import FormScreen from "~/components/FormScreen";
 import InputField from "~/components/InputField";
 import { api, ApiException } from "~/lib/api";
 import { useProfiles } from "~/lib/profiles-context";
+import { FIELD_LIMITS, nameError } from "~/lib/validation";
 import { wardroColors } from "~/src/theme/colors";
 
 export default function AddWardrobeScreen() {
@@ -27,8 +28,9 @@ export default function AddWardrobeScreen() {
   const save = async () => {
     setError(null);
 
-    if (!name.trim()) {
-      setError("Give your wardrobe a name.");
+    const nameIssue = nameError(name, "Wardrobe name");
+    if (nameIssue) {
+      setError(nameIssue);
       return;
     }
 
@@ -91,6 +93,7 @@ export default function AddWardrobeScreen() {
         label="Name"
         placeholder="Enter name"
         icon={<Shirt size={20} color={wardroColors.text.disabled} />}
+        maxLength={FIELD_LIMITS.name}
         value={name}
         onChangeText={(value) => {
           setName(value);
