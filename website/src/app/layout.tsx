@@ -16,9 +16,27 @@ const fontSerif = Playfair_Display({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://wardro-lake.vercel.app"),
   title: "Wardro — Your family's wardrobe, thoughtfully organized",
   description:
     "Wardro keeps every family member's wardrobe in one calm place, then lets you ask what to wear, find what you own, or photograph a new garment.",
+  openGraph: {
+    title: "Wardro — Your family's wardrobe, thoughtfully organized",
+    description:
+      "Wardro keeps every family member's wardrobe in one calm place, then lets you ask what to wear, find what you own, or photograph a new garment.",
+    images: [
+      {
+        url: "/brand/wardro-og.png",
+        width: 1024,
+        height: 500,
+        alt: "Wardro — Family Wardrobe",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    images: ["/brand/wardro-og.png"],
+  },
 };
 
 export default function RootLayout({

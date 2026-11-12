@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 export default function SiteFooter() {
@@ -6,13 +7,14 @@ export default function SiteFooter() {
       <div className="site-container py-12 sm:py-16">
         <div className="grid gap-10 md:grid-cols-[1.4fr_1fr_1fr]">
           <div>
-            <div className="flex items-center gap-2.5">
-              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-wardro-primary-dark text-sm font-bold text-white">
-                W
-              </span>
-              <span className="editorial text-[26px] font-semibold text-wardro-text-primary">
-                Wardro
-              </span>
+            <div className="flex items-center">
+              <Image
+                src="/brand/wardro-logo.png"
+                alt="Wardro"
+                width={1540}
+                height={500}
+                className="h-10 w-auto"
+              />
             </div>
             <p className="mt-4 max-w-sm text-[13.5px] leading-6 text-wardro-text-secondary">
               A calmer way to organise the clothes your household actually

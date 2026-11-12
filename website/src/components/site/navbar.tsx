@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 const links = [
@@ -11,13 +12,15 @@ export default function SiteNavbar() {
   return (
     <header className="sticky top-0 z-40 border-b border-wardro-border/70 bg-wardro-background/90 backdrop-blur-xl">
       <div className="site-container flex h-16 items-center justify-between">
-        <Link href="/" className="group flex items-center gap-2.5">
-          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-wardro-primary-dark text-sm font-bold text-white">
-            W
-          </span>
-          <span className="editorial text-[26px] font-semibold leading-none text-wardro-text-primary">
-            Wardro
-          </span>
+        <Link href="/" aria-label="Wardro home" className="flex items-center">
+          <Image
+            src="/brand/wardro-logo.png"
+            alt="Wardro"
+            width={1540}
+            height={500}
+            priority
+            className="h-9 w-auto"
+          />
         </Link>
 
         <nav className="hidden items-center gap-7 md:flex">
