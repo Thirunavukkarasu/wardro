@@ -2,15 +2,18 @@ import "~/global.css";
 
 import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator,
+  Animated,
+  Image,
   Pressable,
+  StyleSheet,
   Text,
   View,
 } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
+import splashArtwork from "~/assets/images/splash.png";
 import PhoneFrame from "~/components/PhoneFrame";
 import { AuthProvider, useAuth } from "~/lib/auth-context";
 import {
@@ -46,6 +49,30 @@ function RootNavigator() {
   const profileBlocked =
     status === "signedIn" && (profilesError || !activeProfile);
 
+  // Hold the splash long enough to read as a splash rather than a flash.
+  const [minSplashElapsed, setMinSplashElapsed] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => setMinSplashElapsed(true), 600);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const [splashVisible, setSplashVisible] = useState(true);
+  const splashOpacity = useRef(new Animated.Value(1)).current;
+  const appReady = !booting && minSplashElapsed;
+
+  useEffect(() => {
+    if (!appReady) return;
+    const animation = Animated.timing(splashOpacity, {
+      toValue: 0,
+      duration: 320,
+      useNativeDriver: true,
+    });
+    animation.start(({ finished }) => {
+      if (finished) setSplashVisible(false);
+    });
+    return () => animation.stop();
+  }, [appReady, splashOpacity]);
+
   useEffect(() => {
     // The Stack is replaced by a loading/error view in these states. Dispatching
     // a replace before it mounts makes React Navigation drop the action.
@@ -66,39 +93,26 @@ function RootNavigator() {
     }
   }, [status, segments, router, booting, profileBlocked]);
 
-  if (booting) {
-    return (
-      <View className="flex-1 items-center justify-center bg-canvas">
-        <ActivityIndicator size="large" color={wardroColors.primaryDark} />
-        <Text className="mt-4 text-sm text-ink-secondary">
-          {status === "restoring"
-            ? "Restoring your session…"
-            : "Loading your profiles…"}
-        </Text>
-      </View>
-    );
-  }
-
-  if (profileBlocked) {
-    return (
-      <View className="flex-1 items-center justify-center bg-canvas px-8">
-        <Text className="text-center text-base font-bold text-ink">
-          Couldn’t load your profiles
-        </Text>
-        <Text className="mt-2 text-center text-sm leading-5 text-ink-secondary">
-          {profilesError ?? "No profile is available for this account."}
-        </Text>
-        <Pressable
-          onPress={refreshProfiles}
-          className="mt-5 rounded-full bg-brand px-6 py-3 active:opacity-80"
-        >
-          <Text className="text-sm font-bold text-white">Retry</Text>
-        </Pressable>
-      </View>
-    );
-  }
-
-  return (
+  const content = booting ? (
+    // The splash overlay covers this; keep it blank rather than a spinner so
+    // the artwork is the only thing on screen.
+    <View className="flex-1 bg-canvas" />
+  ) : profileBlocked ? (
+    <View className="flex-1 items-center justify-center bg-canvas px-8">
+      <Text className="text-center text-base font-bold text-ink">
+        Couldn’t load your profiles
+      </Text>
+      <Text className="mt-2 text-center text-sm leading-5 text-ink-secondary">
+        {profilesError ?? "No profile is available for this account."}
+      </Text>
+      <Pressable
+        onPress={refreshProfiles}
+        className="mt-5 rounded-full bg-brand px-6 py-3 active:opacity-80"
+      >
+        <Text className="text-sm font-bold text-white">Retry</Text>
+      </Pressable>
+    </View>
+  ) : (
     <Stack
       screenOptions={{
         headerShown: false,
@@ -110,6 +124,24 @@ function RootNavigator() {
       <Stack.Screen name="(root)" />
       <Stack.Screen name="+not-found" />
     </Stack>
+  );
+
+  return (
+    <View className="flex-1">
+      {content}
+      {splashVisible && (
+        <Animated.View
+          pointerEvents="none"
+          style={[StyleSheet.absoluteFill, { opacity: splashOpacity }]}
+        >
+          <Image
+            source={splashArtwork}
+            resizeMode="contain"
+            style={StyleSheet.absoluteFill}
+          />
+        </Animated.View>
+      )}
+    </View>
   );
 }
 
