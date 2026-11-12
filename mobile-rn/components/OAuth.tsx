@@ -27,7 +27,7 @@ export default function OAuth() {
       </View>
 
       <CustomButton
-        title="Log In with Google"
+        title="Continue with Google"
         variant="outline"
         isLoading={busy}
         onPress={handleGoogleSignIn}

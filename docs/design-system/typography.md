@@ -1,23 +1,38 @@
 # Typography
 
-Wardro’s typography should feel editorial but highly readable. Use a neutral
-interface sans for almost everything, and a serif only for a few editorial
-moments (Today greeting/hero, onboarding, featured outfit titles).
+Wardro is used by Indian households — mostly non-technical, Android-first, and
+often on budget phones and in shared family hands. Legibility beats styling, so
+the app ships **one family: the platform system sans**. On Android that is
+Roboto; on iOS San Francisco; on the web the browser's system stack. These are
+the faces people already read every day, they are free to render, and they are
+the only ones guaranteed to cover Indic scripts (Devanagari, Tamil, Telugu,
+Bengali, Kannada, Malayalam) when the app is localised.
+
+There is deliberately **no display serif**. Playfair-style faces have no Indic
+coverage, which produces mismatched fallbacks as soon as a screen mixes
+languages, and their thin strokes break down at small sizes on low-density
+screens. Hierarchy comes from size and weight, not from a second family.
 
 ## Font families
 
-| Role | Preferred stack | Tailwind class | Fallback |
-| --- | --- | --- | --- |
-| Interface | Inter | `font-sans` | System (`System`, Roboto, San Francisco) |
-| Editorial | Playfair Display | `font-serif` | Georgia, Times New Roman, serif |
+| Role | Stack | Tailwind class |
+| --- | --- | --- |
+| Everything | System sans (Roboto / San Francisco) | `font-sans` |
 
-The stacks are declared in `mobile-rn/src/theme/tokens.json`. Inter and
-Playfair Display are **not bundled yet**, so the app currently renders the
-platform system face. When the font assets are added, load them once at the
-root layout (for example with `expo-font` + `@expo-google-fonts/inter` and
-`@expo-google-fonts/playfair-display`) and keep the same token names.
+The stack is declared in `mobile-rn/src/theme/tokens.json`. Do not bundle
+display fonts and do not introduce a second family for headings.
 
-Do not use the serif for buttons, inputs, metadata, or long body copy.
+## Sizing for this audience
+
+- Body copy is 15px or larger; supporting copy is 14px at the smallest.
+- Form labels are 14px semibold, never smaller — they carry the instruction.
+- Line height stays at 1.45–1.55 so two-line labels (common in Hindi and other
+  Indic scripts) don't collide.
+- Prefer one clear primary action per screen; the audience is not
+  power-user-literate.
+- Tap targets are 44px minimum, including icon-only controls.
+- Never set important copy in all-caps with tight tracking; it is harder to
+  read and it does not map to Indic scripts.
 
 ## Scale
 

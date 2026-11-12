@@ -14,18 +14,21 @@ interface InputFieldProps extends TextInputProps {
   label: string;
   icon?: ReactNode;
   error?: string;
+  /** `surface` sits on a card; `outline` reads as a card itself (auth screens). */
+  variant?: "surface" | "outline";
   containerStyle?: string;
   inputStyle?: string;
 }
 
 /**
  * Labelled text field matching the Flutter `AppTextField`: a compact label,
- * a soft surface-coloured field, and an optional leading icon.
+ * a soft field, and an optional leading icon.
  */
 export default function InputField({
   label,
   icon,
   error,
+  variant = "surface",
   secureTextEntry = false,
   containerStyle = "",
   inputStyle = "",
@@ -33,15 +36,20 @@ export default function InputField({
 }: InputFieldProps) {
   const [obscured, setObscured] = useState(secureTextEntry);
 
+  const fieldTone =
+    variant === "outline"
+      ? "border-line bg-white"
+      : "border-surface bg-surface";
+
   return (
     <View className={`my-2 w-full ${containerStyle}`}>
-      <Text className="mb-1.5 text-[13.5px] font-semibold text-ink">
+      <Text className="mb-1.5 text-[14px] font-semibold text-ink">
         {label}
       </Text>
 
       <View
-        className={`flex-row items-center rounded-[14px] border bg-surface px-4 ${
-          error ? "border-danger" : "border-surface"
+        className={`flex-row items-center rounded-[14px] border px-4 ${
+          error ? "border-danger bg-white" : fieldTone
         }`}
       >
         {icon ? <View className="mr-2.5">{icon}</View> : null}

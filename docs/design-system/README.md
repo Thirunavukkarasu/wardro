@@ -87,10 +87,11 @@ long-term API.
 
 ### Typography status
 
-`tokens.json` declares the intended stacks — **Inter** for the interface and
-**Playfair Display** for editorial headings — with system fallbacks. The font
-assets are not bundled yet, so the app currently renders the platform system
-face. See [typography.md](typography.md) for the planned font-loading step.
+The app uses the **platform system sans only** (Roboto on Android, San
+Francisco on iOS). No display or serif face is bundled: those have no Indic
+coverage and their fine strokes break down on budget screens, and the audience
+is Android-first and largely non-technical. See
+[typography.md](typography.md) for the reasoning and sizing rules.
 
 ### Light and future dark theme
 

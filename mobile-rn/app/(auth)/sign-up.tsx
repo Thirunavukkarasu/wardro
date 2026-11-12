@@ -3,6 +3,7 @@ import { Lock, Mail, MailCheck, User } from "lucide-react-native";
 import { useState } from "react";
 import {
   KeyboardAvoidingView,
+  Linking,
   Modal,
   Platform,
   Pressable,
@@ -88,16 +89,21 @@ export default function SignUpScreen() {
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={{ paddingBottom: 32 }}
         >
-          <ScreenHero
-            title="Create your closet"
-            subtitle="One account. A closet for every person you dress."
-            height={216}
-            onBack={() => router.replace("/(auth)/sign-in")}
-          />
+          <ScreenHero onBack={() => router.replace("/(auth)/sign-in")} />
 
-          <View className="px-5 pt-4">
+          <View className="items-center px-5 pt-8">
+            <Text className="text-center text-[28px] leading-9 font-extrabold text-wardro-text-primary">
+              Create Your Account
+            </Text>
+            <Text className="mt-2 text-center text-[14.5px] leading-[22px] text-wardro-text-secondary">
+              Join Wardro and start building your wardrobe.
+            </Text>
+          </View>
+
+          <View className="px-5 pt-7">
             <InputField
               label="Name"
+              variant="outline"
               placeholder="Enter name"
               icon={<User size={20} color={wardroColors.text.disabled} />}
               autoComplete="name"
@@ -114,6 +120,7 @@ export default function SignUpScreen() {
 
             <InputField
               label="Email"
+              variant="outline"
               placeholder="Enter email"
               icon={<Mail size={20} color={wardroColors.text.disabled} />}
               autoCapitalize="none"
@@ -132,6 +139,7 @@ export default function SignUpScreen() {
 
             <InputField
               label="Password"
+              variant="outline"
               placeholder="Enter password"
               icon={<Lock size={20} color={wardroColors.text.disabled} />}
               secureTextEntry
@@ -165,6 +173,19 @@ export default function SignUpScreen() {
             />
 
             <OAuth />
+
+            <Text className="mt-6 text-center text-[11.5px] leading-5 text-wardro-text-secondary">
+              By creating an account you agree to our{" "}
+              <Text
+                className="underline"
+                onPress={() =>
+                  Linking.openURL("https://wardro-lake.vercel.app/privacy")
+                }
+              >
+                Privacy Policy
+              </Text>
+              .
+            </Text>
 
             <AuthFooterLink
               prompt="Already have an account?"

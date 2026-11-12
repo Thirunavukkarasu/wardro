@@ -99,7 +99,7 @@ module.exports = {
       },
       borderRadius: radius,
       spacing,
-      fontFamily,
+      fontFamily: { ...fontFamily, serif: fontFamily.sans },
       fontSize,
       fontWeight,
       boxShadow: shadows,

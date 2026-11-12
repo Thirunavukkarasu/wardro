@@ -6,29 +6,31 @@ import wordmarkWhite from "~/assets/images/wordmark-white.png";
 import { wardroColors } from "~/src/theme/colors";
 
 interface ScreenHeroProps {
-  title: string;
-  subtitle?: string;
+  tagline?: string;
   height?: number;
   onBack?: () => void;
 }
 
 /**
- * Brand header for the auth screens. Carries the Wardro wordmark so a
- * returning user lands on sign-in and still sees the app's name.
+ * Brand header for the auth screens: the lockup centred over the brand colour,
+ * with a rounded base so the form below reads as a separate surface.
  */
 export default function ScreenHero({
-  title,
-  subtitle,
-  height = 200,
+  tagline = "Your wardrobe, your style.",
+  height = 232,
   onBack,
 }: ScreenHeroProps) {
   return (
     <View
-      className="w-full justify-end overflow-hidden bg-brand px-5 pb-5"
-      style={{ height }}
+      className="w-full items-center justify-end overflow-hidden bg-brand px-5 pb-7"
+      style={{
+        height,
+        borderBottomLeftRadius: 34,
+        borderBottomRightRadius: 34,
+      }}
     >
-      <View className="absolute -right-10 -top-12 h-48 w-48 rounded-full bg-white/10" />
-      <View className="absolute -bottom-16 left-10 h-40 w-40 rounded-full bg-white/5" />
+      <View className="absolute -left-16 -top-24 h-56 w-56 rounded-full bg-white/10" />
+      <View className="absolute -bottom-24 -right-12 h-52 w-52 rounded-full bg-white/10" />
 
       {onBack ? (
         <Pressable
@@ -43,7 +45,7 @@ export default function ScreenHero({
       ) : null}
 
       <View
-        className="mb-3 flex-row items-center"
+        className="items-center"
         accessible
         accessibilityRole="image"
         accessibilityLabel="Wardro"
@@ -51,22 +53,18 @@ export default function ScreenHero({
         <Image
           source={hangerWhite}
           resizeMode="contain"
-          style={{ width: 36, height: 23, marginRight: 9 }}
+          style={{ width: 46, height: 29, marginBottom: 10 }}
         />
         <Image
           source={wordmarkWhite}
           resizeMode="contain"
-          style={{ width: 84, height: 19 }}
+          style={{ width: 132, height: 30 }}
         />
       </View>
 
-      <Text className="text-[24px] font-extrabold text-white">{title}</Text>
-
-      {subtitle ? (
-        <Text className="mt-1 text-[13.5px] font-medium leading-5 text-white/75">
-          {subtitle}
-        </Text>
-      ) : null}
+      <Text className="mt-3 text-[13px] font-medium text-white/75">
+        {tagline}
+      </Text>
     </View>
   );
 }

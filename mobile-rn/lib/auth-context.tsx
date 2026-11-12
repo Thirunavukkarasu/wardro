@@ -4,6 +4,7 @@ import {
   createUserWithEmailAndPassword,
   onAuthStateChanged,
   sendEmailVerification,
+  sendPasswordResetEmail,
   signInWithCredential,
   signInWithEmailAndPassword,
   signInWithPopup,
@@ -43,6 +44,7 @@ export interface AuthContextValue {
   signUp(name: string, email: string, password: string): Promise<boolean>;
   signInWithGoogle(): Promise<boolean>;
   resendVerificationEmail(): Promise<boolean>;
+  sendPasswordReset(email: string): Promise<boolean>;
   isEmailVerified(): Promise<boolean>;
   signOut(): Promise<void>;
   clearError(): void;
@@ -236,6 +238,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [googleRequest, promptGoogle, run],
   );
 
+  const sendPasswordReset = useCallback(
+    (email: string) =>
+      run(async () => {
+        try {
+          await sendPasswordResetEmail(auth, email.trim());
+        } catch (resetError) {
+          // Don't reveal whether an address has an account.
+          const code = (resetError as { code?: string })?.code?.replace(
+            /^auth\//,
+            "",
+          );
+          if (code !== "user-not-found") throw resetError;
+        }
+      }),
+    [run],
+  );
+
   const resendVerificationEmail = useCallback(
     () =>
       run(async () => {
@@ -280,6 +299,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signUp,
       signInWithGoogle,
       resendVerificationEmail,
+      sendPasswordReset,
       isEmailVerified,
       signOut,
       clearError,
@@ -293,6 +313,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signUp,
       signInWithGoogle,
       resendVerificationEmail,
+      sendPasswordReset,
       isEmailVerified,
       signOut,
       clearError,

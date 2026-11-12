@@ -4,6 +4,7 @@ import { useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
+  Pressable,
   ScrollView,
   Text,
   View,
@@ -20,7 +21,7 @@ import { emailError, FIELD_LIMITS } from "~/lib/validation";
 import { wardroColors } from "~/src/theme/colors";
 
 export default function SignInScreen() {
-  const { signIn, busy, error, clearError } = useAuth();
+  const { signIn, sendPasswordReset, busy, error, clearError } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -29,6 +30,7 @@ export default function SignInScreen() {
     password?: string;
   }>({});
   const [formError, setFormError] = useState<string | null>(null);
+  const [resetSent, setResetSent] = useState(false);
 
   const submit = async () => {
     setFormError(null);
@@ -46,6 +48,17 @@ export default function SignInScreen() {
     }
   };
 
+  const requestReset = async () => {
+    setResetSent(false);
+    const issue = emailError(email);
+    if (issue) {
+      setFieldErrors((current) => ({ ...current, email: issue }));
+      return;
+    }
+    setFieldErrors({});
+    if (await sendPasswordReset(email)) setResetSent(true);
+  };
+
   const message = formError ?? error;
 
   return (
@@ -59,19 +72,22 @@ export default function SignInScreen() {
           contentContainerStyle={{ paddingBottom: 32 }}
         >
           <ScreenHero
-            title="Welcome back"
-            subtitle="Your closet is right where you left it."
-            height={216}
-            onBack={
-              router.canGoBack()
-                ? () => router.back()
-                : undefined
-            }
+            onBack={router.canGoBack() ? () => router.back() : undefined}
           />
 
-          <View className="px-5 pt-4">
+          <View className="items-center px-5 pt-8">
+            <Text className="text-center text-[28px] leading-9 font-extrabold text-wardro-text-primary">
+              Welcome back
+            </Text>
+            <Text className="mt-2 text-center text-[14.5px] leading-[22px] text-wardro-text-secondary">
+              Sign in to continue building your wardrobe.
+            </Text>
+          </View>
+
+          <View className="px-5 pt-7">
             <InputField
               label="Email"
+              variant="outline"
               placeholder="Enter email"
               icon={<Mail size={20} color={wardroColors.text.disabled} />}
               autoCapitalize="none"
@@ -90,6 +106,7 @@ export default function SignInScreen() {
 
             <InputField
               label="Password"
+              variant="outline"
               placeholder="Enter password"
               icon={<Lock size={20} color={wardroColors.text.disabled} />}
               secureTextEntry
@@ -108,6 +125,23 @@ export default function SignInScreen() {
               }}
               onSubmitEditing={submit}
             />
+
+            <Pressable
+              accessibilityRole="button"
+              onPress={requestReset}
+              hitSlop={8}
+              className="self-end py-1 active:opacity-70"
+            >
+              <Text className="text-[13px] font-semibold text-wardro-primary-dark">
+                Forgot password?
+              </Text>
+            </Pressable>
+
+            {resetSent ? (
+              <Text className="mt-1 text-[13px] font-medium text-success">
+                If that address has an account, a reset link is on its way.
+              </Text>
+            ) : null}
 
             {message ? (
               <Text className="mt-1 text-sm font-medium text-danger">
