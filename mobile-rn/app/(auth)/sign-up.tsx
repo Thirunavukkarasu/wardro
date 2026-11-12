@@ -89,7 +89,9 @@ export default function SignUpScreen() {
           contentContainerStyle={{ paddingBottom: 32 }}
         >
           <ScreenHero
-            title="Create Your Account"
+            title="Create your closet"
+            subtitle="One account. A closet for every person you dress."
+            height={216}
             onBack={() => router.replace("/(auth)/sign-in")}
           />
 

@@ -59,7 +59,9 @@ export default function SignInScreen() {
           contentContainerStyle={{ paddingBottom: 32 }}
         >
           <ScreenHero
-            title="Welcome 👋"
+            title="Welcome back"
+            subtitle="Your closet is right where you left it."
+            height={216}
             onBack={
               router.canGoBack()
                 ? () => router.back()

@@ -1,11 +1,13 @@
 import { ArrowLeft } from "lucide-react-native";
 import { Image, Pressable, Text, View } from "react-native";
 
+import hangerWhite from "~/assets/images/hanger-white.png";
 import wordmarkWhite from "~/assets/images/wordmark-white.png";
 import { wardroColors } from "~/src/theme/colors";
 
 interface ScreenHeroProps {
   title: string;
+  subtitle?: string;
   height?: number;
   onBack?: () => void;
 }
@@ -16,6 +18,7 @@ interface ScreenHeroProps {
  */
 export default function ScreenHero({
   title,
+  subtitle,
   height = 200,
   onBack,
 }: ScreenHeroProps) {
@@ -26,15 +29,6 @@ export default function ScreenHero({
     >
       <View className="absolute -right-10 -top-12 h-48 w-48 rounded-full bg-white/10" />
       <View className="absolute -bottom-16 left-10 h-40 w-40 rounded-full bg-white/5" />
-
-      <View className="absolute right-5 top-6">
-        <Image
-          source={wordmarkWhite}
-          accessibilityLabel="Wardro"
-          resizeMode="contain"
-          style={{ width: 104, height: 24 }}
-        />
-      </View>
 
       {onBack ? (
         <Pressable
@@ -48,7 +42,31 @@ export default function ScreenHero({
         </Pressable>
       ) : null}
 
+      <View
+        className="mb-3 flex-row items-center"
+        accessible
+        accessibilityRole="image"
+        accessibilityLabel="Wardro"
+      >
+        <Image
+          source={hangerWhite}
+          resizeMode="contain"
+          style={{ width: 36, height: 23, marginRight: 9 }}
+        />
+        <Image
+          source={wordmarkWhite}
+          resizeMode="contain"
+          style={{ width: 84, height: 19 }}
+        />
+      </View>
+
       <Text className="text-[24px] font-extrabold text-white">{title}</Text>
+
+      {subtitle ? (
+        <Text className="mt-1 text-[13.5px] font-medium leading-5 text-white/75">
+          {subtitle}
+        </Text>
+      ) : null}
     </View>
   );
 }
