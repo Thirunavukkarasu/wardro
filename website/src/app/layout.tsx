@@ -20,6 +20,11 @@ export const metadata: Metadata = {
   title: "Wardro — Your family's wardrobe, thoughtfully organized",
   description:
     "Wardro keeps every family member's wardrobe in one calm place, then lets you ask what to wear, find what you own, or photograph a new garment.",
+  icons: {
+    icon: [{ url: "/icon.png", type: "image/png", sizes: "1024x1024" }],
+    shortcut: "/favicon.ico",
+    apple: "/apple-icon.png",
+  },
   openGraph: {
     title: "Wardro — Your family's wardrobe, thoughtfully organized",
     description:
