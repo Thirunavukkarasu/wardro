@@ -72,21 +72,21 @@ export const icons = {
 export const onboarding = [
     {
         id: 1,
-        title: "Welcome to Wardro",
+        title: "Your wardrobe, photographed",
         description:
-            "Explore the new way of organizing your wardrobe",
+            "Add a garment with a photo and Wardro files it away for you",
         image: images.onboarding1,
     },
     {
         id: 2,
-        title: "Browse the catalog",
-        description: "Find the perfect outfit for any occasion",
+        title: "One closet per person",
+        description: "Every family member gets their own profile and closet",
         image: images.onboarding2,
     },
     {
         id: 3,
-        title: "Create your own style",
-        description: "Create your own style and share it with the world",
+        title: "Ask what to wear",
+        description: "Wardro suggests looks using clothes you already own",
         image: images.onboarding3,
     },
 ];

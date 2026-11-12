@@ -15,15 +15,16 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import CustomButton from "~/components/CustomButton";
 import { onboarding } from "~/constants";
+import { markOnboardingSeen } from "~/lib/onboarding";
 
-/** Landing/onboarding screen shown to signed-out users. */
+/** First-run onboarding carousel shown to signed-out users. */
 export default function WelcomeScreen() {
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   // On web the app is confined to a 430px phone column (see PhoneFrame).
   const width = Platform.OS === "web" ? Math.min(windowWidth, 430) : windowWidth;
-  // Let the illustration take a screen-proportional share of the slide rather
-  // than a fixed height, so short phones don't crowd and tall ones don't gap.
-  const artHeight = Math.min(Math.round(windowHeight * 0.32), 320);
+  // The illustrations are 4:5 portrait, so the slot has to be tall enough to
+  // let them fill it; a landscape slot would shrink them to a strip.
+  const artHeight = Math.min(Math.round(windowHeight * 0.4), 380);
   const scrollRef = useRef<ScrollView>(null);
   const [activeIndex, setActiveIndex] = useState(0);
 
@@ -34,12 +35,21 @@ export default function WelcomeScreen() {
     if (index !== activeIndex) setActiveIndex(index);
   };
 
-  const goToSignUp = () => router.replace("/(auth)/sign-up");
+  // Both exits consume the carousel: it is a first-run experience, so skipping
+  // it counts as having seen it.
+  const finishOnboarding = async () => {
+    await markOnboardingSeen();
+    router.replace("/(auth)/sign-up");
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-canvas">
       <View className="flex-row justify-end p-5">
-        <Pressable onPress={goToSignUp} hitSlop={10}>
+        <Pressable
+          onPress={finishOnboarding}
+          hitSlop={10}
+          accessibilityRole="button"
+        >
           <Text className="text-sm font-bold text-ink">Skip</Text>
         </Pressable>
       </View>
@@ -58,7 +68,7 @@ export default function WelcomeScreen() {
           <View
             key={slide.id}
             style={{ width, height: "100%" }}
-            className="items-center justify-center px-8"
+            className="items-center justify-center px-8 pb-10"
           >
             <Image
               source={slide.image}
@@ -76,29 +86,29 @@ export default function WelcomeScreen() {
         ))}
       </ScrollView>
 
-      <View
-        className="flex-row items-center justify-center"
-        accessibilityRole="adjustable"
-        accessibilityLabel={`Slide ${activeIndex + 1} of ${onboarding.length}`}
-      >
-        {onboarding.map((slide, index) => (
-          <View
-            key={slide.id}
-            className={`mx-1 h-1 w-8 rounded-full ${
-              index === activeIndex
-                ? "bg-wardro-primary-dark"
-                : "bg-wardro-border"
-            }`}
-          />
-        ))}
-      </View>
+      <View className="px-5 pb-6 pt-2">
+        <View
+          className="flex-row items-center justify-center pb-6"
+          accessibilityRole="adjustable"
+          accessibilityLabel={`Slide ${activeIndex + 1} of ${onboarding.length}`}
+        >
+          {onboarding.map((slide, index) => (
+            <View
+              key={slide.id}
+              className={`mx-1 h-1 w-8 rounded-full ${
+                index === activeIndex
+                  ? "bg-wardro-primary-dark"
+                  : "bg-wardro-border"
+              }`}
+            />
+          ))}
+        </View>
 
-      <View className="px-5 pb-6 pt-6">
         <CustomButton
           title={isLastSlide ? "Get Started" : "Next"}
           onPress={() => {
             if (isLastSlide) {
-              goToSignUp();
+              void finishOnboarding();
             } else {
               scrollRef.current?.scrollTo({
                 x: width * (activeIndex + 1),

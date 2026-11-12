@@ -1,13 +1,9 @@
-import { Redirect } from "expo-router";
+import { View } from "react-native";
 
-import { useAuth } from "~/lib/auth-context";
-
+/**
+ * Entry route. RootNavigator owns the auth/onboarding redirects; this only
+ * needs to render something neutral (the splash covers it) while they resolve.
+ */
 export default function Index() {
-  const { status } = useAuth();
-
-  if (status === "signedIn") {
-    return <Redirect href="/(root)/(tabs)/today" />;
-  }
-
-  return <Redirect href="/(auth)/welcome" />;
+  return <View className="flex-1 bg-canvas" />;
 }

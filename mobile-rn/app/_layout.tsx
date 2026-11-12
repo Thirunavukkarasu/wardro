@@ -16,6 +16,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import splashArtwork from "~/assets/images/splash.png";
 import PhoneFrame from "~/components/PhoneFrame";
 import { AuthProvider, useAuth } from "~/lib/auth-context";
+import { hasSeenOnboarding } from "~/lib/onboarding";
 import {
   ProfilesProvider,
   useProfiles,
@@ -49,6 +50,20 @@ function RootNavigator() {
   const profileBlocked =
     status === "signedIn" && (profilesError || !activeProfile);
 
+  // The carousel is a first-run experience: returning signed-out users go
+  // straight to sign-in. Resolve the flag before routing so the wrong screen
+  // never flashes.
+  const [onboardingSeen, setOnboardingSeen] = useState<boolean | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    hasSeenOnboarding().then((seen) => {
+      if (!cancelled) setOnboardingSeen(seen);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   // Hold the splash long enough to read as a splash rather than a flash.
   const [minSplashElapsed, setMinSplashElapsed] = useState(false);
   useEffect(() => {
@@ -58,7 +73,7 @@ function RootNavigator() {
 
   const [splashVisible, setSplashVisible] = useState(true);
   const splashOpacity = useRef(new Animated.Value(1)).current;
-  const appReady = !booting && minSplashElapsed;
+  const appReady = !booting && onboardingSeen !== null && minSplashElapsed;
 
   useEffect(() => {
     if (!appReady) return;
@@ -76,22 +91,35 @@ function RootNavigator() {
   useEffect(() => {
     // The Stack is replaced by a loading/error view in these states. Dispatching
     // a replace before it mounts makes React Navigation drop the action.
-    if (booting || profileBlocked) return;
+    if (booting || profileBlocked || onboardingSeen === null) return;
 
     const inAuthGroup = segments[0] === "(auth)";
-    const inSignUp = (segments as readonly string[]).includes("sign-up");
+    const inRootGroup = segments[0] === "(root)";
+    const authScreen = (segments as readonly string[])[1];
 
-    if (status === "signedOut" && !inAuthGroup) {
-      router.replace("/(auth)/welcome");
+    if (status === "signedOut") {
+      if (!inAuthGroup) {
+        // The carousel is first-run only; returning users land on sign-in.
+        router.replace(onboardingSeen ? "/(auth)/sign-in" : "/(auth)/welcome");
+      } else if (onboardingSeen && authScreen === "welcome") {
+        router.replace("/(auth)/sign-in");
+      }
       return;
     }
 
     // Sign-up stays visible while the verification dialog is open; the
     // screen itself continues to the app when the user dismisses it.
-    if (status === "signedIn" && inAuthGroup && !inSignUp) {
+    if (inAuthGroup) {
+      if (authScreen !== "sign-up") {
+        router.replace("/(root)/(tabs)/today");
+      }
+      return;
+    }
+
+    if (!inRootGroup) {
       router.replace("/(root)/(tabs)/today");
     }
-  }, [status, segments, router, booting, profileBlocked]);
+  }, [status, segments, router, booting, profileBlocked, onboardingSeen]);
 
   const content = booting ? (
     // The splash overlay covers this; keep it blank rather than a spinner so

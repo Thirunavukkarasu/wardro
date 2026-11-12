@@ -155,7 +155,8 @@ Detailed feature status and the next slices live in
 5. The user lands on Today with the profile rail.
 
 **Acceptance:** no client-supplied owner id is trusted; a signed-in user always
-has at least one profile; sign-out returns to the welcome screen.
+has at least one profile. The onboarding carousel is first-run only: signing out
+returns to the sign-in screen, not the carousel.
 
 ### 5.2 Add one item with AI auto-fill
 
