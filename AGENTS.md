@@ -28,6 +28,7 @@ Do not merge the two trees. Link across them instead.
 | LangChain agent service: status, run, integration gaps | [`wardro-agent/README.md`](wardro-agent/README.md) |
 | Manual API requests (Bruno, token setup) | [`backend/api-tests/README.md`](backend/api-tests/README.md) |
 | Mobile app setup and architecture | [`mobile-rn/README.md`](mobile-rn/README.md) |
+| Play Store listing, data safety and production gate | [`mobile-rn/docs/play-store.md`](mobile-rn/docs/play-store.md) |
 | Screen/navigation plan and phasing | [`mobile-rn/docs/screen-architecture.md`](mobile-rn/docs/screen-architecture.md) |
 | Household profiles: schema, API, UI, migration | [`mobile-rn/docs/multi-profile.md`](mobile-rn/docs/multi-profile.md) |
 | Screen blueprints, inspiration and reference images | [`mobile-rn/docs/design/README.md`](mobile-rn/docs/design/README.md) |
