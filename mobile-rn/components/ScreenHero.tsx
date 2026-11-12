@@ -1,5 +1,7 @@
-import { ArrowLeft, Shirt } from "lucide-react-native";
-import { Pressable, Text, View } from "react-native";
+import { ArrowLeft } from "lucide-react-native";
+import { Image, Pressable, Text, View } from "react-native";
+
+import wordmarkWhite from "~/assets/images/wordmark-white.png";
 import { wardroColors } from "~/src/theme/colors";
 
 interface ScreenHeroProps {
@@ -9,8 +11,8 @@ interface ScreenHeroProps {
 }
 
 /**
- * Brand header for the auth screens. Uses the indigo palette rather than the
- * "no results" illustration, which crops badly as a full-bleed hero.
+ * Brand header for the auth screens. Carries the Wardro wordmark so a
+ * returning user lands on sign-in and still sees the app's name.
  */
 export default function ScreenHero({
   title,
@@ -24,8 +26,14 @@ export default function ScreenHero({
     >
       <View className="absolute -right-10 -top-12 h-48 w-48 rounded-full bg-white/10" />
       <View className="absolute -bottom-16 left-10 h-40 w-40 rounded-full bg-white/5" />
-      <View className="absolute right-8 top-10 opacity-20">
-        <Shirt size={56} color={wardroColors.surface} />
+
+      <View className="absolute right-5 top-6">
+        <Image
+          source={wordmarkWhite}
+          accessibilityLabel="Wardro"
+          resizeMode="contain"
+          style={{ width: 104, height: 24 }}
+        />
       </View>
 
       {onBack ? (
