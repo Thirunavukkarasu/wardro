@@ -271,6 +271,162 @@ multi-scan, email receipt import and store purchase-history import are not.
 The product should not promise four-store support until at least one reliable
 path is validated.
 
+## Proposed: Outfit split and two-phase cutout
+
+**Status:** Proposed, not implemented. One photo produces one draft today;
+the review has no split or cutout step.
+
+**Goal:** a worn photo can produce several item rows (top, pants, footwear)
+with a usable item photo, without asking the user to take three pictures. The
+split is automatic and synchronous; a clean cutout is optional and on demand.
+
+### Phase 1 — synchronous split
+
+Extend `POST /api/ai/item-draft` (or add `POST /api/ai/item-drafts`) to return
+a list. One vision call per photo, not one call per item.
+
+Each returned item adds:
+
+```ts
+bbox?: { x: number; y: number; w: number; h: number } // normalized 0–1
+sourcePhotoKey?: string
+```
+
+The model also returns an explicit item count and a `lowerWearSeparate` flag,
+so a dress or jumpsuit is not split into top + pants. Ask it to split only
+mostly visible garments, and cap items per photo at 4.
+
+Client behaviour:
+
+- Crop each `bbox` from the **original** local file with
+  `expo-image-manipulator`, adding ~6% padding. Detect on the downscaled copy;
+  crop from the original so the crop does not inherit the downscale.
+- One selected photo may create several rows. Cap total rows at `MAX_ITEMS`
+  (10), not picked photos.
+- Keep `sourcePhotoKey` and `bbox` on the row for recrop and phase 2.
+- A single-item photo (flat-lay, hanger, product page) keeps the existing
+  one-row path and is not cropped.
+
+Why sync here: the VLM call already dominates (2–10 s), cropping is local and
+free, and the review screen already tolerates a few seconds with a progress
+state. No new infrastructure.
+
+### Phase 2 — cutout API (on demand)
+
+`POST /api/ai/cutout` receives the **crop**, not the full-body photo:
+
+```ts
+// request
+{ imageBase64: string, contentType: string, cropHash: string }
+// response
+{
+  cutoutBase64: string,
+  contentType: "image/png",
+  width: number,
+  height: number,
+  maskBox: { x: number; y: number; w: number; h: number }
+}
+```
+
+- Return base64 for v1. It matches how local photos are held in memory until
+  commit and avoids orphaned pending objects in GCS.
+- Timeout 30 s, 10 requests/minute per user, concurrency 2 for batch actions.
+- Cache by `cropHash`; a repeated tap returns the cached result.
+- The Bun backend calls `wardro-agent` (`POST /vision/cutout`) or a serverless
+  GPU provider. The AI service returns an image; it never writes wardrobe rows
+  (invariant 3).
+
+Clean the mask server-side before returning: keep the largest connected
+component, drop components touching the crop border (background leakage), and
+feather alpha 1–2 px. Without this, the cutout can look worse than the crop.
+
+Model candidate: `sayeed99/segformer_b3_clothes` (SegFormer-B3, MIT). A
+2026-11-11 test on a real worn photo found the top/upper-clothes masks agree at
+IoU 0.975 and pants at 0.915, with ~2.5 s per image on CPU. `fashn-human-parser`
+agreed closely but has no shoe class and inherits the NVIDIA Source Code
+License; use it for QA only, not as a shipped dependency without a license
+review.
+
+### Review UX
+
+- Tapping a row thumbnail opens a full-screen sheet with pinch, pan and
+  double-tap zoom. Do **not** run the cutout on open, pinch or zoom.
+- Bottom bar: **Adjust crop** (local, instant) and **Cut out** (server). Use
+  `Crop` and `Scissors`/`Wand2` from `lucide-react-native`, with 44 px tap
+  targets and accessibility labels.
+- After a successful cutout show an **Original | Cutout** toggle and a **Use
+  original** action. Never replace the crop silently.
+- While the cutout runs, keep the original visible and the row usable. On
+  failure keep the original and show an inline retry; never block the commit.
+- Show a small "Cutout" badge on the row after success. Surface the action
+  prominently only for rows that carry a `bbox` (split rows); keep it
+  secondary for single-item photos.
+- "Cut out all" in the review header is a later addition: only when at least
+  two split rows exist, processed 2 at a time.
+
+### Data model (additive)
+
+- `wardrobe_item.original_photo_path` (text, nullable) — the pre-cutout crop.
+- `wardrobe_item.photo_crop` (jsonb, nullable) — normalized `{ x, y, w, h }`.
+- Optional `wardrobe_item.photo_source` (`split`, `manual`, `url`, `bulk`) for
+  provenance.
+- `photoPath` remains the displayed photo: the cutout when chosen, otherwise
+  the crop.
+- `PendingReviewItem` / `ReviewRow` add `cutout`, `sourcePhotoKey` and `bbox`.
+- Hash the **crop**, not the shared source photo, so three items from one
+  capture do not falsely match each other. Keep a separate source hash only if
+  re-import detection is needed.
+
+The migration is additive and reviewed; never use `drizzle-kit push`. See
+[`docs/research/data-model-assessment.md`](research/data-model-assessment.md).
+
+### Privacy
+
+Phase 2 sees only the item crop. Keep the full-body source in GCS only when
+provenance needs it, treat it as sensitive, and default to retaining it only
+when the user keeps the source photo.
+
+### Rejected alternatives
+
+- **Generic cloud vision** (Google Vision, AWS Rekognition, Azure AI Vision):
+  object boxes and coarse labels, not garment masks or garment taxonomy.
+- **Product background-removal APIs** (remove.bg, Photoroom, Clipping Magic):
+  they cut out one subject and do not separate a top from pants. Useful only
+  after a crop.
+- **ML Kit Subject Segmentation**: on-device and private, but person-level. A
+  person wearing three garments is one subject, with no labels and no prompt.
+  Useful for foreground isolation, not splitting.
+- **Segmentation inside the sync request**: ~2.5 s CPU plus the torch runtime
+  and cold starts, for a result that only improves the thumbnail. Keep it out
+  of the critical path.
+
+### First slice
+
+1. Phase 1: list response with `bbox` and the client-side crop from the
+   original.
+2. Review rows grouped by source photo, with recrop.
+3. `POST /api/ai/cutout` with mask cleanup and caching.
+4. Expanded-photo sheet with Adjust crop / Cut out and the Original | Cutout
+   toggle.
+5. "Cut out all" only after the on-demand path is proven.
+
+### Acceptance criteria
+
+1. One worn photo with a top and pants creates two review rows with separate
+   crops; a dress creates one.
+2. A single-item photo behaves exactly as it does today.
+3. `POST /api/ai/cutout` returns a transparent PNG for a crop, and the user can
+   revert to the original.
+4. A failed cutout leaves the row and the commit intact.
+5. Three rows from the same source photo do not trip duplicate detection.
+6. No database row is written before the user confirms.
+
+### Open questions for this feature
+
+- Should the source photo be retained after the split, and for how long?
+- Does the cutout replace the item photo for display, or sit beside it?
+- Is "Cut out all" worth the cost, or should every cutout be deliberate?
+
 ## Open questions
 
 - Should a duplicate update the existing item instead of adding a new one
