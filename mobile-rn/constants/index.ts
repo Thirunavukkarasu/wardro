@@ -75,7 +75,7 @@ export const onboarding = [
         title: "Welcome to Wardro",
         description:
             "Explore the new way of organizing your wardrobe",
-        image: images.onboarding3,
+        image: images.onboarding1,
     },
     {
         id: 2,
