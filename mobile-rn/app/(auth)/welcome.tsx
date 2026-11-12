@@ -18,9 +18,12 @@ import { onboarding } from "~/constants";
 
 /** Landing/onboarding screen shown to signed-out users. */
 export default function WelcomeScreen() {
-  const { width: windowWidth } = useWindowDimensions();
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   // On web the app is confined to a 430px phone column (see PhoneFrame).
   const width = Platform.OS === "web" ? Math.min(windowWidth, 430) : windowWidth;
+  // Let the illustration take a screen-proportional share of the slide rather
+  // than a fixed height, so short phones don't crowd and tall ones don't gap.
+  const artHeight = Math.min(Math.round(windowHeight * 0.32), 320);
   const scrollRef = useRef<ScrollView>(null);
   const [activeIndex, setActiveIndex] = useState(0);
 
@@ -49,29 +52,35 @@ export default function WelcomeScreen() {
         onScroll={onScroll}
         scrollEventThrottle={16}
         className="flex-1"
+        contentContainerStyle={{ flexGrow: 1 }}
       >
         {onboarding.map((slide) => (
           <View
             key={slide.id}
-            style={{ width }}
+            style={{ width, height: "100%" }}
             className="items-center justify-center px-8"
           >
             <Image
               source={slide.image}
               resizeMode="contain"
-              style={{ width: "100%", height: 260 }}
+              accessibilityLabel={slide.title}
+              style={{ width: "100%", height: artHeight }}
             />
-            <Text className="mt-10 text-center text-[26px] font-bold text-ink">
+            <Text className="mt-10 text-center text-heading font-bold text-wardro-text-primary">
               {slide.title}
             </Text>
-            <Text className="mt-3 text-center text-sm font-semibold text-ink-secondary">
+            <Text className="mt-3 text-center text-body text-wardro-text-secondary">
               {slide.description}
             </Text>
           </View>
         ))}
       </ScrollView>
 
-      <View className="flex-row items-center justify-center">
+      <View
+        className="flex-row items-center justify-center"
+        accessibilityRole="adjustable"
+        accessibilityLabel={`Slide ${activeIndex + 1} of ${onboarding.length}`}
+      >
         {onboarding.map((slide, index) => (
           <View
             key={slide.id}
